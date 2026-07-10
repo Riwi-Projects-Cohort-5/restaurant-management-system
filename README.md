@@ -1,17 +1,19 @@
 # Restaurant Management System
 
-Sistema de Gestión Integral para Restaurantes.
+Comprehensive Restaurant Management System.
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Tech Stack
 
-| Capa | Tecnologías |
-|------|-------------|
-| 🎨 Frontend | HTML5 · Tailwind CSS · JavaScript (Vanilla SPA) |
-| ⚙️ Backend | Python · FastAPI |
-| 🗄️ Base de Datos | PostgreSQL |
-| 🚀 Infraestructura | Docker · Vercel |
 
-## 👥 Equipo
+| Layer             | Technologies                                    |
+| ----------------- | ----------------------------------------------- |
+| 🎨 Frontend       | HTML5 · Tailwind CSS · JavaScript (Vanilla SPA) |
+| ⚙️ Backend        | Python · FastAPI                                |
+| 🗄️ Database      | PostgreSQL                                      |
+| 🚀 Infrastructure | Docker · Railway                                |
+
+
+## 👥 Team
 
 - Emanuel Sandoval — Backend
 - Diego Gonzalez — Backend
@@ -20,4 +22,5 @@ Sistema de Gestión Integral para Restaurantes.
 - Jose Romero — UX/UI / Scrum Master
 
 ---
-Proyecto Integrador RIWI Cohorte 5 2026
+
+RIWI Capstone Project Cohort 5 2026
