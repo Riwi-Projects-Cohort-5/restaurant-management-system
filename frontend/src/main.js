@@ -2,6 +2,8 @@ import { initMockUsers } from "./services/mockUsers.js";
 import * as authStore from "./store/auth.js";
 import { renderLogin } from "./views/auth/login.js";
 import { renderRegister } from "./views/auth/register.js";
+import { renderReservations } from "./views/reservations/list.js";
+import { renderReservationStatus } from "./views/reservations/status.js";
 import { getHomeRoute } from "./utils/routeGuard.js";
 
 initMockUsers();
@@ -42,6 +44,12 @@ function route() {
     case "/payments":
       renderDashboard(app, "Payments");
       break;
+    case "/reservations":
+      renderReservations(app);
+      break;
+    case "/reservation-status":
+      renderReservationStatus(app);
+      break;
     default:
       window.location.hash = "#/login";
   }
@@ -66,7 +74,12 @@ function renderDashboard(app, title) {
               </span>
               ${
                 user.role === "admin"
-                  ? '<a href="#/create-user" class="text-sm text-indigo-600 hover:underline">Create User</a>'
+                  ? '<a href="#/create-user" class="text-sm text-indigo-600 hover:underline">Create User</a><a href="#/reservations" class="text-sm text-indigo-600 hover:underline">Reservas</a>'
+                  : ""
+              }
+              ${
+                user.role === "client"
+                  ? '<a href="#/reservation-status" class="text-sm text-indigo-600 hover:underline">Mis Reservas</a>'
                   : ""
               }
               <button
