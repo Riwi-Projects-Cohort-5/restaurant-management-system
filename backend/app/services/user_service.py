@@ -1,0 +1,48 @@
+from uuid import UUID
+from typing import Optional
+
+from sqlalchemy.orm import Session
+
+from app.db.models.user import User, UserRole
+from app.repositories.user_repository import UserRepository
+from app.core.security import get_password_hash
+
+
+class UserService:
+    def __init__(self, db: Session):
+        self.repo = UserRepository(db)
+
+    def get_by_id(self, user_id: UUID) -> Optional[User]:
+        return self.repo.get_by_id(user_id)
+
+    def get_all(self, skip: int = 0, limit: int = 100) -> list[User]:
+        return self.repo.get_all(skip, limit)
+
+    def create(self, username: str, email: str, password: str, full_name: str, role: str = "waiter") -> User:
+        hashed = get_password_hash(password)
+        user = User(
+            username=username,
+            email=email,
+            hashed_password=hashed,
+            full_name=full_name,
+            role=UserRole(role),
+        )
+        return self.repo.create(user)
+
+    def update(self, user_id: UUID, data: dict) -> Optional[User]:
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            return None
+        for key, value in data.items():
+            if value is not None and hasattr(user, key):
+                if key == "role":
+                    value = UserRole(value)
+                setattr(user, key, value)
+        return self.repo.update(user)
+
+    def delete(self, user_id: UUID) -> bool:
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            return False
+        self.repo.delete(user)
+        return True
