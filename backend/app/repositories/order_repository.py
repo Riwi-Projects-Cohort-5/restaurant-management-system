@@ -14,8 +14,8 @@ class OrderRepository:
     def get_by_id(self, order_id: UUID) -> Optional[Order]:
         return self.db.query(Order).filter(Order.id == order_id).first()
 
-    def get_by_user(self, user_id: UUID) -> list[Order]:
-        return self.db.query(Order).filter(Order.user_id == user_id).all()
+    def get_by_waiter(self, waiter_id: UUID) -> list[Order]:
+        return self.db.query(Order).filter(Order.waiter_id == waiter_id).all()
 
     def get_by_table(self, table_id: UUID) -> list[Order]:
         return self.db.query(Order).filter(Order.table_id == table_id).all()

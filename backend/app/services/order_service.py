@@ -18,8 +18,8 @@ class OrderService:
     def get_by_id(self, order_id: UUID) -> Optional[Order]:
         return self.repo.get_by_id(order_id)
 
-    def get_by_user(self, user_id: UUID) -> list[Order]:
-        return self.repo.get_by_user(user_id)
+    def get_by_waiter(self, waiter_id: UUID) -> list[Order]:
+        return self.repo.get_by_waiter(waiter_id)
 
     def get_active(self) -> list[Order]:
         return self.repo.get_active()
@@ -27,8 +27,8 @@ class OrderService:
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Order]:
         return self.repo.get_all(skip, limit)
 
-    def create(self, user_id: UUID, table_id: UUID) -> Order:
-        order = Order(user_id=user_id, table_id=table_id)
+    def create(self, waiter_id: UUID, table_id: UUID) -> Order:
+        order = Order(waiter_id=waiter_id, table_id=table_id)
         return self.repo.create(order)
 
     def add_item(self, order_id: UUID, menu_item_id: UUID, quantity: int = 1) -> Optional[Order]:

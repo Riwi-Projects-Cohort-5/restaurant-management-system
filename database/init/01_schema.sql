@@ -48,7 +48,7 @@ CREATE TABLE tables (
 -- =====================================================
 
 CREATE TABLE reservations (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id VARCHAR(30) PRIMARY KEY,
     customer_id UUID NOT NULL,
     table_id UUID,
     party_size INTEGER NOT NULL,
@@ -100,9 +100,6 @@ CREATE TABLE orders (
     table_id UUID NOT NULL,
     waiter_id UUID NOT NULL,
 
-    customer_id UUID,
-    reservation_id UUID,
-
     status VARCHAR(30) DEFAULT 'PENDING',
 
     subtotal DECIMAL(10,2) DEFAULT 0,
@@ -113,9 +110,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (table_id) REFERENCES tables(id),
-    FOREIGN KEY (waiter_id) REFERENCES users(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (reservation_id) REFERENCES reservations(id)
+    FOREIGN KEY (waiter_id) REFERENCES users(id)
 );
 
 -- =====================================================

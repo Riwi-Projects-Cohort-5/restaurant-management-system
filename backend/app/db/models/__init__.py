@@ -1,4 +1,5 @@
 from app.db.models.user import User
+from app.db.models.customer import Customer
 from app.db.models.menu_item import MenuItem
 from app.db.models.category import Category
 from app.db.models.table import Table
@@ -12,6 +13,7 @@ from app.db.models.kitchen_order import KitchenOrder
 
 __all__ = [
     "User",
+    "Customer",
     "MenuItem",
     "Category",
     "Table",
