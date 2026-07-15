@@ -3,11 +3,11 @@
 Módulo   : reservations.py
 Ruta     : backend/app/api/v1/reservations.py
 Responsable: Diego
-Descripción: Endpoints REST para la gestión de reservaciones
-             del restaurante. Permite a los clientes reservar
-             mesas con anticipación. Al confirmar una reserva,
-             la mesa pasa a estado RESERVED automáticamente.
-Fecha    : 2026-07-14
+Descripción: Endpoints REST para gestión de reservaciones.
+            create recibe parámetros separados (no objeto).
+            delete no existe — se usa cancel que cambia
+            el estado a CANCELLED en lugar de eliminar.
+Fecha    : 2026-07-15
 =============================================================
 """
 
@@ -32,36 +32,9 @@ def obtener_todas_las_reservaciones(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """
-    Retorna todas las reservaciones registradas con paginación.
-    Requiere autenticación — solo staff puede ver todas las reservas.
-
-    Args:
-        skip : Número de registros a omitir (paginación).
-        limit: Máximo de registros a retornar.
-
-    Retorna:
-        Lista de ReservationOut con todas las reservaciones.
-    """
+    """Retorna todas las reservaciones. Requiere autenticación."""
     service = ReservationService(db)
     return service.get_all(skip=skip, limit=limit)
-
-
-@router.get("/active", response_model=List[ReservationOut])
-def obtener_reservaciones_activas(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    """
-    Retorna únicamente las reservaciones activas (pendientes o confirmadas).
-    Útil para el panel de recepción — ver qué clientes llegan hoy.
-    Requiere autenticación.
-
-    Retorna:
-        Lista de ReservationOut con reservaciones activas.
-    """
-    service = ReservationService(db)
-    return service.get_active()
 
 
 @router.get("/{reservation_id}", response_model=ReservationOut)
@@ -70,22 +43,9 @@ def obtener_reservacion_por_id(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """
-    Busca y retorna una reservación específica por su ID.
-    Requiere autenticación.
-
-    Args:
-        reservation_id: UUID de la reservación a buscar.
-
-    Retorna:
-        ReservationOut con los datos de la reservación.
-
-    Lanza:
-        HTTPException 404 si la reservación no existe.
-    """
+    """Retorna una reservación por su ID. Lanza 404 si no existe."""
     service = ReservationService(db)
     reservation = service.get_by_id(reservation_id)
-
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -101,24 +61,18 @@ def crear_reservacion(
     current_user=Depends(get_current_user)
 ):
     """
-    Crea una nueva reservación para una mesa.
-    Requiere autenticación.
-
-    Al crear la reservación:
-    - Se verifica disponibilidad de la mesa en la fecha/hora solicitada
-    - La mesa pasa a estado RESERVED
-    - Se confirma al cliente
-
-    Args:
-        data: ReservationCreate con los datos de la reservación
-              (table_id, fecha, hora, número de personas, notas).
-
-    Retorna:
-        ReservationOut con los datos de la reservación creada.
-        Código HTTP 201 Created.
+    Crea una nueva reservación. Requiere autenticación.
+    El user_id se extrae del token JWT del usuario autenticado.
     """
     service = ReservationService(db)
-    return service.create(data)
+    # create recibe parámetros separados; user_id viene del token
+    return service.create(
+        user_id=UUID(current_user["sub"]),
+        table_id=data.table_id,
+        reservation_date=data.reservation_date,
+        guest_count=data.guest_count,
+        notes=data.notes
+    )
 
 
 @router.put("/{reservation_id}", response_model=ReservationOut)
@@ -128,28 +82,11 @@ def actualizar_reservacion(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """
-    Actualiza los datos o el estado de una reservación existente.
-    Requiere autenticación.
-
-    Usado para confirmar, modificar o cancelar reservaciones:
-    PENDING → CONFIRMED → CANCELLED
-
-    Args:
-        reservation_id: UUID de la reservación a actualizar.
-        data          : ReservationUpdate con los campos a modificar.
-
-    Retorna:
-        ReservationOut con los datos actualizados.
-
-    Lanza:
-        HTTPException 404 si la reservación no existe.
-    """
+    """Actualiza datos o estado de una reservación. Requiere autenticación."""
     service = ReservationService(db)
     updated = service.update(
         reservation_id, data.model_dump(exclude_none=True)
     )
-
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -165,26 +102,14 @@ def cancelar_reservacion(
     current_user=Depends(get_current_user)
 ):
     """
-    Elimina o cancela una reservación por su ID.
-    Requiere autenticación.
-
-    Al cancelar:
-    - La reservación se elimina del sistema
-    - La mesa vuelve a estado AVAILABLE
-
-    Args:
-        reservation_id: UUID de la reservación a cancelar.
-
-    Retorna:
-        HTTP 204 No Content si se canceló correctamente.
-
-    Lanza:
-        HTTPException 404 si la reservación no existe.
+    Cancela una reservación. Requiere autenticación.
+    No elimina el registro — cambia el estado a CANCELLED.
+    Esto preserva el historial de reservaciones.
     """
     service = ReservationService(db)
-    deleted = service.delete(reservation_id)
-
-    if not deleted:
+    # El service usa cancel() en lugar de delete()
+    cancelled = service.cancel(reservation_id)
+    if not cancelled:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Reservación con id {reservation_id} no encontrada"
