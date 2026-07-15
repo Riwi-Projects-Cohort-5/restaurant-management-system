@@ -860,7 +860,7 @@
     .pos-layout {
       display: flex;
       flex-direction: column;
-      gap: var(--sp-10);
+      gap: var(--sp-8);
       padding-bottom: var(--sp-6);
     }
     .pos-menu {
@@ -2058,7 +2058,7 @@
         const fi = LIFECYCLE.indexOf(from);
         const ti = LIFECYCLE.indexOf(to);
         if (fi === -1 || ti === -1) return false;
-        return ti === fi + 1 && fi >= 1;
+        return ti === fi + 1 && fi >= 1 && ti <= 4;
       }
       return false;
     }
@@ -2112,7 +2112,7 @@
             transitions.push({ to: LIFECYCLE[lifecycleIdx+1], label: lifecycleIdx === 0 ? 'Send to Kitchen' : 'Next →', cls: 'btn-primary' });
           }
         } else if (currentRole === 'cook') {
-          if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1) {
+          if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 4) {
             const labels = { 1: 'Start Preparing', 2: 'Mark Ready', 3: 'Served' };
             transitions.push({ to: LIFECYCLE[lifecycleIdx+1], label: labels[lifecycleIdx] || 'Next →', cls: 'btn-primary' });
           }
