@@ -1,8 +1,7 @@
 {
-  "name": "frontend",
+  "name": "restaurant-management-frontend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

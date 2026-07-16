@@ -1,116 +1,107 @@
-/**
- * El Fogón — App Entry Point
- *
- * Router Integration Guide:
- *
- * 1. Import views:
- *    import LoginView from './views/auth/Login.js';
- *    import DashboardView from './views/dashboard/Dashboard.js';
- *
- * 2. Define routes:
- *    const routes = {
- *      '/login': LoginView,
- *      '/dashboard': DashboardView,
- *      '/': LoginView, // default
- *    };
- *
- * 3. Simple hash router implementation:
- *    function getCurrentRoute() {
- *      return window.location.hash.slice(1) || '/';
- *    }
- *
- *    function navigate(path) {
- *      window.location.hash = path;
- *    }
- *
- *    function renderRoute() {
- *      const path = getCurrentRoute();
- *      const view = routes[path];
- *      const app = document.getElementById('app');
- *
- *      if (!view) {
- *        app.innerHTML = '<h1>404</h1>';
- *        return;
- *      }
- *
- *      // Cleanup previous view
- *      if (currentView?.destroy) currentView.destroy();
- *
- *      // Render new view
- *      app.innerHTML = view.render();
- *      view.init();
- *      currentView = view;
- *    }
- *
- *    window.addEventListener('hashchange', renderRoute);
- *
- * 4. Or use History API:
- *    function navigate(path) {
- *      history.pushState(null, '', path);
- *      renderRoute();
- *    }
- *
- *    window.addEventListener('popstate', renderRoute);
- */
+import { initMockUsers } from "./services/mockUsers.js";
+import * as authStore from "./store/auth.js";
+import { renderLogin } from "./views/auth/login.js";
+import { renderRegister } from "./views/auth/register.js";
+import { renderReservations } from "./views/reservations/list.js";
+import { renderReservationStatus } from "./views/reservations/status.js";
+import { getHomeRoute } from "./utils/routeGuard.js";
 
-import LoginView from './views/auth/Login.js';
+initMockUsers();
 
-// Current view reference for cleanup
-let currentView = null;
+const app = document.getElementById("app");
 
-// Route definitions
-const routes = {
-  '/login': LoginView,
-  '/': LoginView,
-};
+function route() {
+  const hash = window.location.hash || "#/login";
+  const path = hash.replace("#", "");
 
-/**
- * Get current route from hash or pathname
- */
-function getCurrentRoute() {
-  // Use hash router for simplicity
-  return window.location.hash.slice(1) || '/';
-}
-
-/**
- * Navigate to a route
- * @param {string} path - Route path
- */
-function navigate(path) {
-  window.location.hash = path;
-}
-
-/**
- * Render the current route
- */
-function renderRoute() {
-  const path = getCurrentRoute();
-  const view = routes[path];
-  const app = document.getElementById('app');
-
-  if (!app) return;
-
-  if (!view) {
-    app.innerHTML = '<h1 class="text-2xl text-center mt-20">404 — Page not found</h1>';
+  if (!authStore.isAuthenticated() && path !== "/login") {
+    window.location.hash = "#/login";
     return;
   }
 
-  // Cleanup previous view
-  if (currentView?.destroy) {
-    currentView.destroy();
+  if (authStore.isAuthenticated() && (path === "/login" || path === "/")) {
+    window.location.hash = `#${getHomeRoute(authStore.currentUser().role)}`;
+    return;
   }
 
-  // Render new view
-  app.innerHTML = view.render();
-  view.init();
-  currentView = view;
+  switch (path) {
+    case "/login":
+      renderLogin(app);
+      break;
+    case "/admin":
+    case "/create-user":
+      renderRegister(app);
+      break;
+    case "/dashboard":
+      renderDashboard(app, "Dashboard");
+      break;
+    case "/orders":
+      renderDashboard(app, "Orders");
+      break;
+    case "/kitchen":
+      renderDashboard(app, "Kitchen");
+      break;
+    case "/payments":
+      renderDashboard(app, "Payments");
+      break;
+    case "/reservations":
+      renderReservations(app);
+      break;
+    case "/reservation-status":
+      renderReservationStatus(app);
+      break;
+    default:
+      window.location.hash = "#/login";
+  }
 }
 
-// Listen for route changes
-window.addEventListener('hashchange', renderRoute);
+function renderDashboard(app, title) {
+  const user = authStore.currentUser();
+  app.innerHTML = `
+    <div class="min-h-screen bg-gray-50">
+      <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <div class="flex items-center">
+              <h1 class="text-xl font-bold text-gray-900">${title}</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-600">
+                ${user.username}
+                <span class="ml-1 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                  ${user.role}
+                </span>
+              </span>
+              ${
+                user.role === "admin"
+                  ? '<a href="#/create-user" class="text-sm text-indigo-600 hover:underline">Create User</a><a href="#/reservations" class="text-sm text-indigo-600 hover:underline">Reservas</a>'
+                  : ""
+              }
+              ${
+                user.role === "client"
+                  ? '<a href="#/reservation-status" class="text-sm text-indigo-600 hover:underline">Mis Reservas</a>'
+                  : ""
+              }
+              <button
+                id="logout-btn"
+                class="rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+      <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <p class="text-gray-600">Welcome, <strong>${user.username}</strong>. You are logged in as <strong>${user.role}</strong>.</p>
+      </main>
+    </div>
+  `;
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    authStore.logout();
+    window.location.hash = "#/login";
+  });
+}
 
-// Initial render
-document.addEventListener('DOMContentLoaded', renderRoute);
-
-// Expose navigate for use in templates
-window.navigate = navigate;
+window.addEventListener("hashchange", route);
+route();
