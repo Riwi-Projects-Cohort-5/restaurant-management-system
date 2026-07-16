@@ -25,6 +25,9 @@ function reservationCard(r) {
       </div>
       <div class="grid grid-cols-2 gap-3 text-sm text-gray-600">
         <div>
+          <span class="font-medium text-gray-500">Telefono:</span> ${r.guestPhone || "—"}
+        </div>
+        <div>
           <span class="font-medium text-gray-500">Fecha:</span> ${r.date}
         </div>
         <div>
@@ -48,81 +51,63 @@ function noResultsMessage(query) {
       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontró reserva</h3>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontro reserva</h3>
       <p class="mt-1 text-sm text-gray-500">
-        ${query ? `No hay resultados para "<strong>${query}</strong>"` : "Ingresa un código o consulta tus reservas."}
+        ${query ? `No hay resultados para "<strong>${query}</strong>"` : "Busca por codigo o selecciona una reserva."}
       </p>
     </div>
   `;
 }
 
+function renderAllCards(reservations) {
+  if (reservations.length === 0) return noResultsMessage("");
+  return `<div class="space-y-4">${reservations.map(reservationCard).join("")}</div>`;
+}
+
 export function renderReservationStatus(container) {
   const user = authStore.currentUser();
   reservationStore.loadReservations();
-
-  const userReservations = reservationStore.getReservationsByUser(user.id);
+  const allReservations = reservationStore.getState().reservations;
 
   container.innerHTML = `
-    <div class="min-h-screen bg-gray-50">
-      <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">Mis Reservas</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-600">
-                ${user.username}
-                <span class="ml-1 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
-                  ${user.role}
-                </span>
-              </span>
-              <button id="logout-btn" class="rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200">
-                Sign Out
-              </button>
-            </div>
-          </div>
+    <div class="space-y-0">
+      <div class="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Buscar Reserva por Codigo</h2>
+        <div class="flex gap-3">
+          <input
+            type="text"
+            id="search-code"
+            placeholder="Ingresa el codigo de reserva (ej. RES-001)"
+            class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
+          />
+          <button id="search-btn" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+            Buscar
+          </button>
         </div>
-      </nav>
+        <div id="search-result" class="mt-4"></div>
+      </div>
 
-      <main class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Buscar Reserva</h2>
-          <div class="flex gap-3">
-            <input
-              type="text"
-              id="search-code"
-              placeholder="Ingresa el código de reserva (ej. RES-001)"
-              class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm"
-            />
-            <button id="search-btn" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-              Buscar
-            </button>
-          </div>
-          <div id="search-result" class="mt-4"></div>
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900">Todas las Reservas</h2>
+          <span class="text-sm text-gray-500">${allReservations.length} reserva(s)</span>
         </div>
-
-        <div>
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Todas mis Reservas</h2>
-          <div id="user-reservations" class="space-y-4">
-            ${userReservations.length > 0
-              ? userReservations.map(reservationCard).join("")
-              : noResultsMessage("")
-            }
-          </div>
+        <div id="all-reservations">
+          ${renderAllCards(allReservations)}
         </div>
-      </main>
+      </div>
     </div>
   `;
 
   const searchResult = document.getElementById("search-result");
-  const userReservationsDiv = document.getElementById("user-reservations");
+  const allReservationsDiv = document.getElementById("all-reservations");
   const searchInput = document.getElementById("search-code");
 
   function doSearch() {
     const code = searchInput.value.trim();
     if (!code) {
       searchResult.innerHTML = "";
+      allReservationsDiv.innerHTML = renderAllCards(reservationStore.getState().reservations);
       return;
     }
 
@@ -132,10 +117,14 @@ export function renderReservationStatus(container) {
         <h3 class="text-sm font-medium text-gray-700 mb-2">Resultado:</h3>
         ${reservationCard(found)}
       `;
+      allReservationsDiv.innerHTML = renderAllCards(
+        reservationStore.getState().reservations.filter((r) => r.id !== found.id)
+      );
     } else {
       searchResult.innerHTML = `
-        <p class="text-sm text-red-600">No se encontró una reserva con el código "<strong>${code}</strong>"</p>
+        <p class="text-sm text-red-600">No se encontro una reserva con el codigo "<strong>${code}</strong>"</p>
       `;
+      allReservationsDiv.innerHTML = renderAllCards(reservationStore.getState().reservations);
     }
   }
 
@@ -144,16 +133,8 @@ export function renderReservationStatus(container) {
     if (e.key === "Enter") doSearch();
   });
 
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    authStore.logout();
-    window.location.hash = "#/login";
-  });
-
   reservationStore.subscribe(() => {
-    const updated = reservationStore.getReservationsByUser(user.id);
-    userReservationsDiv.innerHTML =
-      updated.length > 0
-        ? updated.map(reservationCard).join("")
-        : noResultsMessage("");
+    const updated = reservationStore.getState().reservations;
+    allReservationsDiv.innerHTML = renderAllCards(updated);
   });
 }

@@ -53,6 +53,30 @@ export function refreshReservations() {
   reservationsStore.setState({ reservations: all, filteredReservations: filtered });
 }
 
+export function createReservation(data) {
+  const result = reservationService.createReservation(data);
+  if (result.success) refreshReservations();
+  return result;
+}
+
+export function updateReservation(id, data) {
+  const result = reservationService.updateReservation(id, data);
+  if (result.success) refreshReservations();
+  return result;
+}
+
+export function updateReservationStatus(id, newStatus) {
+  const result = reservationService.updateReservationStatus(id, newStatus);
+  if (result.success) refreshReservations();
+  return result;
+}
+
+export function deleteReservation(id) {
+  const result = reservationService.deleteReservation(id);
+  if (result.success) refreshReservations();
+  return result;
+}
+
 export function getState() {
   return reservationsStore.getState();
 }
@@ -69,6 +93,10 @@ export default {
   getReservationByCode,
   getReservationsByUser,
   refreshReservations,
+  createReservation,
+  updateReservation,
+  updateReservationStatus,
+  deleteReservation,
   getState,
   subscribe,
 };

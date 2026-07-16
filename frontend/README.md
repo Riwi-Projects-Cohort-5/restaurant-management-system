@@ -117,9 +117,8 @@ window.location.hash = '#/login';
 
 | Rol | Codigo | Ruta por defecto | Permisos |
 |-----|--------|------------------|----------|
-| Administrador | `admin` | `/admin` | Acceso total, crear usuarios |
-| Cliente | `client` | `/dashboard` | Ver menu, hacer pedidos |
-| Mesero | `waiter` | `/orders` | Gestionar pedidos |
+| Administrador | `admin` | `/admin` | Acceso total, CRUD reservas, crear usuarios |
+| Mesero | `waiter` | `/orders` | Gestionar pedidos, ver estado de reservas |
 | Cocinero | `chef` | `/kitchen` | Ver pedidos de cocina |
 | Cajero | `cashier` | `/payments` | Procesar pagos |
 
@@ -382,7 +381,7 @@ Cuando se implemente el backend, estos son los endpoints necesarios:
   username: "admin",       // string unico
   email: "admin@restaurant.com",  // string unico
   password: "hashed...",   // NUNCA en texto plano en BD
-  role: "admin",           // enum: admin|client|waiter|chef|cashier
+  role: "admin",           // enum: admin|waiter|chef|cashier
   createdAt: "ISO8601",    // fecha creacion
   updatedAt: "ISO8601"     // fecha actualizacion (opcional)
 }
@@ -411,7 +410,7 @@ Cada modulo sigue la misma estructura:
 | Cocina | `/kitchen` | admin, chef | Ver pedidos pendientes |
 | Pagos | `/payments` | admin, cashier | Procesar cobros |
 | Inventario | `/inventory` | admin | Stock de ingredientes |
-| Reservaciones | `/reservations` | admin, client | Reservar mesas |
+| Reservaciones | `/reservations` | admin | CRUD completo de reservas |
 | Reportes | `/reports` | admin | Estadisticas |
 | Configuracion | `/settings` | admin | Ajustes del sistema |
 
@@ -436,7 +435,6 @@ Cada modulo sigue la misma estructura:
 | Usuario | Contrasena | Rol |
 |---------|------------|-----|
 | admin | admin123 | admin |
-| client | client123 | client |
 | waiter | waiter123 | waiter |
 | chef | chef123 | chef |
 | cashier | cashier123 | cashier |
@@ -478,7 +476,7 @@ npm run preview
 **Auth (login + registro):**
 - Login con 5 usuarios demo (localStorage)
 - Registro de usuarios nuevos (solo admin)
-- Sistema de roles con 5 permisos: `admin`, `client`, `waiter`, `chef`, `cashier`
+- Sistema de roles con 4 permisos: `admin`, `waiter`, `chef`, `cashier`
 - Sesion persistente via localStorage
 - Proteccion de rutas por rol
 
@@ -501,7 +499,7 @@ npm run preview
 | Cocina | `/kitchen` | admin, chef | Carpetas vacias, sin Codigo |
 | Pagos | `/payments` | admin, cashier | Carpetas vacias, sin Codigo |
 | Inventario | `/inventory` | admin | Carpetas vacias, sin Codigo |
-| Reservaciones | `/reservations` | admin, client | Carpetas vacias, sin Codigo |
+| Reservaciones | `/reservations` | admin | CRUD completo de reservas |
 | Reportes | `/reports` | admin | Carpetas vacias, sin Codigo |
 | Configuracion | `/settings` | admin | Carpetas vacias, sin Codigo |
 
@@ -510,7 +508,6 @@ npm run preview
 | Usuario | Contrasena | Rol |
 |---------|------------|-----|
 | admin | admin123 | admin |
-| client | client123 | client |
 | waiter | waiter123 | waiter |
 | chef | chef123 | chef |
 | cashier | cashier123 | cashier |

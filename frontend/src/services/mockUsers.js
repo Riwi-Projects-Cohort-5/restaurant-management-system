@@ -11,14 +11,6 @@ const DEFAULT_USERS = [
     createdAt: new Date().toISOString(),
   },
   {
-    id: "usr_002",
-    username: "client",
-    email: "client@restaurant.com",
-    password: "client123",
-    role: "client",
-    createdAt: new Date().toISOString(),
-  },
-  {
     id: "usr_003",
     username: "waiter",
     email: "waiter@restaurant.com",
@@ -46,7 +38,6 @@ const DEFAULT_USERS = [
 
 export const ROLES = {
   ADMIN: "admin",
-  CLIENT: "client",
   WAITER: "waiter",
   CHEF: "chef",
   CASHIER: "cashier",
@@ -54,7 +45,6 @@ export const ROLES = {
 
 export const ROLE_LABELS = {
   admin: "Administrator",
-  client: "Client",
   waiter: "Waiter",
   chef: "Chef",
   cashier: "Cashier",

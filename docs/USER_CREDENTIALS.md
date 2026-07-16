@@ -5,7 +5,6 @@
 | ID | Usuario | Email | Contraseña | Rol |
 |----|---------|-------|------------|-----|
 | usr_001 | admin | admin@restaurant.com | admin123 | admin |
-| usr_002 | client | client@restaurant.com | client123 | client |
 | usr_003 | waiter | waiter@restaurant.com | waiter123 | waiter |
 | usr_004 | chef | chef@restaurant.com | chef123 | chef |
 | usr_005 | cashier | cashier@restaurant.com | cashier123 | cashier |
@@ -23,9 +22,8 @@
 ### 2. Roles Válidos
 ```
 admin    → Administrator (acceso total)
-client   → Client (solo lectura/pedidos)
-waiter   → Waiter (gestión de mesas)
-chef     → Chef (gestión de cocina)
+waiter   → Waiter (toma ordenes, mesas, estado de reservas)
+chef     → Chef (gestion de cocina)
 cashier  → Cashier (procesar pagos)
 ```
 
@@ -42,7 +40,7 @@ cashier  → Cashier (procesar pagos)
   username: string,    // Nombre de usuario único
   email: string,       // Correo único
   password: string,    // Contraseña (en BD real: HASHEAR, nunca en texto plano)
-  role: enum,          // admin | client | waiter | chef | cashier
+  role: enum,          // admin | waiter | chef | cashier
   createdAt: ISO8601   // Fecha de creación
 }
 ```

@@ -27,7 +27,7 @@ export function renderRegister(container) {
             Create New User
           </h2>
           <p class="mt-2 text-center text-sm text-gray-600">
-            Admin panel — add staff or client accounts
+            Admin panel — add staff accounts
           </p>
         </div>
         <form id="register-form" class="mt-8 space-y-6">
@@ -89,7 +89,6 @@ export function renderRegister(container) {
                 class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">Select a role</option>
-                <option value="${ROLES.CLIENT}">${ROLE_LABELS[ROLES.CLIENT]}</option>
                 <option value="${ROLES.WAITER}">${ROLE_LABELS[ROLES.WAITER]}</option>
                 <option value="${ROLES.CHEF}">${ROLE_LABELS[ROLES.CHEF]}</option>
                 <option value="${ROLES.CASHIER}">${ROLE_LABELS[ROLES.CASHIER]}</option>

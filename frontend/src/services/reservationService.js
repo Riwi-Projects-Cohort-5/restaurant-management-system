@@ -92,6 +92,30 @@ export function updateReservationStatus(id, newStatus) {
   return { success: true, reservation: reservations[index] };
 }
 
+export function updateReservation(id, data) {
+  const reservations = getReservations();
+  const index = reservations.findIndex((r) => r.id === id);
+
+  if (index === -1) {
+    return { success: false, error: "Reservation not found" };
+  }
+
+  reservations[index] = {
+    ...reservations[index],
+    guestName: data.guestName,
+    guestPhone: data.guestPhone || "",
+    date: data.date,
+    time: data.time,
+    partySize: data.partySize,
+    tableNumber: data.tableNumber || null,
+    status: data.status || reservations[index].status,
+    notes: data.notes || "",
+  };
+
+  saveReservations(reservations);
+  return { success: true, reservation: reservations[index] };
+}
+
 export function deleteReservation(id) {
   const reservations = getReservations();
   const filtered = reservations.filter((r) => r.id !== id);

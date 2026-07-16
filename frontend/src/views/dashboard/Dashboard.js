@@ -1,17 +1,3 @@
-/**
- * Dashboard View
- * @route /dashboard
- *
- * Composes: WelcomeBanner, PageHeader, StatCard, SalesChart, TableStatusCard,
- *           Card, DataTable, Badge
- *
- * State needed:
- * - User name/initials (from auth store)
- * - Orders data (for recent orders table)
- * - Table stats (available/occupied/reserved counts)
- * - Sales data (for chart)
- */
-
 import { render as WelcomeBanner } from '../../components/common/WelcomeBanner.js';
 import { render as PageHeader } from '../../components/common/PageHeader.js';
 import { render as StatCard } from '../../components/ui/StatCard.js';
@@ -20,6 +6,9 @@ import { render as TableStatusCard } from '../../components/dashboard/TableStatu
 import { render as Card } from '../../components/ui/Card.js';
 import { render as DataTable } from '../../components/ui/DataTable.js';
 import { render as Badge } from '../../components/ui/Badge.js';
+import { fetchDashboardStats, fetchSalesChart, fetchRecentOrders, fetchTableStatusSummary } from '../../api/dashboard.js';
+import { exportToCsv } from '../../utils/csvExport.js';
+import { currentUser } from '../../store/auth.js';
 
 const statusBadgeMap = {
   new:        { variant: 'info',    label: 'New' },
@@ -30,14 +19,6 @@ const statusBadgeMap = {
   cancelled:  { variant: 'error',   label: 'Cancelled' },
 };
 
-const recentOrders = [
-  { id: 1043, table: 3, items: 3, total: '$38.50', status: 'new', time: '1 min ago' },
-  { id: 1042, table: 5, items: 2, total: '$42.00', status: 'preparing', time: '5 min ago' },
-  { id: 1041, table: 2, items: 4, total: '$65.50', status: 'ready', time: '12 min ago' },
-  { id: 1040, table: 8, items: 2, total: '$27.00', status: 'served', time: '18 min ago' },
-  { id: 1039, table: 1, items: 2, total: '$37.40', status: 'completed', time: '18 min ago' },
-];
-
 const columns = [
   { key: 'id', label: 'Order', primary: true },
   { key: 'table', label: 'Table' },
@@ -47,26 +28,64 @@ const columns = [
     key: 'status',
     label: 'Status',
     render: function (value) {
-      const b = statusBadgeMap[value] || statusBadgeMap.new;
+      var b = statusBadgeMap[value] || statusBadgeMap.new;
       return Badge({ variant: b.variant, showDot: true, children: b.label });
     },
   },
   { key: 'time', label: 'Time' },
 ];
 
-const salesLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const salesThisWeek = [1200, 1900, 1500, 2100, 1800, 2400, 1600];
-const salesLastWeek = [1100, 1700, 1400, 1900, 1600, 2200, 1500];
+let _state = {
+  stats: null,
+  sales: null,
+  recentOrders: [],
+  tableStatus: null,
+  loaded: false,
+};
 
-/**
- * Render the Dashboard view
- * @returns {string} HTML string
- */
-export function render() {
-  const statsHtml = [
+function getGreeting() {
+  var hour = new Date().getHours();
+  if (hour < 12) return 'Good Morning';
+  if (hour < 18) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+function handleExportOrders() {
+  var rows = _state.recentOrders.map(function (o) {
+    return {
+      'Order ID': o.id,
+      'Table': o.table,
+      'Items': o.items,
+      'Total': o.total,
+      'Status': o.status,
+      'Time': o.time,
+    };
+  });
+  exportToCsv('dashboard-recent-orders', ['Order ID', 'Table', 'Items', 'Total', 'Status', 'Time'], rows, { includeBOM: true });
+}
+
+function handleExportSales() {
+  if (!_state.sales) return;
+  var rows = _state.sales.labels.map(function (label, i) {
+    return {
+      'Day': label,
+      'This Week ($)': _state.sales.thisWeek[i],
+      'Last Week ($)': _state.sales.lastWeek[i],
+    };
+  });
+  exportToCsv('dashboard-weekly-sales', ['Day', 'This Week ($)', 'Last Week ($)'], rows, { includeBOM: true });
+}
+
+function renderInnerHtml() {
+  var user = currentUser();
+  var userName = user ? user.username : 'User';
+
+  if (!_state.loaded) return '<div class="text-center py-12 text-gray-500">Loading dashboard...</div>';
+
+  var statsHtml = [
     StatCard({
       label: 'Total Revenue',
-      value: '$12,450',
+      value: _state.stats.revenue,
       icon: 'dollar-sign',
       iconColor: 'success',
       change: { value: '+12%', direction: 'up' },
@@ -74,7 +93,7 @@ export function render() {
     }),
     StatCard({
       label: 'Orders Today',
-      value: '156',
+      value: String(_state.stats.ordersToday),
       icon: 'receipt',
       iconColor: 'brand',
       change: { value: '+8%', direction: 'up' },
@@ -82,13 +101,13 @@ export function render() {
     }),
     StatCard({
       label: 'Active Tables',
-      value: '8 / 12',
+      value: _state.stats.activeTables,
       icon: 'table',
       iconColor: 'primary',
     }),
     StatCard({
       label: 'Reservations',
-      value: '24',
+      value: String(_state.stats.reservations),
       icon: 'calendar',
       iconColor: 'accent',
       change: { value: '+3', direction: 'up' },
@@ -96,33 +115,38 @@ export function render() {
     }),
   ].join('');
 
-  const recentOrdersTable = DataTable({
+  var recentOrdersTable = DataTable({
     columns: columns,
-    data: recentOrders,
+    data: _state.recentOrders,
   });
 
-  const recentOrdersCard = Card({
+  var recentOrdersCard = Card({
     title: 'Recent Orders',
-    headerRight: '<a href="#/pos" class="text-sm font-semibold text-brand-600 hover:text-brand-800 transition-colors">View All</a>',
+    headerRight: '<a href="#/orders" class="text-sm font-semibold text-brand-600 hover:text-brand-800 transition-colors">View All</a>',
     children: recentOrdersTable,
   });
 
-  const chartGrid = `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      <div class="lg:col-span-2">
-        ${SalesChart({ labels: salesLabels, thisWeek: salesThisWeek, lastWeek: salesLastWeek })}
+  var chartGrid = '';
+  if (_state.sales) {
+    var ts = _state.tableStatus || { available: 0, occupied: 0, reserved: 0 };
+    var total = ts.available + ts.occupied + ts.reserved;
+    chartGrid = `
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div class="lg:col-span-2">
+          ${SalesChart({ labels: _state.sales.labels, thisWeek: _state.sales.thisWeek, lastWeek: _state.sales.lastWeek })}
+        </div>
+        <div class="lg:col-span-1">
+          ${TableStatusCard({ available: ts.available, occupied: ts.occupied, reserved: ts.reserved, total: total })}
+        </div>
       </div>
-      <div class="lg:col-span-1">
-        ${TableStatusCard({ available: 4, occupied: 6, reserved: 2, total: 12 })}
-      </div>
-    </div>
-  `;
+    `;
+  }
 
   return `
     <div id="view-dashboard" class="p-6">
       ${WelcomeBanner({
-        userName: 'Good Evening, Maria',
-        userInitials: 'MC',
+        userName: getGreeting() + ', ' + userName,
+        userInitials: userName.substring(0, 2).toUpperCase(),
         subtitle: "Here's what's happening at El Fogon today.",
       })}
 
@@ -130,20 +154,20 @@ export function render() {
         ${PageHeader({
           title: 'Overview',
           actions: `
-            <button type="button" data-onclick="handleExport"
+            <button type="button" data-onclick="handleExportOrders"
                     class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md
                            border border-brand-300 bg-white text-brand-700 hover:bg-brand-50
                            transition-colors duration-fast">
               <i data-lucide="download" class="w-4 h-4"></i>
-              Export
+              Export Orders
             </button>
-            <a href="#/pos" data-onclick="handleNewOrder"
-               class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md
-                      border border-primary-600 bg-primary-600 text-white hover:bg-primary-700
-                      transition-colors duration-fast no-underline">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-              New Order
-            </a>
+            <button type="button" data-onclick="handleExportSales"
+                    class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md
+                           border border-brand-300 bg-white text-brand-700 hover:bg-brand-50
+                           transition-colors duration-fast">
+              <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+              Export Sales
+            </button>
           `,
         })}
       </div>
@@ -159,27 +183,63 @@ export function render() {
   `;
 }
 
-/**
- * Initialize Dashboard view interactivity
- * Binds event handlers for data-onclick attributes
- */
+export function render() {
+  return '<div id="view-dashboard" class="p-6">' + renderInnerHtml() + '</div>';
+}
+
 export function init() {
+  _state.loaded = false;
+  _state.recentOrders = [];
+  _state.stats = null;
+  _state.sales = null;
+  _state.tableStatus = null;
+
+  Promise.all([
+    fetchDashboardStats(),
+    fetchSalesChart(),
+    fetchRecentOrders(),
+    fetchTableStatusSummary(),
+  ]).then(function (results) {
+    _state.stats = results[0].data;
+    _state.sales = results[1].data;
+    _state.recentOrders = results[2].data;
+    _state.tableStatus = results[3].data;
+    _state.loaded = true;
+    rerender();
+  }).catch(function (err) {
+    console.error('[Dashboard] Error loading data:', err);
+    _state.loaded = true;
+    rerender();
+  });
+
+  window.handleExportOrders = handleExportOrders;
+  window.handleExportSales = handleExportSales;
+
+  bindDataOnclickListeners();
+}
+
+function rerender() {
+  var container = document.getElementById('view-dashboard');
+  if (!container) return;
+  container.innerHTML = renderInnerHtml();
+  bindDataOnclickListeners();
+}
+
+function bindDataOnclickListeners() {
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
   if (typeof window.createIcons === 'function') {
     window.createIcons();
   }
 }
 
-/**
- * Cleanup Dashboard view listeners
- */
 export function destroy() {
+  delete window.handleExportOrders;
+  delete window.handleExportSales;
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {

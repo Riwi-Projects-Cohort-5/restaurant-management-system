@@ -1,20 +1,3 @@
-/**
- * Tables View
- * @route /tables
- *
- * Sub-views: grid (default), detail, manage, add
- * Composes: PageHeader, AreaFilters, TablesLegend, AreaSection, TableShape,
- *           AreaManageCard, IconPickerPopup, Badge, Button, DetailGrid
- *
- * State:
- * - activeAreaFilter: 'all' | number
- * - expandedAreaId: number | null
- * - editingAreaId: number | null
- * - openPickerAreaId: number | null
- * - areas: []
- * - tables: []
- */
-
 import { render as PageHeader } from '../../components/common/PageHeader.js';
 import { render as AreaFilters } from '../../components/tables/AreaFilters.js';
 import { render as TablesLegend } from '../../components/tables/TablesLegend.js';
@@ -23,27 +6,8 @@ import { render as AreaManageCard } from '../../components/tables/AreaManageCard
 import { render as IconPickerPopup } from '../../components/tables/IconPickerPopup.js';
 import { render as DetailGrid } from '../../components/common/DetailGrid.js';
 import { render as Card } from '../../components/ui/Card.js';
-
-const areas = [
-  { id: 1, name: 'Main Hall', icon: 'home' },
-  { id: 2, name: 'Terrace', icon: 'sun' },
-  { id: 3, name: 'Seaside Pier', icon: 'waves' },
-];
-
-const tables = [
-  { id: 1, seats: 4, area: 1, status: 'available', info: 'Free', timer: null },
-  { id: 2, seats: 6, area: 1, status: 'occupied', info: 'Order #1041', timer: '24 min' },
-  { id: 3, seats: 2, area: 1, status: 'occupied', info: 'Order #1043', timer: '0 min' },
-  { id: 4, seats: 4, area: 1, status: 'available', info: 'Free', timer: null },
-  { id: 5, seats: 4, area: 2, status: 'occupied', info: 'Order #1042', timer: '6 min' },
-  { id: 6, seats: 8, area: 2, status: 'occupied', info: 'Order #1037', timer: '32 min' },
-  { id: 7, seats: 2, area: 2, status: 'reserved', info: '7:30 PM', timer: null },
-  { id: 8, seats: 4, area: 3, status: 'occupied', info: 'Order #1040', timer: '12 min' },
-  { id: 9, seats: 6, area: 3, status: 'available', info: 'Free', timer: null },
-  { id: 10, seats: 4, area: 3, status: 'reserved', info: '8:00 PM', timer: null },
-  { id: 11, seats: 2, area: 1, status: 'available', info: 'Free', timer: null },
-  { id: 12, seats: 6, area: 2, status: 'available', info: 'Free', timer: null },
-];
+import { fetchAreas, fetchTables } from '../../api/tables.js';
+import { exportToCsv } from '../../utils/csvExport.js';
 
 let _state = {
   activeAreaFilter: 'all',
@@ -52,30 +16,27 @@ let _state = {
   openPickerAreaId: null,
   currentSubView: 'grid',
   selectedTableId: null,
+  areas: [],
+  tables: [],
+  loaded: false,
 };
 
 function getTablesForArea(areaId) {
-  return tables.filter(function (t) { return t.area === areaId; });
+  return _state.tables.filter(function (t) { return t.area === areaId; });
 }
 
 function getAreaCounts() {
   var counts = {};
-  areas.forEach(function (a) {
-    counts[a.id] = 0;
-  });
-  tables.forEach(function (t) {
-    if (counts[t.area] !== undefined) {
-      counts[t.area] += 1;
-    }
+  _state.areas.forEach(function (a) { counts[a.id] = 0; });
+  _state.tables.forEach(function (t) {
+    if (counts[t.area] !== undefined) counts[t.area] += 1;
   });
   return counts;
 }
 
 function getStatusCounts() {
-  var available = 0;
-  var occupied = 0;
-  var reserved = 0;
-  tables.forEach(function (t) {
+  var available = 0, occupied = 0, reserved = 0;
+  _state.tables.forEach(function (t) {
     if (t.status === 'available') available++;
     else if (t.status === 'occupied') occupied++;
     else if (t.status === 'reserved') reserved++;
@@ -83,20 +44,32 @@ function getStatusCounts() {
   return { available: available, occupied: occupied, reserved: reserved };
 }
 
+function exportTablesCsv() {
+  var rows = _state.tables.map(function (t) {
+    var area = _state.areas.find(function (a) { return a.id === t.area; });
+    return {
+      'Table ID': t.id,
+      'Seats': t.seats,
+      'Area': area ? area.name : 'Unknown',
+      'Status': t.status,
+      'Info': t.info || '',
+      'Timer': t.timer || '',
+    };
+  });
+  exportToCsv('tables-export', ['Table ID', 'Seats', 'Area', 'Status', 'Info', 'Timer'], rows, { includeBOM: true });
+}
+
 function renderGridView() {
   var counts = getAreaCounts();
   var statusCounts = getStatusCounts();
 
-  var headerActions = '';
+  var headerActions = '<button type="button" data-onclick="tablesExportCsv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-brand-300 bg-white text-brand-700 hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>';
   headerActions += '<button type="button" data-onclick="tablesManageAreas" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-brand-300 bg-white text-brand-700 hover:bg-brand-50 transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Manage Areas</button>';
   headerActions += '<button type="button" data-onclick="tablesAddArea" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-primary-600 bg-primary-600 text-white hover:bg-primary-700 transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Area</button>';
 
-  var headerHtml = PageHeader({
-    title: 'Table Management',
-    actions: headerActions,
-  });
+  var headerHtml = PageHeader({ title: 'Table Management', actions: headerActions });
 
-  var areasWithCounts = areas.map(function (a) {
+  var areasWithCounts = _state.areas.map(function (a) {
     return { id: a.id, name: a.name, icon: a.icon, count: counts[a.id] || 0 };
   });
 
@@ -115,8 +88,8 @@ function renderGridView() {
   });
 
   var filteredAreas = _state.activeAreaFilter === 'all'
-    ? areas
-    : areas.filter(function (a) { return String(a.id) === String(_state.activeAreaFilter); });
+    ? _state.areas
+    : _state.areas.filter(function (a) { return String(a.id) === String(_state.activeAreaFilter); });
 
   var sectionsHtml = filteredAreas.map(function (area) {
     var areaTables = getTablesForArea(area.id);
@@ -128,16 +101,9 @@ function renderGridView() {
     });
   }).join('');
 
-  return `
-    <div>
-      ${headerHtml}
-      ${filtersHtml}
-      ${legendHtml}
-      <div class="space-y-6">
-        ${sectionsHtml}
-      </div>
-    </div>
-  `;
+  return '<div>' + headerHtml + filtersHtml + legendHtml +
+    '<div class="space-y-6">' + sectionsHtml + '</div>' +
+  '</div>';
 }
 
 function renderManageView() {
@@ -147,12 +113,12 @@ function renderManageView() {
     actions: '<button type="button" data-onclick="tablesAddArea" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-primary-600 bg-primary-600 text-white hover:bg-primary-700 transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Area</button>',
   });
 
-  var cardsHtml = areas.map(function (area) {
+  var cardsHtml = _state.areas.map(function (area) {
     var areaTables = getTablesForArea(area.id);
     return AreaManageCard({
       area: area,
       tables: areaTables,
-      allAreas: areas,
+      allAreas: _state.areas,
       isExpanded: _state.expandedAreaId === area.id,
       isEditing: _state.editingAreaId === area.id,
       onToggle: 'tablesToggleArea',
@@ -166,7 +132,7 @@ function renderManageView() {
 
   var pickerHtml = '';
   if (_state.openPickerAreaId) {
-    var pickerArea = areas.find(function (a) { return a.id === _state.openPickerAreaId; });
+    var pickerArea = _state.areas.find(function (a) { return a.id === _state.openPickerAreaId; });
     if (pickerArea) {
       pickerHtml = IconPickerPopup({
         selectedIcon: pickerArea.icon,
@@ -176,77 +142,58 @@ function renderManageView() {
     }
   }
 
-  return `
-    <div>
-      ${headerHtml}
-      <div class="space-y-4">
-        ${cardsHtml}
-      </div>
-      ${pickerHtml}
-    </div>
-  `;
+  return '<div>' + headerHtml + '<div class="space-y-4">' + cardsHtml + '</div>' + pickerHtml + '</div>';
 }
 
 function renderDetailView() {
-  var table = tables.find(function (t) { return t.id === _state.selectedTableId; });
+  var table = _state.tables.find(function (t) { return t.id === _state.selectedTableId; });
   if (!table) return '';
-
-  var area = areas.find(function (a) { return a.id === table.area; });
+  var area = _state.areas.find(function (a) { return a.id === table.area; });
   var headerHtml = PageHeader({
     title: 'Table ' + table.id,
     backButton: { label: 'Back', onClick: 'tablesBackToGrid' },
   });
-
   var cells = [
     { label: 'Table ID', value: '#' + table.id },
     { label: 'Seats', value: table.seats },
     { label: 'Area', value: area ? area.name : 'Unknown' },
     { label: 'Status', value: table.status.charAt(0).toUpperCase() + table.status.slice(1) },
-    { label: 'Info', value: table.info || '—' },
-    { label: 'Timer', value: table.timer || '—' },
+    { label: 'Info', value: table.info || '-' },
+    { label: 'Timer', value: table.timer || '-' },
   ];
-
-  return `
-    <div>
-      ${headerHtml}
-      ${Card({ children: DetailGrid({ cells: cells }) })}
-    </div>
-  `;
+  return '<div>' + headerHtml + Card({ children: DetailGrid({ cells: cells }) }) + '</div>';
 }
 
 function renderInnerHtml() {
-  if (_state.currentSubView === 'manage') {
-    return renderManageView();
-  } else if (_state.currentSubView === 'detail') {
-    return renderDetailView();
-  }
+  if (!_state.loaded) return '<div class="text-center py-12 text-gray-500">Loading tables...</div>';
+  if (_state.currentSubView === 'manage') return renderManageView();
+  if (_state.currentSubView === 'detail') return renderDetailView();
   return renderGridView();
 }
 
-/**
- * Render the Tables view
- * @returns {string} HTML string
- */
 export function render() {
-  return `
-    <div id="view-tables" class="p-6">
-      ${renderInnerHtml()}
-    </div>
-  `;
+  return '<div id="view-tables" class="p-6">' + renderInnerHtml() + '</div>';
 }
 
-/**
- * Initialize Tables view interactivity
- * Binds event handlers for table management actions
- */
 export function init() {
+  _state.loaded = false;
+  _state.areas = [];
+  _state.tables = [];
+
+  Promise.all([
+    fetchAreas(),
+    fetchTables(),
+  ]).then(function (results) {
+    if (results[0].ok) _state.areas = results[0].data;
+    if (results[1].ok) _state.tables = results[1].data;
+    _state.loaded = true;
+    rerender();
+  });
+
   window.tablesFilterArea = function (e) {
     var btn = e.currentTarget || e.target;
     var filter = btn.getAttribute('data-filter');
-    if (filter) {
-      _state.activeAreaFilter = filter;
-      rerender();
-    }
+    if (filter) { _state.activeAreaFilter = filter; rerender(); }
   };
 
   window.tablesClickTable = function (tableId) {
@@ -269,8 +216,8 @@ export function init() {
 
   window.tablesAddArea = function () {
     var newName = 'New Area';
-    var newId = Math.max.apply(null, areas.map(function (a) { return a.id; })) + 1;
-    areas.push({ id: newId, name: newName, icon: 'grid-3x3' });
+    var newId = Math.max.apply(null, _state.areas.map(function (a) { return a.id; }).concat([0])) + 1;
+    _state.areas.push({ id: newId, name: newName, icon: 'grid-3x3' });
     _state.currentSubView = 'manage';
     _state.expandedAreaId = newId;
     _state.editingAreaId = newId;
@@ -293,7 +240,6 @@ export function init() {
   window.tablesEditAreaName = function (areaId) {
     _state.editingAreaId = parseInt(areaId, 10);
     rerender();
-
     var input = document.querySelector('[data-area-name-input="' + areaId + '"]');
     if (input) {
       input.focus();
@@ -301,7 +247,7 @@ export function init() {
       input.addEventListener('blur', function () {
         var val = input.value.trim();
         if (val) {
-          var area = areas.find(function (a) { return String(a.id) === String(areaId); });
+          var area = _state.areas.find(function (a) { return String(a.id) === String(areaId); });
           if (area) area.name = val;
         }
         _state.editingAreaId = null;
@@ -309,10 +255,7 @@ export function init() {
       });
       input.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') input.blur();
-        if (e.key === 'Escape') {
-          _state.editingAreaId = null;
-          rerender();
-        }
+        if (e.key === 'Escape') { _state.editingAreaId = null; rerender(); }
       });
     }
   };
@@ -325,7 +268,7 @@ export function init() {
 
   window.tablesPickIcon = function (iconName) {
     if (_state.openPickerAreaId) {
-      var area = areas.find(function (a) { return a.id === _state.openPickerAreaId; });
+      var area = _state.areas.find(function (a) { return a.id === _state.openPickerAreaId; });
       if (area) area.icon = iconName;
     }
     _state.openPickerAreaId = null;
@@ -336,10 +279,7 @@ export function init() {
     var id = parseInt(areaId, 10);
     var areaTables = getTablesForArea(id);
     if (areaTables.length > 0) return;
-    var idx = areas.findIndex(function (a) { return a.id === id; });
-    if (idx !== -1) {
-      areas.splice(idx, 1);
-    }
+    _state.areas = _state.areas.filter(function (a) { return a.id !== id; });
     _state.expandedAreaId = null;
     rerender();
   };
@@ -347,10 +287,8 @@ export function init() {
   window.tablesReassignTable = function (tableId, newAreaId) {
     var tId = parseInt(tableId, 10);
     var aId = parseInt(newAreaId, 10);
-    var table = tables.find(function (t) { return t.id === tId; });
-    if (table) {
-      table.area = aId;
-    }
+    var table = _state.tables.find(function (t) { return t.id === tId; });
+    if (table) table.area = aId;
     rerender();
   };
 
@@ -358,56 +296,42 @@ export function init() {
     var id = parseInt(areaId, 10);
     var seatsInput = document.querySelector('[data-add-table-seats="' + areaId + '"]');
     var seats = seatsInput ? parseInt(seatsInput.value, 10) || 4 : 4;
-    var newTableId = Math.max.apply(null, tables.map(function (t) { return t.id; })) + 1;
-    tables.push({
-      id: newTableId,
-      seats: seats,
-      area: id,
-      status: 'available',
-      info: 'Free',
-      timer: null,
-    });
+    var newTableId = Math.max.apply(null, _state.tables.map(function (t) { return t.id; }).concat([0])) + 1;
+    _state.tables.push({ id: newTableId, seats: seats, area: id, status: 'available', info: 'Free', timer: null });
     rerender();
   };
 
-  bindDataOnclcikListeners();
+  window.tablesExportCsv = exportTablesCsv;
+
+  bindDataOnclickListeners();
 }
 
 function rerender() {
   var container = document.getElementById('view-tables');
   if (!container) return;
   container.innerHTML = renderInnerHtml();
-  bindDataOnclcikListeners();
+  bindDataOnclickListeners();
 }
 
-function bindDataOnclcikListeners() {
+function bindDataOnclickListeners() {
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
-  if (typeof window.createIcons === 'function') {
-    window.createIcons();
-  }
+  if (typeof window.createIcons === 'function') window.createIcons();
 }
 
-/**
- * Cleanup Tables view
- */
 export function destroy() {
   var handlers = [
     'tablesFilterArea', 'tablesClickTable', 'tablesManageAreas',
     'tablesBackToGrid', 'tablesAddArea', 'tablesToggleArea',
     'tablesEditArea', 'tablesEditAreaName', 'tablesOpenIconPicker',
     'tablesPickIcon', 'tablesDeleteArea', 'tablesReassignTable',
-    'tablesAddTable',
+    'tablesAddTable', 'tablesExportCsv',
   ];
-  handlers.forEach(function (name) {
-    delete window[name];
-  });
-
+  handlers.forEach(function (name) { delete window[name]; });
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {

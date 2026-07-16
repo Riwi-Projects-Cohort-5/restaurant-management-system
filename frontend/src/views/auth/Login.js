@@ -1,193 +1,98 @@
-/**
- * Login View Component
- * Route: /login
- *
- * Renders the authentication page with:
- * - Brand panel (sun scene SVG)
- * - Login form with email/password
- * - Responsive layout (mobile/tablet/desktop)
- *
- * Router Integration:
- *   // In your router configuration:
- *   import { LoginView } from './views/auth/Login.js';
- *
- *   const routes = {
- *     '/login': LoginView,
- *     // ... other routes
- *   };
- *
- *   // Router mounts view to #app container:
- *   function navigate(path) {
- *     const view = routes[path];
- *     if (view) {
- *       document.getElementById('app').innerHTML = view.render();
- *       view.init();
- *     }
- *   }
- */
+import * as authStore from "../../store/auth.js";
+import { getHomeRoute } from "../../utils/routeGuard.js";
+import { ROLE_LABELS } from "../../services/mockUsers.js";
 
-import { createIcons, Eye, EyeOff } from 'lucide';
-import '../../components/forms/InputField.js';
-import '../../components/forms/CheckboxField.js';
-import '../../components/forms/SubmitButton.js';
-import '../../components/forms/PasswordToggle.js';
-
-/**
- * Render the Login view HTML
- * @returns {string} HTML string
- */
-export function render() {
-  return `
-    <div class="grid w-full min-h-screen overflow-hidden
-                lg:grid-cols-[2fr_1fr]" id="loginPage">
-
-      <!-- ═══════════════════════════════════════════
-           BRAND PANEL — Sun Scene SVG
-           ═══════════════════════════════════════════ -->
-      <aside class="relative overflow-hidden
-                    max-lg:absolute max-lg:inset-0 max-lg:z-0
-                    max-md:hidden" aria-hidden="true">
-        <img src="/src/assets/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
-        <img src="/src/assets/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
-      </aside>
-
-      <!-- ═══════════════════════════════════════════
-           FORM PANEL
-           ═══════════════════════════════════════════ -->
-      <main class="flex flex-col items-center justify-center z-10
-                  bg-brand-100 lg:p-12
-                  md:max-lg:bg-transparent md:max-lg:p-8
-                  max-md:min-h-screen max-md:px-6 max-md:py-8">
-
-        <!-- Tablet: dual logos -->
-        <div class="hidden md:max-lg:flex items-center gap-4 mb-8">
-          <img src="/src/assets/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
-          <img src="/src/assets/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
+export function renderLogin(container) {
+  container.innerHTML = `
+    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-md w-full space-y-8">
+        <div>
+          <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+            Restaurant Management System
+          </h2>
+          <p class="mt-2 text-center text-sm text-gray-600">
+            Sign in to your account
+          </p>
         </div>
-
-        <form class="login-form flex flex-col gap-8 w-full max-w-[380px]
-                     md:max-lg:bg-brand-100/90 md:max-lg:backdrop-blur-md md:max-lg:rounded-xl md:max-lg:p-10 md:max-lg:max-w-[440px] md:max-lg:shadow-xl" id="loginForm" novalidate>
-
-          <!-- Header -->
-          <header class="flex flex-col items-center gap-5">
-            <img class="logo h-[220px] w-auto pb-8 object-contain hidden lg:block"
-                 src="/src/assets/logos/logo-01.png" alt="El Fogón" draggable="false">
-            <img class="logo h-[300px] w-auto pb-8 object-contain md:hidden"
-                 src="/src/assets/logos/logo-00.png" alt="El Fogón" draggable="false">
-            <div class="flex flex-col gap-3">
-              <h1 class="text-heading font-semibold leading-snug text-neutral-900">Good to see you again</h1>
-              <p class="text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
-            </div>
-          </header>
-
-          <!-- Body -->
-          <div class="flex flex-col gap-6" id="formBody"></div>
-
-          <!-- Footer -->
-          <div class="flex flex-col gap-6">
-            <div class="flex items-center justify-between gap-4 flex-wrap max-md:gap-3">
-              <div id="checkboxContainer"></div>
-              <a href="#" class="text-label font-medium leading-loose text-primary-600 no-underline whitespace-nowrap
-                                 hover:text-primary-700 hover:underline">Forgot your password?</a>
-            </div>
-            <div id="submitContainer"></div>
+        <form id="login-form" class="mt-8 space-y-6">
+          <div id="login-error" class="hidden rounded-md bg-red-50 p-4">
+            <p class="text-sm text-red-700"></p>
           </div>
-
-          <!-- Bottom CTA -->
-          <footer class="flex items-center justify-center gap-1 text-sm font-normal leading-normal text-neutral-600">
-            <span>Don't have an account?</span>
-            <a href="#" class="font-semibold text-primary-600 no-underline hover:text-primary-700 hover:underline">Contact Us</a>
-          </footer>
-
+          <div class="rounded-md shadow-sm space-y-4">
+            <div>
+              <label for="username" class="block text-sm font-medium text-gray-700">
+                Username
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Enter your username"
+              />
+            </div>
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Enter your password"
+              />
+            </div>
+          </div>
+          <div>
+            <button
+              type="submit"
+              class="group relative flex w-full justify-center rounded-md bg-indigo-600 py-2 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              Sign In
+            </button>
+          </div>
+          <div class="mt-4 text-center text-xs text-gray-500">
+            <p class="mb-2">Demo accounts (password same as username + "123"):</p>
+            <div class="flex flex-wrap justify-center gap-2">
+              ${Object.entries(ROLE_LABELS)
+                .map(
+                  ([role, label]) =>
+                    `<span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">${label}</span>`
+                )
+                .join("")}
+            </div>
+          </div>
         </form>
-      </main>
-
-    </div>
-  `;
-}
-
-/**
- * Initialize Login view interactivity
- * Call after render() to bind events
- */
-export function init() {
-  const formBody = document.getElementById('formBody');
-  const checkboxContainer = document.getElementById('checkboxContainer');
-  const submitContainer = document.getElementById('submitContainer');
-
-  if (!formBody || !checkboxContainer || !submitContainer) return;
-
-  // Email input
-  formBody.innerHTML += InputField({
-    id: 'email',
-    label: 'Email address',
-    type: 'email',
-    placeholder: 'you@elfogon.com',
-    error: 'Please enter a valid email address',
-    required: true,
-    autocomplete: 'email'
-  });
-
-  // Password input with toggle
-  formBody.innerHTML += `
-    <div class="field flex flex-col gap-1">
-      <label class="text-label font-medium leading-loose text-neutral-900" for="password">Password</label>
-      <div class="relative flex items-center">
-        <input
-          class="field-input w-[380px] h-11 px-3 pr-10 text-sm font-normal leading-normal text-neutral-900
-                 bg-brand-50 border border-brand-300 rounded-md outline-none
-                 transition-colors duration-100
-                 placeholder:text-neutral-400
-                 focus:border-brand-500 focus:shadow-[var(--ring-brand)]
-                 hover:not-focus:border-brand-400
-                 error:border-error-600 error:shadow-[var(--ring-error)]
-                 max-md:w-full"
-          type="password"
-          id="password"
-          name="password"
-          placeholder="Enter your password"
-          autocomplete="current-password"
-          required
-        >
-        ${PasswordToggle({ inputId: 'password' })}
       </div>
     </div>
   `;
 
-  // Checkbox
-  checkboxContainer.innerHTML = CheckboxField({
-    id: 'keepSignedIn',
-    label: 'Keep me signed in'
-  });
+  const form = container.querySelector("#login-form");
+  const errorBox = container.querySelector("#login-error");
+  const errorText = errorBox.querySelector("p");
 
-  // Submit button
-  submitContainer.innerHTML = SubmitButton({
-    text: 'Sign In',
-    id: 'signInBtn'
-  });
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  // Initialize components
-  initInputField('email');
-  initCheckboxField('keepSignedIn');
-  initSubmitButton('signInBtn', { loadingText: 'Signing in...' });
-  initPasswordToggles();
+    const username = form.username.value.trim();
+    const password = form.password.value;
 
-  // Initialize Lucide icons
-  createIcons({
-    icons: {
-      Eye,
-      EyeOff
+    if (!username || !password) {
+      errorText.textContent = "Please enter both username and password.";
+      errorBox.classList.remove("hidden");
+      return;
+    }
+
+    const result = authStore.login(username, password);
+
+    if (result.success) {
+      window.location.hash = `#${getHomeRoute(result.user.role)}`;
+    } else {
+      errorText.textContent = result.error;
+      errorBox.classList.remove("hidden");
     }
   });
 }
-
-/**
- * Cleanup Login view
- * Call before navigating away to remove event listeners
- */
-export function destroy() {
-  // Cleanup if needed
-}
-
-// Default export for router
-export default { render, init, destroy };

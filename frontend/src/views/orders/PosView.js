@@ -1,21 +1,3 @@
-/**
- * POS / Orders View
- * @route /pos
- *
- * Sub-views: orders-list, orders-new, orders-detail
- * Composes: PageHeader, OrderFilters, Card, DataTable, Badge, Button,
- *           CategoryTabs, MenuItemCard, CartPanel, StatusStepper,
- *           DetailGrid, DetailSection
- *
- * State:
- * - currentSubView: 'list' | 'new' | 'detail'
- * - currentFilter: 'all' | 'active' | 'closed'
- * - cart: []
- * - allOrders: []
- * - menuItems: []
- * - currentRoleId: number (for order detail)
- */
-
 import { render as PageHeader } from '../../components/common/PageHeader.js';
 import { render as OrderFilters } from '../../components/orders/OrderFilters.js';
 import { render as Card } from '../../components/ui/Card.js';
@@ -27,37 +9,9 @@ import { render as CartPanel } from '../../components/pos/CartPanel.js';
 import { render as StatusStepper } from '../../components/orders/StatusStepper.js';
 import { render as DetailGrid } from '../../components/common/DetailGrid.js';
 import { render as DetailSection } from '../../components/common/DetailSection.js';
-
-const menuItems = [
-  { id: 1, name: 'Grilled Chicken', price: 24.00, cat: 'Main Course', emoji: '\uD83C\uDF57' },
-  { id: 2, name: 'Caesar Salad', price: 12.00, cat: 'Salads', emoji: '\uD83E\uDD57' },
-  { id: 3, name: 'Margherita Pizza', price: 14.00, cat: 'Pizza', emoji: '\uD83C\uDF55' },
-  { id: 4, name: 'Sparkling Water', price: 3.00, cat: 'Drinks', emoji: '\uD83D\uDCA7' },
-  { id: 5, name: 'Tiramisu', price: 9.00, cat: 'Desserts', emoji: '\uD83C\uDF70' },
-  { id: 6, name: 'Bruschetta', price: 8.00, cat: 'Appetizers', emoji: '\uD83C\uDF5E' },
-  { id: 7, name: 'Ribeye Steak', price: 32.00, cat: 'Main Course', emoji: '\uD83E\uDD69' },
-  { id: 8, name: 'Fish Tacos', price: 13.50, cat: 'Main Course', emoji: '\uD83C\uDF2E' },
-  { id: 9, name: 'Pasta Carbonara', price: 16.00, cat: 'Main Course', emoji: '\uD83C\uDF5D' },
-  { id: 10, name: 'Onion Rings', price: 6.50, cat: 'Appetizers', emoji: '\uD83E\uDDC5' },
-  { id: 11, name: 'Club Sandwich', price: 11.00, cat: 'Burgers', emoji: '\uD83E\uDD6A' },
-  { id: 12, name: 'Iced Tea', price: 4.00, cat: 'Drinks', emoji: '\uD83E\uDDCA' },
-  { id: 13, name: 'House Wine', price: 8.00, cat: 'Drinks', emoji: '\uD83C\uDF77' },
-  { id: 14, name: 'Guacamole', price: 8.00, cat: 'Appetizers', emoji: '\uD83E\uDD51' },
-  { id: 15, name: 'Cheeseburger', price: 15.00, cat: 'Burgers', emoji: '\uD83C\uDF54' },
-  { id: 16, name: 'Chocolate Lava Cake', price: 10.00, cat: 'Desserts', emoji: '\uD83C\uDF6B' },
-];
-
-const allOrders = [
-  { id: 1043, table: 3, items: [{name:'Margherita Pizza',qty:1,price:14.00},{name:'Sparkling Water',qty:2,price:3.00},{name:'Tiramisu',qty:1,price:9.00}], total: 38.50, status: 'new', time: '1 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '8:30 PM' },
-  { id: 1042, table: 5, items: [{name:'Grilled Chicken',qty:1,price:24.00},{name:'Caesar Salad',qty:1,price:12.00}], total: 42.00, status: 'preparing', time: '5 min ago', note: 'Extra dressing', server: 'Juan R.', createdBy: 'admin', placedAt: '8:25 PM' },
-  { id: 1041, table: 2, items: [{name:'Ribeye Steak',qty:1,price:32.00},{name:'House Wine',qty:2,price:8.00},{name:'Caesar Salad',qty:2,price:12.00}], total: 65.50, status: 'ready', time: '12 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '8:18 PM' },
-  { id: 1040, table: 8, items: [{name:'Fish Tacos',qty:2,price:13.50}], total: 27.00, status: 'served', time: '18 min ago', note: null, server: 'Juan R.', createdBy: 'admin', placedAt: '8:12 PM' },
-  { id: 1039, table: 1, items: [{name:'Fish Tacos',qty:2,price:13.50},{name:'Guacamole',qty:1,price:8.00}], total: 37.40, status: 'completed', time: '18 min ago', note: null, server: 'Maria C.', createdBy: 'waiter', placedAt: '8:10 PM' },
-  { id: 1038, table: 10, items: [{name:'Pasta Carbonara',qty:2,price:16.00},{name:'Bruschetta',qty:1,price:8.00},{name:'Tiramisu',qty:1,price:9.00},{name:'House Wine',qty:2,price:8.00}], total: 64.90, status: 'cancelled', time: '25 min ago', note: 'Cliente se fue', server: 'Juan R.', createdBy: 'admin', placedAt: '7:55 PM' },
-  { id: 1037, table: 6, items: [{name:'Margherita Pizza',qty:2,price:14.00},{name:'Sparkling Water',qty:2,price:3.00}], total: 37.40, status: 'completed', time: '35 min ago', note: null, server: 'Maria C.', createdBy: 'waiter', placedAt: '7:45 PM' },
-  { id: 1036, table: 3, items: [{name:'Club Sandwich',qty:1,price:11.00},{name:'Onion Rings',qty:1,price:6.50},{name:'Iced Tea',qty:1,price:4.00}], total: 23.65, status: 'completed', time: '42 min ago', note: null, server: 'Juan R.', createdBy: 'waiter', placedAt: '7:38 PM' },
-  { id: 1035, table: 9, items: [{name:'Ribeye Steak',qty:2,price:32.00},{name:'Caesar Salad',qty:2,price:12.00},{name:'House Wine',qty:2,price:8.00}], total: 118.80, status: 'completed', time: '50 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '7:30 PM' },
-];
+import { fetchOrders, fetchMenu, createOrder } from '../../api/orders.js';
+import { exportToCsv } from '../../utils/csvExport.js';
+import { currentUser } from '../../store/auth.js';
 
 const statusBadgeMap = {
   new:        { variant: 'info',    label: 'New' },
@@ -75,13 +29,16 @@ let _state = {
   selectedTable: 1,
   activeCategory: 'All',
   selectedOrderId: null,
+  menuItems: [],
+  allOrders: [],
+  loaded: false,
 };
 
 const TAX_RATE = 0.10;
 
 function getCategories() {
-  const cats = ['All'];
-  menuItems.forEach(function (item) {
+  var cats = ['All'];
+  _state.menuItems.forEach(function (item) {
     if (cats.indexOf(item.cat) === -1) {
       cats.push(item.cat);
     }
@@ -90,13 +47,13 @@ function getCategories() {
 }
 
 function getFilteredOrders() {
-  if (_state.currentFilter === 'all') return allOrders;
+  if (_state.currentFilter === 'all') return _state.allOrders;
   if (_state.currentFilter === 'active') {
-    return allOrders.filter(function (o) {
+    return _state.allOrders.filter(function (o) {
       return o.status === 'new' || o.status === 'preparing' || o.status === 'ready' || o.status === 'served';
     });
   }
-  return allOrders.filter(function (o) {
+  return _state.allOrders.filter(function (o) {
     return o.status === 'completed' || o.status === 'cancelled';
   });
 }
@@ -117,33 +74,19 @@ function buildStatusStepper(status) {
     { label: 'Ready', status: '' },
     { label: 'Served', status: '' },
   ];
-
-  if (status === 'cancelled') {
-    return StatusStepper({ steps: steps, isCancelled: true });
-  }
-
-  var statusIndex = {
-    new: 0,
-    preparing: 1,
-    ready: 2,
-    served: 3,
-    completed: 3,
-  };
+  if (status === 'cancelled') return StatusStepper({ steps: steps, isCancelled: true });
+  var statusIndex = { new: 0, preparing: 1, ready: 2, served: 3, completed: 3 };
   var currentIdx = statusIndex[status] != null ? statusIndex[status] : -1;
-
   steps = steps.map(function (s, idx) {
     if (idx < currentIdx) return { label: s.label, status: 'done' };
     if (idx === currentIdx) return { label: s.label, status: 'current' };
     return { label: s.label, status: '' };
   });
-
   return StatusStepper({ steps: steps, isCancelled: false });
 }
 
 function buildOrderDetailHtml(order) {
-  var statusIdx = { new: 0, preparing: 1, ready: 2, served: 3, completed: 3, cancelled: -1 };
   var statusLabel = (statusBadgeMap[order.status] || statusBadgeMap.new).label;
-
   var detailCells = [
     { label: 'Order ID', value: '#' + order.id },
     { label: 'Table', value: 'Table ' + order.table },
@@ -152,44 +95,54 @@ function buildOrderDetailHtml(order) {
     { label: 'Status', value: statusLabel },
     { label: 'Total', value: '$' + order.total.toFixed(2) },
   ];
-
   var itemsListHtml = order.items.map(function (item) {
-    return `
-      <div class="flex justify-between py-2 border-b border-brand-100 last:border-0">
-        <div class="flex items-center gap-3">
-          <span class="text-sm font-semibold text-brand-900">${item.qty}x</span>
-          <span class="text-sm text-secondary-700">${item.name}</span>
-        </div>
-        <span class="text-sm font-semibold text-brand-900">$${(item.price * item.qty).toFixed(2)}</span>
-      </div>
-    `;
+    return '<div class="flex justify-between py-2 border-b border-brand-100 last:border-0">' +
+      '<div class="flex items-center gap-3">' +
+        '<span class="text-sm font-semibold text-brand-900">' + item.qty + 'x</span>' +
+        '<span class="text-sm text-secondary-700">' + item.name + '</span>' +
+      '</div>' +
+      '<span class="text-sm font-semibold text-brand-900">$' + (item.price * item.qty).toFixed(2) + '</span>' +
+    '</div>';
   }).join('');
 
   var noteHtml = order.note
-    ? DetailSection({
-        title: 'Special Instructions',
-        children: '<p class="text-sm text-secondary-600">' + order.note + '</p>',
-      })
+    ? DetailSection({ title: 'Special Instructions', children: '<p class="text-sm text-secondary-600">' + order.note + '</p>' })
     : '';
 
-  return `
-    <div class="space-y-6">
-      ${buildStatusStepper(order.status)}
-      ${DetailGrid({ cells: detailCells })}
-      ${DetailSection({
-        title: 'Order Items',
-        headerRight: '<span class="text-sm font-semibold text-brand-900">' + order.items.length + ' items</span>',
-        children: itemsListHtml,
-      })}
-      ${noteHtml}
-    </div>
-  `;
+  return '<div class="space-y-6">' +
+    buildStatusStepper(order.status) +
+    DetailGrid({ cells: detailCells }) +
+    DetailSection({
+      title: 'Order Items',
+      headerRight: '<span class="text-sm font-semibold text-brand-900">' + order.items.length + ' items</span>',
+      children: itemsListHtml,
+    }) +
+    noteHtml +
+  '</div>';
+}
+
+function exportOrdersCsv() {
+  var rows = getFilteredOrders().map(function (o) {
+    return {
+      'Order ID': o.id,
+      'Table': o.table,
+      'Server': o.server,
+      'Placed At': o.placedAt,
+      'Items': o.items.map(function (i) { return i.qty + 'x ' + i.name; }).join('; '),
+      'Total': '$' + o.total.toFixed(2),
+      'Status': o.status,
+      'Note': o.note || '',
+      'Created By': o.createdBy,
+    };
+  });
+  exportToCsv('orders-export', ['Order ID', 'Table', 'Server', 'Placed At', 'Items', 'Total', 'Status', 'Note', 'Created By'], rows, { includeBOM: true });
 }
 
 function renderOrdersList() {
   var headerHtml = PageHeader({
     title: 'Orders',
-    actions: '<button type="button" data-onclick="posNewOrder" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-primary-600 bg-primary-600 text-white hover:bg-primary-700 transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>',
+    actions: '<button type="button" data-onclick="posExportOrders" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-brand-300 bg-white text-brand-700 hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export CSV</button>' +
+      '<button type="button" data-onclick="posNewOrder" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-primary-600 bg-primary-600 text-white hover:bg-primary-700 transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>',
   });
 
   var filtersHtml = OrderFilters({
@@ -224,13 +177,7 @@ function renderOrdersList() {
   var filteredOrders = getFilteredOrders();
   var tableHtml = DataTable({ columns: tableCols, data: filteredOrders });
 
-  return `
-    <div id="orders-list">
-      ${headerHtml}
-      ${filtersHtml}
-      ${Card({ children: tableHtml })}
-    </div>
-  `;
+  return '<div id="orders-list">' + headerHtml + filtersHtml + Card({ children: tableHtml }) + '</div>';
 }
 
 function renderOrdersNew() {
@@ -242,8 +189,8 @@ function renderOrdersNew() {
 
   var categories = getCategories();
   var filteredItems = _state.activeCategory === 'All'
-    ? menuItems
-    : menuItems.filter(function (m) { return m.cat === _state.activeCategory; });
+    ? _state.menuItems
+    : _state.menuItems.filter(function (m) { return m.cat === _state.activeCategory; });
 
   var categoryTabsHtml = CategoryTabs({
     categories: categories,
@@ -271,76 +218,54 @@ function renderOrdersNew() {
     onDropOrder: 'posDropOrder',
   });
 
-  return `
-    <div id="orders-new">
-      ${headerHtml}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pos-layout">
-        <div class="lg:col-span-2">
-          ${categoryTabsHtml}
-          ${menuGridHtml}
-        </div>
-        <div class="lg:col-span-1">
-          ${cartHtml}
-        </div>
-      </div>
-    </div>
-  `;
+  return '<div id="orders-new">' + headerHtml +
+    '<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pos-layout">' +
+      '<div class="lg:col-span-2">' + categoryTabsHtml + menuGridHtml + '</div>' +
+      '<div class="lg:col-span-1">' + cartHtml + '</div>' +
+    '</div>' +
+  '</div>';
 }
 
 function renderOrdersDetail() {
-  var order = allOrders.find(function (o) { return o.id === _state.selectedOrderId; });
+  var order = _state.allOrders.find(function (o) { return o.id === _state.selectedOrderId; });
   if (!order) return '';
-
   var headerHtml = PageHeader({
     title: 'Order #' + order.id,
     backButton: { label: 'Back', onClick: 'posBackToList' },
   });
-
-  var detailHtml = buildOrderDetailHtml(order);
-
-  return `
-    <div id="orders-detail">
-      ${headerHtml}
-      ${Card({ children: detailHtml })}
-    </div>
-  `;
+  return '<div id="orders-detail">' + headerHtml + Card({ children: buildOrderDetailHtml(order) }) + '</div>';
 }
 
 function renderInnerHtml() {
-  if (_state.currentSubView === 'list') {
-    return renderOrdersList();
-  } else if (_state.currentSubView === 'new') {
-    return renderOrdersNew();
-  } else if (_state.currentSubView === 'detail') {
-    return renderOrdersDetail();
-  }
+  if (_state.currentSubView === 'list') return renderOrdersList();
+  if (_state.currentSubView === 'new') return renderOrdersNew();
+  if (_state.currentSubView === 'detail') return renderOrdersDetail();
   return '';
 }
 
-/**
- * Render the POS view
- * @returns {string} HTML string
- */
 export function render() {
-  return `
-    <div id="view-pos" class="p-6">
-      ${renderInnerHtml()}
-    </div>
-  `;
+  return '<div id="view-pos" class="p-6">' + renderInnerHtml() + '</div>';
 }
 
-/**
- * Initialize POS view interactivity
- * Binds event handlers for data-onclick attributes
- */
 export function init() {
+  _state.loaded = false;
+  _state.allOrders = [];
+  _state.menuItems = [];
+
+  Promise.all([
+    fetchOrders(),
+    fetchMenu(),
+  ]).then(function (results) {
+    if (results[0].ok) _state.allOrders = results[0].data;
+    if (results[1].ok) _state.menuItems = results[1].data;
+    _state.loaded = true;
+    rerender();
+  });
+
   window.posFilterOrders = function (e) {
     var btn = e.currentTarget || e.target;
     var filter = btn.getAttribute('data-filter');
-    if (filter) {
-      _state.currentFilter = filter;
-      rerender();
-    }
+    if (filter) { _state.currentFilter = filter; rerender(); }
   };
 
   window.posNewOrder = function () {
@@ -358,30 +283,17 @@ export function init() {
   window.posSelectCategory = function (e) {
     var btn = e.currentTarget || e.target;
     var cat = btn.getAttribute('data-category');
-    if (cat) {
-      _state.activeCategory = cat;
-      rerender();
-    }
+    if (cat) { _state.activeCategory = cat; rerender(); }
   };
 
   window.posAddToCart = function (e) {
     var card = e.currentTarget || e.target;
     var itemId = parseInt(card.getAttribute('data-item-id'), 10);
-    var menuItem = menuItems.find(function (m) { return m.id === itemId; });
+    var menuItem = _state.menuItems.find(function (m) { return m.id === itemId; });
     if (!menuItem) return;
-
     var existing = _state.cart.find(function (c) { return c.id === menuItem.id; });
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      _state.cart.push({
-        id: menuItem.id,
-        name: menuItem.name,
-        price: menuItem.price,
-        qty: 1,
-        emoji: menuItem.emoji,
-      });
-    }
+    if (existing) { existing.qty += 1; }
+    else { _state.cart.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: 1, emoji: menuItem.emoji }); }
     rerender();
   };
 
@@ -389,9 +301,7 @@ export function init() {
     var btn = e.currentTarget || e.target;
     var itemId = parseInt(btn.getAttribute('data-item-id'), 10);
     var item = _state.cart.find(function (c) { return c.id === itemId; });
-    if (!item) return;
-    item.qty += 1;
-    rerender();
+    if (item) { item.qty += 1; rerender(); }
   };
 
   window.posRemoveFromCart = function (e) {
@@ -399,30 +309,32 @@ export function init() {
     var itemId = parseInt(btn.getAttribute('data-item-id'), 10);
     var item = _state.cart.find(function (c) { return c.id === itemId; });
     if (!item) return;
-    if (item.qty <= 1) {
-      _state.cart = _state.cart.filter(function (c) { return c.id !== itemId; });
-    } else {
-      item.qty -= 1;
-    }
+    if (item.qty <= 1) { _state.cart = _state.cart.filter(function (c) { return c.id !== itemId; }); }
+    else { item.qty -= 1; }
     rerender();
   };
 
   window.posSendOrder = function () {
     if (_state.cart.length === 0) return;
-    _state.cart = [];
-    _state.currentSubView = 'list';
-    rerender();
+    var user = currentUser();
+    createOrder({
+      table: _state.selectedTable,
+      items: _state.cart.map(function (c) { return { name: c.name, qty: c.qty, price: c.price }; }),
+      note: null,
+      server: user ? user.username : 'Unknown',
+      createdBy: user ? user.role : 'waiter',
+    }).then(function () {
+      return fetchOrders();
+    }).then(function (res) {
+      if (res.ok) _state.allOrders = res.data;
+      _state.cart = [];
+      _state.currentSubView = 'list';
+      rerender();
+    });
   };
 
-  window.posSaveDraft = function () {
-    _state.currentSubView = 'list';
-    rerender();
-  };
-
-  window.posDropOrder = function () {
-    _state.cart = [];
-    rerender();
-  };
+  window.posSaveDraft = function () { _state.currentSubView = 'list'; rerender(); };
+  window.posDropOrder = function () { _state.cart = []; rerender(); };
 
   window.posViewDetail = function (e) {
     var btn = e.currentTarget || e.target;
@@ -432,43 +344,36 @@ export function init() {
     rerender();
   };
 
-  bindDataOnclcikListeners();
+  window.posExportOrders = exportOrdersCsv;
+
+  bindDataOnclickListeners();
 }
 
 function rerender() {
   var container = document.getElementById('view-pos');
   if (!container) return;
   container.innerHTML = renderInnerHtml();
-  bindDataOnclcikListeners();
+  bindDataOnclickListeners();
 }
 
-function bindDataOnclcikListeners() {
+function bindDataOnclickListeners() {
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
-  if (typeof window.createIcons === 'function') {
-    window.createIcons();
-  }
+  if (typeof window.createIcons === 'function') window.createIcons();
 }
 
-/**
- * Cleanup POS view
- */
 export function destroy() {
   var handlers = [
     'posFilterOrders', 'posNewOrder', 'posBackToList',
     'posSelectCategory', 'posAddToCart', 'posUpdateQty',
     'posRemoveFromCart', 'posSendOrder', 'posSaveDraft',
-    'posDropOrder', 'posViewDetail',
+    'posDropOrder', 'posViewDetail', 'posExportOrders',
   ];
-  handlers.forEach(function (name) {
-    delete window[name];
-  });
-
+  handlers.forEach(function (name) { delete window[name]; });
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {

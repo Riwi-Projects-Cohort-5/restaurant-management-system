@@ -1,3 +1,14 @@
+"""
+
+Modulo   : main.py
+Ruta     : backend/app/main.py
+Descripcion: Punto de entrada de la aplicacion FastAPI.
+            Inicializa el servidor, configura CORS,
+            registra el router principal y define los
+            endpoints base de salud del sistema.
+Fecha    : 2026-07-14
+
+"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

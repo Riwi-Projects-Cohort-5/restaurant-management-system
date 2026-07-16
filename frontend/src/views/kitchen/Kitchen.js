@@ -1,29 +1,30 @@
-/**
- * Kitchen View
- * @route /kitchen
- *
- * Composes: PageHeader, KanbanColumn, KanbanCard, Button
- *
- * State:
- * - kitchenOrders: []
- */
-
 import { render as PageHeader } from '../../components/common/PageHeader.js';
 import { render as KanbanColumn } from '../../components/kitchen/KanbanColumn.js';
 import { render as Button } from '../../components/ui/Button.js';
+import { fetchKitchenOrders, advanceKitchenOrder, markOrderServed } from '../../api/kitchen.js';
+import { exportToCsv } from '../../utils/csvExport.js';
 
-const kitchenOrders = [
-  { id: 1043, table: 3, status: 'new', time: 1, items: [{qty:1,name:'Margherita Pizza'},{qty:2,name:'Sparkling Water'},{qty:1,name:'Tiramisu'}], note: 'No olives on pizza' },
-  { id: 1042, table: 5, status: 'preparing', time: 5, items: [{qty:1,name:'Grilled Chicken'},{qty:1,name:'Caesar Salad'}], note: 'Extra dressing' },
-  { id: 1041, table: 2, status: 'ready', time: 12, items: [{qty:1,name:'Ribeye Steak'},{qty:2,name:'House Wine'},{qty:2,name:'Caesar Salad'}], note: null },
-  { id: 1040, table: 8, status: 'preparing', time: 18, items: [{qty:2,name:'Fish Tacos'}], note: null },
-  { id: 1037, table: 6, status: 'new', time: 0, items: [{qty:2,name:'Margherita Pizza'},{qty:2,name:'Sparkling Water'}], note: null },
-];
+let _state = {
+  kitchenOrders: [],
+  loaded: false,
+};
 
 function getOrdersByStatus(status) {
-  return kitchenOrders.filter(function (o) {
-    return o.status === status;
+  return _state.kitchenOrders.filter(function (o) { return o.status === status; });
+}
+
+function exportKitchenCsv() {
+  var rows = _state.kitchenOrders.map(function (o) {
+    return {
+      'Order ID': o.id,
+      'Table': o.table,
+      'Status': o.status,
+      'Minutes Waiting': o.time,
+      'Items': o.items.map(function (i) { return i.qty + 'x ' + i.name; }).join('; '),
+      'Note': o.note || '',
+    };
   });
+  exportToCsv('kitchen-status', ['Order ID', 'Table', 'Status', 'Minutes Waiting', 'Items', 'Note'], rows, { includeBOM: true });
 }
 
 function renderKanbanBoard() {
@@ -58,81 +59,78 @@ function renderKanbanBoard() {
     onAction: 'kitchenMarkServed',
   });
 
-  return `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 kanban-board">
-      ${newColumn}
-      ${preparingColumn}
-      ${readyColumn}
-    </div>
-  `;
+  return '<div class="grid grid-cols-1 md:grid-cols-3 gap-6 kanban-board">' +
+    newColumn + preparingColumn + readyColumn +
+  '</div>';
 }
 
 function renderInnerHtml() {
+  if (!_state.loaded) return '<div class="text-center py-12 text-gray-500">Loading kitchen orders...</div>';
+
   var headerHtml = PageHeader({
     title: 'Kitchen Dashboard',
-    actions: Button({
-      variant: 'secondary',
-      icon: 'refresh-cw',
-      children: 'Refresh',
-      onClick: 'kitchenRefresh',
-    }),
+    actions: Button({ variant: 'secondary', icon: 'download', children: 'Export CSV', onClick: 'kitchenExportCsv' }) +
+      Button({ variant: 'secondary', icon: 'refresh-cw', children: 'Refresh', onClick: 'kitchenRefresh' }),
   });
 
-  return `
-    ${headerHtml}
-    ${renderKanbanBoard()}
-  `;
+  return headerHtml + renderKanbanBoard();
 }
 
-/**
- * Render the Kitchen view
- * @returns {string} HTML string
- */
 export function render() {
-  return `
-    <div id="view-kitchen" class="p-6">
-      ${renderInnerHtml()}
-    </div>
-  `;
+  return '<div id="view-kitchen" class="p-6">' + renderInnerHtml() + '</div>';
 }
 
-/**
- * Initialize Kitchen view interactivity
- * Binds event handlers for kanban action buttons
- */
 export function init() {
-  window.kitchenRefresh = function () {
+  _state.loaded = false;
+  _state.kitchenOrders = [];
+
+  fetchKitchenOrders().then(function (res) {
+    if (res.ok) _state.kitchenOrders = res.data;
+    _state.loaded = true;
     rerender();
+  });
+
+  window.kitchenRefresh = function () {
+    _state.loaded = false;
+    rerender();
+    fetchKitchenOrders().then(function (res) {
+      if (res.ok) _state.kitchenOrders = res.data;
+      _state.loaded = true;
+      rerender();
+    });
   };
 
   window.kitchenStartPreparing = function (e) {
     var btn = e.currentTarget || e.target;
     var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var order = kitchenOrders.find(function (o) { return o.id === orderId; });
-    if (order) {
-      order.status = 'preparing';
-    }
-    rerender();
+    advanceKitchenOrder(orderId, 'new').then(function () {
+      return fetchKitchenOrders();
+    }).then(function (res) {
+      if (res.ok) _state.kitchenOrders = res.data;
+      rerender();
+    });
   };
 
   window.kitchenMarkReady = function (e) {
     var btn = e.currentTarget || e.target;
     var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var order = kitchenOrders.find(function (o) { return o.id === orderId; });
-    if (order) {
-      order.status = 'ready';
-    }
-    rerender();
+    advanceKitchenOrder(orderId, 'preparing').then(function () {
+      return fetchKitchenOrders();
+    }).then(function (res) {
+      if (res.ok) _state.kitchenOrders = res.data;
+      rerender();
+    });
   };
 
   window.kitchenMarkServed = function (e) {
     var btn = e.currentTarget || e.target;
     var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var idx = kitchenOrders.findIndex(function (o) { return o.id === orderId; });
-    if (idx !== -1) {
-      kitchenOrders.splice(idx, 1);
-    }
-    rerender();
+    markOrderServed(orderId).then(function () {
+      return fetchKitchenOrders();
+    }).then(function (res) {
+      if (res.ok) _state.kitchenOrders = res.data;
+      rerender();
+    });
   };
 
   window.kitchenViewDetail = function (e) {
@@ -141,55 +139,47 @@ export function init() {
     console.log('[Kitchen] View detail for order #' + orderId);
   };
 
-  bindDataOnclcikListeners();
+  window.kitchenExportCsv = exportKitchenCsv;
+
+  bindDataOnclickListeners();
 }
 
 function rerender() {
   var container = document.getElementById('view-kitchen');
   if (!container) return;
   container.innerHTML = renderInnerHtml();
-  bindDataOnclcikListeners();
+  bindDataOnclickListeners();
 }
 
-function bindDataOnclcikListeners() {
+function bindDataOnclickListeners() {
   document.querySelectorAll('[data-onclick-action]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick-action');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
   document.querySelectorAll('[data-onclick-detail]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick-detail');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.addEventListener('click', window[handlerName]);
     }
   });
-
-  if (typeof window.createIcons === 'function') {
-    window.createIcons();
-  }
+  if (typeof window.createIcons === 'function') window.createIcons();
 }
 
-/**
- * Cleanup Kitchen view
- */
 export function destroy() {
   var handlers = [
     'kitchenRefresh', 'kitchenStartPreparing',
     'kitchenMarkReady', 'kitchenMarkServed',
-    'kitchenViewDetail',
+    'kitchenViewDetail', 'kitchenExportCsv',
   ];
-  handlers.forEach(function (name) {
-    delete window[name];
-  });
+  handlers.forEach(function (name) { delete window[name]; });
 
   document.querySelectorAll('[data-onclick-action]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick-action');
@@ -197,14 +187,12 @@ export function destroy() {
       el.removeEventListener('click', window[handlerName]);
     }
   });
-
   document.querySelectorAll('[data-onclick-detail]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick-detail');
     if (handlerName && typeof window[handlerName] === 'function') {
       el.removeEventListener('click', window[handlerName]);
     }
   });
-
   document.querySelectorAll('[data-onclick]').forEach(function (el) {
     var handlerName = el.getAttribute('data-onclick');
     if (handlerName && typeof window[handlerName] === 'function') {
