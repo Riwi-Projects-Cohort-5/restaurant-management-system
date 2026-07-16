@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, Numeric, Text, ForeignKey
+from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -20,4 +20,6 @@ class Purchase(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     supplier = relationship("Supplier", back_populates="purchases")
-    purchase_details = relationship("PurchaseDetail", back_populates="purchase", cascade="all, delete-orphan")
+    purchase_details = relationship(
+        "PurchaseDetail", back_populates="purchase", cascade="all, delete-orphan"
+    )

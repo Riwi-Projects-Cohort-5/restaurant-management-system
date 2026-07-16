@@ -1,5 +1,5 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -43,7 +43,10 @@ class KitchenService:
         try:
             kitchen_order.status = KitchenOrderStatus(status)
         except ValueError:
-            raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in KitchenOrderStatus]}")
+            allowed = [e.value for e in KitchenOrderStatus]
+            raise InvalidEnumValueError(
+                f"Invalid status: {status}. Must be one of: {allowed}"
+            )
         if notes:
             kitchen_order.notes = notes
         return self.repo.update(kitchen_order)

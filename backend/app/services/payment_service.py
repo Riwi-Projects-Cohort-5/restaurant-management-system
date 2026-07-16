@@ -1,12 +1,12 @@
-from uuid import UUID
-from typing import Optional
 from decimal import Decimal
+from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.db.models.payment import Payment, PaymentMethod, PaymentStatus
-from app.repositories.payment_repository import PaymentRepository
 from app.repositories.order_repository import OrderRepository
+from app.repositories.payment_repository import PaymentRepository
 
 
 class InvalidEnumValueError(Exception):
@@ -34,7 +34,10 @@ class PaymentService:
         try:
             method_enum = PaymentMethod(method)
         except ValueError:
-            raise InvalidEnumValueError(f"Invalid payment method: {method}. Must be one of: {[e.value for e in PaymentMethod]}")
+            allowed = [e.value for e in PaymentMethod]
+            raise InvalidEnumValueError(
+                f"Invalid payment method: {method}. Must be one of: {allowed}"
+            )
         payment = Payment(
             order_id=order_id, amount=amount,
             method=method_enum, status=PaymentStatus.COMPLETED,

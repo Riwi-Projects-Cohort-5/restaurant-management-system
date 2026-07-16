@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, date
+from datetime import date, datetime, timezone
 
 
 def now_utc() -> datetime:

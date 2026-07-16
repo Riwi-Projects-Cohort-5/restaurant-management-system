@@ -1,6 +1,6 @@
-from uuid import UUID
-from typing import Optional
 from decimal import Decimal
+from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -40,15 +40,20 @@ class InventoryService:
                 setattr(item, key, value)
         return self.repo.update_item(item)
 
-    def register_movement(self, item_id: UUID, movement_type: str,
-                        quantity: Decimal, reason: Optional[str] = None) -> Optional[InventoryMovement]:
+    def register_movement(
+        self, item_id: UUID, movement_type: str,
+        quantity: Decimal, reason: Optional[str] = None,
+    ) -> Optional[InventoryMovement]:
         item = self.repo.get_item_by_id(item_id)
         if not item:
             return None
         try:
             movement_type_enum = MovementType(movement_type)
         except ValueError:
-            raise InvalidEnumValueError(f"Invalid movement type: {movement_type}. Must be one of: {[e.value for e in MovementType]}")
+            allowed = [e.value for e in MovementType]
+            raise InvalidEnumValueError(
+                f"Invalid movement type: {movement_type}. Must be one of: {allowed}"
+            )
         movement = InventoryMovement(
             item_id=item_id, type=movement_type_enum,
             quantity=quantity, reason=reason,

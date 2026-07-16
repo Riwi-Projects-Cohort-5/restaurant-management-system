@@ -1,13 +1,12 @@
-from uuid import UUID
 from typing import Optional
-from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.db.models.order import Order, OrderStatus
 from app.db.models.order_item import OrderItem
-from app.repositories.order_repository import OrderRepository
 from app.repositories.menu_item_repository import MenuItemRepository
+from app.repositories.order_repository import OrderRepository
 
 
 class InvalidEnumValueError(Exception):
@@ -62,5 +61,8 @@ class OrderService:
         try:
             order.status = OrderStatus(status)
         except ValueError:
-            raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in OrderStatus]}")
+            allowed = [e.value for e in OrderStatus]
+            raise InvalidEnumValueError(
+                f"Invalid status: {status}. Must be one of: {allowed}"
+            )
         return self.repo.update(order)

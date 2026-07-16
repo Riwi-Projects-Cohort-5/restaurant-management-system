@@ -1,5 +1,5 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -46,7 +46,10 @@ class ReservationService:
                     try:
                         value = ReservationStatus(value)
                     except ValueError:
-                        raise InvalidEnumValueError(f"Invalid status: {value}. Must be one of: {[e.value for e in ReservationStatus]}")
+                        allowed = [e.value for e in ReservationStatus]
+                        raise InvalidEnumValueError(
+                            f"Invalid status: {value}. Must be one of: {allowed}"
+                        )
                 setattr(reservation, key, value)
         return self.repo.update(reservation)
 

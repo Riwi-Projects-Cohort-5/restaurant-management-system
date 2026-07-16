@@ -1,11 +1,11 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash
 from app.db.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
-from app.core.security import get_password_hash
 
 
 class InvalidEnumValueError(Exception):
@@ -22,11 +22,17 @@ class UserService:
     def get_all(self, skip: int = 0, limit: int = 100) -> list[User]:
         return self.repo.get_all(skip, limit)
 
-    def create(self, username: str, email: str, password: str, full_name: str, role: str = "waiter") -> User:
+    def create(
+        self, username: str, email: str, password: str,
+        full_name: str, role: str = "waiter",
+    ) -> User:
         try:
             role_enum = UserRole(role)
         except ValueError:
-            raise InvalidEnumValueError(f"Invalid role: {role}. Must be one of: {[e.value for e in UserRole]}")
+            allowed = [e.value for e in UserRole]
+            raise InvalidEnumValueError(
+                f"Invalid role: {role}. Must be one of: {allowed}"
+            )
         hashed = get_password_hash(password)
         user = User(
             username=username,
@@ -47,7 +53,10 @@ class UserService:
                     try:
                         value = UserRole(value)
                     except ValueError:
-                        raise InvalidEnumValueError(f"Invalid role: {value}. Must be one of: {[e.value for e in UserRole]}")
+                        allowed = [e.value for e in UserRole]
+                        raise InvalidEnumValueError(
+                            f"Invalid role: {value}. Must be one of: {allowed}"
+                        )
                 setattr(user, key, value)
         return self.repo.update(user)
 

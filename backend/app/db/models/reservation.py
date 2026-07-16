@@ -1,11 +1,12 @@
-from datetime import datetime, timezone, date
+import enum
+from datetime import date, datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, Integer, Enum as SAEnum, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
-import enum
 
 
 class ReservationStatus(str, enum.Enum):
@@ -23,10 +24,20 @@ class Reservation(Base):
     table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=True)
     reservation_date = Column(DateTime(timezone=True), nullable=False)
     guest_count = Column(Integer, nullable=False)
-    status = Column(SAEnum("pending", "confirmed", "cancelled", "completed", name="reservationstatus", create_type=False), nullable=False, default="pending")
+    status = Column(
+        SAEnum(
+            "pending", "confirmed", "cancelled", "completed",
+            name="reservationstatus", create_type=False,
+        ),
+        nullable=False, default="pending",
+    )
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     customer = relationship("Customer", back_populates="reservations")
     table = relationship("Table", back_populates="reservations")

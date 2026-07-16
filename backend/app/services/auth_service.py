@@ -2,9 +2,9 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.repositories.user_repository import UserRepository
-from app.core.security import verify_password, create_access_token, get_password_hash
+from app.core.security import create_access_token, get_password_hash, verify_password
 from app.db.models.user import User
+from app.repositories.user_repository import UserRepository
 
 
 class AuthService:
@@ -17,7 +17,10 @@ class AuthService:
             return None
         return create_access_token(data={"sub": str(user.id), "role": user.role.value})
 
-    def register(self, username: str, email: str, password: str, full_name: str, role: str = "waiter") -> User:
+    def register(
+        self, username: str, email: str, password: str,
+        full_name: str, role: str = "waiter",
+    ) -> User:
         hashed = get_password_hash(password)
         user = User(
             username=username,

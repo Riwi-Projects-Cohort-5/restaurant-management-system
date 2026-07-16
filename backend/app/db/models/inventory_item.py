@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, Integer, Numeric, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,13 @@ class InventoryItem(Base):
     min_stock = Column(Numeric(10, 2), nullable=False, default=0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
-    movements = relationship("InventoryMovement", back_populates="item", cascade="all, delete-orphan")
+    movements = relationship(
+        "InventoryMovement", back_populates="item", cascade="all, delete-orphan"
+    )
     recipes = relationship("Recipe", back_populates="ingredient")

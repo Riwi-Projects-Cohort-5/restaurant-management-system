@@ -1,5 +1,5 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -38,7 +38,10 @@ class TableService:
                     try:
                         value = TableStatus(value)
                     except ValueError:
-                        raise InvalidEnumValueError(f"Invalid status: {value}. Must be one of: {[e.value for e in TableStatus]}")
+                        allowed = [e.value for e in TableStatus]
+                        raise InvalidEnumValueError(
+                            f"Invalid status: {value}. Must be one of: {allowed}"
+                        )
                 setattr(table, key, value)
         return self.repo.update(table)
 
