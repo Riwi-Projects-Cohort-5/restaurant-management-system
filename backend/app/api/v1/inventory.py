@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : inventory.py
 Ruta     : backend/app/api/v1/inventory.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para gestión de inventario.
             get_item_by_id, create_item, update_item.
             También maneja movimientos de stock.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

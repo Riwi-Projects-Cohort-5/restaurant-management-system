@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : reports.py
 Ruta     : backend/app/api/v1/reports.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para reportes operativos.
             ambos requieren start_date y end_date obligatorios.
             No existe ReportOut genérico — retornamos dict.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from fastapi import APIRouter, Depends, Query

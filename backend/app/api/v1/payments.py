@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : payments.py
 Ruta     : backend/app/api/v1/payments.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para procesamiento de pagos.
             get_by_order y get_all. create recibe parámetros
             separados, no un objeto completo.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

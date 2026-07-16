@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : tables.py
 Ruta     : backend/app/api/v1/tables.py
 Responsable: Diego
@@ -7,7 +7,7 @@ Descripción: Endpoints REST para la gestión de mesas del
             restaurante. Estados posibles: AVAILABLE,
             RESERVED, OCCUPIED.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

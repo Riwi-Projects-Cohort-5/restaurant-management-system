@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : main.py
 Ruta     : backend/app/main.py
 Descripción: Punto de entrada de la aplicación FastAPI.
@@ -7,7 +7,7 @@ Descripción: Punto de entrada de la aplicación FastAPI.
             registra el router principal y define los
             endpoints base de salud del sistema.
 Fecha    : 2026-07-14
-=============================================================
+
 """
 
 from fastapi import FastAPI

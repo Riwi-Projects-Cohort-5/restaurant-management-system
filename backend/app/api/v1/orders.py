@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : orders.py
 Ruta     : backend/app/api/v1/orders.py
 Responsable: Diego
@@ -7,7 +7,7 @@ Descripción: Endpoints REST para la gestión de pedidos.
             El service maneja create, add_item y update_status
             como operaciones separadas — no un update genérico.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

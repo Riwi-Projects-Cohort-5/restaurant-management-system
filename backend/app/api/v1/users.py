@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : users.py
 Ruta     : backend/app/api/v1/users.py
 Responsable: Diego
@@ -9,7 +9,7 @@ Descripción: Endpoints REST para la gestión de usuarios del
             autenticación — solo administradores deberían
             gestionar usuarios en producción.
 Fecha    : 2026-07-14
-=============================================================
+
 """
 
 from uuid import UUID

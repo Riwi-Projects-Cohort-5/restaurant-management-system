@@ -1,6 +1,6 @@
 
 """
-=============================================================
+
 Módulo   : menu.py
 Ruta     : backend/app/api/v1/menu.py
 Responsable: Diego
@@ -10,7 +10,7 @@ Descripción: Endpoints REST para la gestión del menú del
             Los endpoints de lectura son públicos.
             Los endpoints de escritura requieren autenticación.
 Fecha    : 2026-07-14
-=============================================================
+
 """
 
 from uuid import UUID

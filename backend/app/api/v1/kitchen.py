@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : kitchen.py
 Ruta     : backend/app/api/v1/kitchen.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para el panel de cocina.
             genérico, y create recibe parámetros separados.
             No existe KitchenOrderCreate en schemas.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

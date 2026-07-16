@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : reservations.py
 Ruta     : backend/app/api/v1/reservations.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para gestión de reservaciones.
             delete no existe — se usa cancel que cambia
             el estado a CANCELLED en lugar de eliminar.
 Fecha    : 2026-07-15
-=============================================================
+
 """
 
 from uuid import UUID

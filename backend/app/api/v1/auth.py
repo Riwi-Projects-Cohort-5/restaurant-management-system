@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : auth.py
 Ruta     : backend/app/api/v1/auth.py
 Responsable: Diego
@@ -9,7 +9,7 @@ Descripción: Endpoints REST para autenticación de usuarios.
             en el header Authorization de las peticiones
             protegidas: "Bearer <token>"
 Fecha    : 2026-07-14
-=============================================================
+
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
