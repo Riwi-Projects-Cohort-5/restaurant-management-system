@@ -7,6 +7,10 @@ from app.db.models.kitchen_order import KitchenOrder, KitchenOrderStatus
 from app.repositories.kitchen_repository import KitchenRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class KitchenService:
     def __init__(self, db: Session):
         self.repo = KitchenRepository(db)
@@ -36,7 +40,10 @@ class KitchenService:
         kitchen_order = self.repo.get_by_id(kitchen_order_id)
         if not kitchen_order:
             return None
-        kitchen_order.status = KitchenOrderStatus(status)
+        try:
+            kitchen_order.status = KitchenOrderStatus(status)
+        except ValueError:
+            raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in KitchenOrderStatus]}")
         if notes:
             kitchen_order.notes = notes
         return self.repo.update(kitchen_order)

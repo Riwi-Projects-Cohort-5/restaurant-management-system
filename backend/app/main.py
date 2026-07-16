@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
+from app.api.router import api_router
 
 # Importamos el router principal que contiene todos los módulos
 from app.api.router import api_router
@@ -36,6 +37,7 @@ app.add_middleware(
 
 # Registramos el router principal con todos los endpoints bajo /api/v1
 app.include_router(api_router)
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")

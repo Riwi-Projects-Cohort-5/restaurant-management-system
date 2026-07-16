@@ -8,3 +8,6 @@ from app.db.schemas.payment import PaymentCreate, PaymentOut
 from app.db.schemas.inventory import InventoryItemCreate, InventoryItemUpdate, InventoryItemOut, InventoryMovementCreate, InventoryMovementOut
 from app.db.schemas.kitchen import KitchenOrderUpdate, KitchenOrderOut
 from app.db.schemas.report import ReportSales, ReportTopProducts
+from app.db.schemas.recipe import RecipeCreate, RecipeOut
+from app.db.schemas.supplier import SupplierCreate, SupplierUpdate, SupplierOut
+from app.db.schemas.purchase import PurchaseCreate, PurchaseUpdate, PurchaseOut, PurchaseDetailCreate, PurchaseDetailOut

@@ -21,3 +21,4 @@ class InventoryItem(Base):
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     movements = relationship("InventoryMovement", back_populates="item", cascade="all, delete-orphan")
+    recipes = relationship("Recipe", back_populates="ingredient")

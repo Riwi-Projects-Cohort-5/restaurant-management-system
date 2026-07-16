@@ -23,3 +23,4 @@ class MenuItem(Base):
 
     category = relationship("Category", back_populates="menu_items")
     order_items = relationship("OrderItem", back_populates="menu_item")
+    recipes = relationship("Recipe", back_populates="product")

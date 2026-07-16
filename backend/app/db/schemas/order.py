@@ -31,7 +31,7 @@ class OrderItemOut(BaseModel):
 
 class OrderOut(BaseModel):
     id: UUID
-    user_id: UUID
+    waiter_id: UUID
     table_id: UUID
     status: str
     total: Decimal

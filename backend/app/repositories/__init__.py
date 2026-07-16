@@ -8,6 +8,9 @@ from app.repositories.payment_repository import PaymentRepository
 from app.repositories.inventory_repository import InventoryRepository
 from app.repositories.kitchen_repository import KitchenRepository
 from app.repositories.report_repository import ReportRepository
+from app.repositories.recipe_repository import RecipeRepository
+from app.repositories.supplier_repository import SupplierRepository
+from app.repositories.purchase_repository import PurchaseRepository
 
 __all__ = [
     "UserRepository",
@@ -20,4 +23,7 @@ __all__ = [
     "InventoryRepository",
     "KitchenRepository",
     "ReportRepository",
+    "RecipeRepository",
+    "SupplierRepository",
+    "PurchaseRepository",
 ]

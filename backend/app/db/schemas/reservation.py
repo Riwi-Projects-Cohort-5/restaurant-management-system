@@ -1,12 +1,12 @@
 from datetime import datetime
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel
 
 
 class ReservationCreate(BaseModel):
-    table_id: UUID
+    table_id: Optional[UUID] = None
     reservation_date: datetime
     guest_count: int
     notes: Optional[str] = None
@@ -20,9 +20,9 @@ class ReservationUpdate(BaseModel):
 
 
 class ReservationOut(BaseModel):
-    id: UUID
-    user_id: UUID
-    table_id: UUID
+    id: str
+    customer_id: str
+    table_id: Optional[UUID]
     reservation_date: datetime
     guest_count: int
     status: str

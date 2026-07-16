@@ -9,6 +9,9 @@ from app.services.payment_service import PaymentService
 from app.services.inventory_service import InventoryService
 from app.services.kitchen_service import KitchenService
 from app.services.report_service import ReportService
+from app.services.recipe_service import RecipeService
+from app.services.supplier_service import SupplierService
+from app.services.purchase_service import PurchaseService
 
 __all__ = [
     "UserService",
@@ -22,4 +25,7 @@ __all__ = [
     "InventoryService",
     "KitchenService",
     "ReportService",
+    "RecipeService",
+    "SupplierService",
+    "PurchaseService",
 ]
