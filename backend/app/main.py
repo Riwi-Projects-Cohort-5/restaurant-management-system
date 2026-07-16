@@ -36,7 +36,6 @@ app.add_middleware(
 
 # Registramos el router principal con todos los endpoints bajo /api/v1
 app.include_router(api_router)
-app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")
