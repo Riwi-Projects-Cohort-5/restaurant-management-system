@@ -28,7 +28,7 @@ class KitchenService:
         return self.repo.get_in_progress()
 
     def create(self, order_id: UUID, menu_item_name: str, quantity: int,
-               notes: Optional[str] = None, priority: int = 0) -> KitchenOrder:
+            notes: Optional[str] = None, priority: int = 0) -> KitchenOrder:
         kitchen_order = KitchenOrder(
             order_id=order_id, menu_item_name=menu_item_name,
             quantity=quantity, notes=notes, priority=priority,
