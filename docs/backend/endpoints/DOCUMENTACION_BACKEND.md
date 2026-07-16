@@ -3,7 +3,7 @@
 
 **Responsable del módulo:** Diego  
 **Fecha:** Julio 2026  
-**Versión:** 1.0.0
+**Versión:** 1.1.0
 
 ---
 
@@ -171,6 +171,27 @@ POST /api/v1/auth/register
 | GET | `/api/v1/users/{user_id}` | Retorna un usuario por ID | 🔒 |
 | PUT | `/api/v1/users/{user_id}` | Actualiza datos de un usuario | 🔒 |
 | DELETE | `/api/v1/users/{user_id}` | Elimina un usuario | 🔒 |
+
+---
+
+### 🏷️ Categories — Categorías
+
+| Método | Ruta | Descripción | Auth |
+|---|---|---|---|
+| GET | `/api/v1/categories/` | Lista todas las categorías | Público |
+| GET | `/api/v1/categories/{category_id}` | Retorna una categoría por ID | Público |
+| POST | `/api/v1/categories/` | Crea una nueva categoría | 🔒 |
+| PUT | `/api/v1/categories/{category_id}` | Actualiza una categoría | 🔒 |
+| DELETE | `/api/v1/categories/{category_id}` | Elimina una categoría | 🔒 |
+
+**Ejemplo — Crear categoría:**
+```json
+POST /api/v1/categories/
+{
+  "name": "Platos principales",
+  "description": "Platos fuertes del restaurante"
+}
+```
 
 ---
 

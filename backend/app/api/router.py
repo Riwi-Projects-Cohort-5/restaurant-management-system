@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : router.py
 Ruta     : backend/app/api/router.py
 Responsable: Diego
@@ -7,7 +7,7 @@ Descripción: Router principal de la API v1. Centraliza y
             registra todos los módulos de endpoints bajo
             el prefijo /api/v1.
 Fecha    : 2026-07-16
-=============================================================
+
 """
 
 from fastapi import APIRouter

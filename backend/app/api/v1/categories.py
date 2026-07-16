@@ -1,5 +1,5 @@
 """
-=============================================================
+
 Módulo   : categories.py
 Ruta     : backend/app/api/v1/categories.py
 Responsable: Diego
@@ -8,7 +8,7 @@ Descripción: Endpoints REST para la gestión de categorías
             menú (ej: Entradas, Platos principales, Bebidas).
             Los GET son públicos; escritura requiere auth.
 Fecha    : 2026-07-16
-=============================================================
+
 """
 
 from uuid import UUID
