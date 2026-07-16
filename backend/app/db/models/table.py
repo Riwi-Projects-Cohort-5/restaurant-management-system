@@ -22,7 +22,7 @@ class Table(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     number = Column(Integer, unique=True, nullable=False)
     capacity = Column(Integer, nullable=False)
-    status = Column(SAEnum(TableStatus), nullable=False, default=TableStatus.AVAILABLE)
+    status = Column(SAEnum("available", "occupied", "reserved", "maintenance", name="tablestatus", create_type=False), nullable=False, default="available")
     location = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
