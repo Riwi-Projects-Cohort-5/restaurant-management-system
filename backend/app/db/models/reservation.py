@@ -24,7 +24,7 @@ class Reservation(Base):
     table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=False)
     reservation_date = Column(DateTime(timezone=True), nullable=False)
     guest_count = Column(Integer, nullable=False)
-    status = Column(SAEnum(ReservationStatus), nullable=False, default=ReservationStatus.PENDING)
+    status = Column(SAEnum("pending", "confirmed", "cancelled", "completed", name="reservationstatus", create_type=False), nullable=False, default="pending")
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

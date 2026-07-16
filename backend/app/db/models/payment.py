@@ -28,8 +28,8 @@ class Payment(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False, unique=True)
     amount = Column(Numeric(10, 2), nullable=False)
-    method = Column(SAEnum(PaymentMethod), nullable=False)
-    status = Column(SAEnum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
+    method = Column(SAEnum("cash", "card", "transfer", name="paymentmethod", create_type=False), nullable=False)
+    status = Column(SAEnum("pending", "completed", "refunded", "failed", name="paymentstatus", create_type=False), nullable=False, default="pending")
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

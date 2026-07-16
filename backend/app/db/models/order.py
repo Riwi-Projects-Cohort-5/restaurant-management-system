@@ -22,7 +22,7 @@ class Order(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=False)
-    status = Column(SAEnum(OrderStatus), nullable=False, default=OrderStatus.PENDING)
+    status = Column(SAEnum("pending", "in_progress", "completed", "cancelled", name="orderstatus", create_type=False), nullable=False, default="pending")
     total = Column(Numeric(10, 2), default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
