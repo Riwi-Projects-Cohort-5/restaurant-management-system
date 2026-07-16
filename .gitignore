@@ -53,3 +53,4 @@ database/backups/*
 htmlcov/
 .pytest_cache/
 .cache/
+test.db
