@@ -1,10 +1,19 @@
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
-import uuid
 
+from app.db.database import get_db
 from app.main import app
+from tests.conftest import TestingSessionLocal
 
 
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
