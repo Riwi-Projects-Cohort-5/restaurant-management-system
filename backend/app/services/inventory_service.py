@@ -37,7 +37,7 @@ class InventoryService:
         return self.repo.update_item(item)
 
     def register_movement(self, item_id: UUID, movement_type: str,
-                          quantity: Decimal, reason: Optional[str] = None) -> Optional[InventoryMovement]:
+                        quantity: Decimal, reason: Optional[str] = None) -> Optional[InventoryMovement]:
         item = self.repo.get_item_by_id(item_id)
         if not item:
             return None
