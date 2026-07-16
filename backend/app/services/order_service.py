@@ -10,6 +10,10 @@ from app.repositories.order_repository import OrderRepository
 from app.repositories.menu_item_repository import MenuItemRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class OrderService:
     def __init__(self, db: Session):
         self.repo = OrderRepository(db)
@@ -55,5 +59,8 @@ class OrderService:
         order = self.repo.get_by_id(order_id)
         if not order:
             return None
-        order.status = OrderStatus(status)
+        try:
+            order.status = OrderStatus(status)
+        except ValueError:
+            raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in OrderStatus]}")
         return self.repo.update(order)

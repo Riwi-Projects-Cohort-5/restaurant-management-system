@@ -1,4 +1,4 @@
-INSERT INTO products (id, category_id, name, description, price, available) VALUES
+INSERT INTO menu_items (id, category_id, name, description, price, is_available) VALUES
 -- Entradas
 ('33333333-3333-3333-3333-333333333301', '22222222-2222-2222-2222-222222222201', 'Nachos Supreme', 'Tortillas con queso, guacamole y frijoles', 12000.00, true),
 ('33333333-3333-3333-3333-333333333302', '22222222-2222-2222-2222-222222222201', 'Empanadas (6 uds)', 'Empanadas de carne o pollo', 15000.00, true),

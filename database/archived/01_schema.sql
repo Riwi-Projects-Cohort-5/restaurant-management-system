@@ -6,12 +6,12 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100),
-    email VARCHAR(150) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
     role VARCHAR(30) NOT NULL,
-    status VARCHAR(20) DEFAULT 'ACTIVE',
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -21,7 +21,7 @@ CREATE TABLE users (
 -- =====================================================
 
 CREATE TABLE customers (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id VARCHAR(30) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     email VARCHAR(100),
@@ -36,9 +36,8 @@ CREATE TABLE tables (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     number INTEGER UNIQUE NOT NULL,
     capacity INTEGER NOT NULL,
-    status VARCHAR(30) DEFAULT 'AVAILABLE',
+    status VARCHAR(30) DEFAULT 'available',
     location VARCHAR(100),
-    notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -49,14 +48,14 @@ CREATE TABLE tables (
 
 CREATE TABLE reservations (
     id VARCHAR(30) PRIMARY KEY,
-    customer_id UUID NOT NULL,
+    customer_id VARCHAR(30) NOT NULL,
     table_id UUID,
-    party_size INTEGER NOT NULL,
-    reservation_date DATE NOT NULL,
-    reservation_time TIME NOT NULL,
-    status VARCHAR(30) DEFAULT 'PENDING',
+    reservation_date TIMESTAMP NOT NULL,
+    guest_count INTEGER NOT NULL,
+    status VARCHAR(30) DEFAULT 'pending',
     notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (customer_id) REFERENCES customers(id),
     FOREIGN KEY (table_id) REFERENCES tables(id)
@@ -68,22 +67,25 @@ CREATE TABLE reservations (
 
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(100) NOT NULL,
-    description TEXT
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- =====================================================
--- PRODUCTS
+-- MENU ITEMS
 -- =====================================================
 
-CREATE TABLE products (
+CREATE TABLE menu_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    category_id UUID,
     name VARCHAR(150) NOT NULL,
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
-    available BOOLEAN DEFAULT TRUE,
-    image_url VARCHAR(255),
+    category_id UUID NOT NULL,
+    is_available BOOLEAN DEFAULT TRUE,
+    image_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -96,34 +98,26 @@ CREATE TABLE products (
 
 CREATE TABLE orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    table_id UUID NOT NULL,
     waiter_id UUID NOT NULL,
-
-    status VARCHAR(30) DEFAULT 'PENDING',
-
-    subtotal DECIMAL(10,2) DEFAULT 0,
-    taxes DECIMAL(10,2) DEFAULT 0,
+    table_id UUID NOT NULL,
+    status VARCHAR(30) DEFAULT 'pending',
     total DECIMAL(10,2) DEFAULT 0,
-
-    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (table_id) REFERENCES tables(id),
-    FOREIGN KEY (waiter_id) REFERENCES users(id)
+    FOREIGN KEY (waiter_id) REFERENCES users(id),
+    FOREIGN KEY (table_id) REFERENCES tables(id)
 );
 
 -- =====================================================
--- ORDER DETAILS
+-- ORDER ITEMS
 -- =====================================================
 
-CREATE TABLE order_details (
+CREATE TABLE order_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     order_id UUID NOT NULL,
-    product_id UUID NOT NULL,
-
-    quantity INTEGER NOT NULL,
+    menu_item_id UUID NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
     unit_price DECIMAL(10,2) NOT NULL,
     subtotal DECIMAL(10,2) NOT NULL,
 
@@ -131,32 +125,28 @@ CREATE TABLE order_details (
         REFERENCES orders(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (product_id)
-        REFERENCES products(id)
+    FOREIGN KEY (menu_item_id)
+        REFERENCES menu_items(id)
 );
 
 -- =====================================================
--- KITCHEN STATUS
+-- KITCHEN ORDERS
 -- =====================================================
 
-CREATE TABLE kitchen_status (
+CREATE TABLE kitchen_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     order_id UUID NOT NULL,
-    cook_id UUID,
-
-    status VARCHAR(30) DEFAULT 'PENDING',
-
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
-
+    menu_item_name VARCHAR(150) NOT NULL,
+    quantity INTEGER NOT NULL,
     notes TEXT,
+    status VARCHAR(30) DEFAULT 'pending',
+    priority INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (order_id)
-        REFERENCES orders(id),
-
-    FOREIGN KEY (cook_id)
-        REFERENCES users(id)
+        REFERENCES orders(id)
+        ON DELETE CASCADE
 );
 
 -- =====================================================
@@ -165,41 +155,28 @@ CREATE TABLE kitchen_status (
 
 CREATE TABLE payments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    order_id UUID NOT NULL,
-    cashier_id UUID NOT NULL,
-
-    payment_method VARCHAR(30) NOT NULL,
+    order_id UUID NOT NULL UNIQUE,
     amount DECIMAL(10,2) NOT NULL,
-
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    status VARCHAR(20) DEFAULT 'COMPLETED',
-
-    reference_number VARCHAR(100),
+    method VARCHAR(30) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (order_id)
-        REFERENCES orders(id),
-
-    FOREIGN KEY (cashier_id)
-        REFERENCES users(id)
+        REFERENCES orders(id)
 );
 
 -- =====================================================
--- INGREDIENTS
+-- INVENTORY ITEMS
 -- =====================================================
 
-CREATE TABLE ingredients (
+CREATE TABLE inventory_items (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     name VARCHAR(150) NOT NULL,
-    unit_of_measure VARCHAR(50) NOT NULL,
-
-    current_stock DECIMAL(10,2) DEFAULT 0,
-    minimum_stock DECIMAL(10,2) DEFAULT 0,
-
-    unit_cost DECIMAL(10,2) DEFAULT 0,
-
+    unit VARCHAR(50) NOT NULL,
+    quantity DECIMAL(10,2) DEFAULT 0,
+    min_stock DECIMAL(10,2) DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -210,17 +187,15 @@ CREATE TABLE ingredients (
 
 CREATE TABLE recipes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     product_id UUID NOT NULL,
     ingredient_id UUID NOT NULL,
-
     required_quantity DECIMAL(10,2) NOT NULL,
 
     FOREIGN KEY (product_id)
-        REFERENCES products(id),
+        REFERENCES menu_items(id),
 
     FOREIGN KEY (ingredient_id)
-        REFERENCES ingredients(id)
+        REFERENCES inventory_items(id)
 );
 
 -- =====================================================
@@ -229,22 +204,14 @@ CREATE TABLE recipes (
 
 CREATE TABLE inventory_movements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-    ingredient_id UUID NOT NULL,
-    user_id UUID,
-
-    movement_type VARCHAR(20) NOT NULL,
+    item_id UUID NOT NULL,
+    type VARCHAR(10) NOT NULL,
     quantity DECIMAL(10,2) NOT NULL,
-
     reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-    movement_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    FOREIGN KEY (ingredient_id)
-        REFERENCES ingredients(id),
-
-    FOREIGN KEY (user_id)
-        REFERENCES users(id)
+    FOREIGN KEY (item_id)
+        REFERENCES inventory_items(id)
 );
 
 -- =====================================================
@@ -253,14 +220,11 @@ CREATE TABLE inventory_movements (
 
 CREATE TABLE suppliers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     name VARCHAR(150) NOT NULL,
     phone VARCHAR(30),
     email VARCHAR(150),
     address TEXT,
-
-    status VARCHAR(20) DEFAULT 'ACTIVE',
-
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -270,17 +234,11 @@ CREATE TABLE suppliers (
 
 CREATE TABLE purchases (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     supplier_id UUID NOT NULL,
-
     purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    status VARCHAR(30) DEFAULT 'PENDING',
-
+    status VARCHAR(30) DEFAULT 'pending',
     total DECIMAL(10,2) DEFAULT 0,
-
     notes TEXT,
-
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (supplier_id)
@@ -293,12 +251,9 @@ CREATE TABLE purchases (
 
 CREATE TABLE purchase_details (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
     purchase_id UUID NOT NULL,
     ingredient_id UUID NOT NULL,
-
     quantity DECIMAL(10,2) NOT NULL,
-
     unit_cost DECIMAL(10,2),
     subtotal DECIMAL(10,2),
 
@@ -307,5 +262,5 @@ CREATE TABLE purchase_details (
         ON DELETE CASCADE,
 
     FOREIGN KEY (ingredient_id)
-        REFERENCES ingredients(id)
+        REFERENCES inventory_items(id)
 );

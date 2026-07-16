@@ -9,6 +9,10 @@ from app.db.models.inventory_movement import InventoryMovement, MovementType
 from app.repositories.inventory_repository import InventoryRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class InventoryService:
     def __init__(self, db: Session):
         self.repo = InventoryRepository(db)
@@ -41,8 +45,12 @@ class InventoryService:
         item = self.repo.get_item_by_id(item_id)
         if not item:
             return None
+        try:
+            movement_type_enum = MovementType(movement_type)
+        except ValueError:
+            raise InvalidEnumValueError(f"Invalid movement type: {movement_type}. Must be one of: {[e.value for e in MovementType]}")
         movement = InventoryMovement(
-            item_id=item_id, type=MovementType(movement_type),
+            item_id=item_id, type=movement_type_enum,
             quantity=quantity, reason=reason,
         )
         if movement_type == "in":

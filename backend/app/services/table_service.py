@@ -7,6 +7,10 @@ from app.db.models.table import Table, TableStatus
 from app.repositories.table_repository import TableRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class TableService:
     def __init__(self, db: Session):
         self.repo = TableRepository(db)
@@ -31,7 +35,10 @@ class TableService:
         for key, value in data.items():
             if value is not None and hasattr(table, key):
                 if key == "status":
-                    value = TableStatus(value)
+                    try:
+                        value = TableStatus(value)
+                    except ValueError:
+                        raise InvalidEnumValueError(f"Invalid status: {value}. Must be one of: {[e.value for e in TableStatus]}")
                 setattr(table, key, value)
         return self.repo.update(table)
 

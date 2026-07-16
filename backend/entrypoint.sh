@@ -11,5 +11,16 @@ echo "Database is ready."
 echo "Running Alembic migrations..."
 alembic upgrade head
 
+echo "Seeding database..."
+python3 -c "
+from app.db.database import SessionLocal
+from app.db.seed import seed_database
+db = SessionLocal()
+try:
+    seed_database(db)
+finally:
+    db.close()
+"
+
 echo "Starting uvicorn..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000

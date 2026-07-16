@@ -9,6 +9,10 @@ from app.repositories.payment_repository import PaymentRepository
 from app.repositories.order_repository import OrderRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class PaymentService:
     def __init__(self, db: Session):
         self.repo = PaymentRepository(db)
@@ -27,8 +31,12 @@ class PaymentService:
         order = self.order_repo.get_by_id(order_id)
         if not order:
             return None
+        try:
+            method_enum = PaymentMethod(method)
+        except ValueError:
+            raise InvalidEnumValueError(f"Invalid payment method: {method}. Must be one of: {[e.value for e in PaymentMethod]}")
         payment = Payment(
             order_id=order_id, amount=amount,
-            method=PaymentMethod(method), status=PaymentStatus.COMPLETED,
+            method=method_enum, status=PaymentStatus.COMPLETED,
         )
         return self.repo.create(payment)

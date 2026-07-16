@@ -7,6 +7,10 @@ from app.db.models.reservation import Reservation, ReservationStatus, generate_r
 from app.repositories.reservation_repository import ReservationRepository
 
 
+class InvalidEnumValueError(Exception):
+    pass
+
+
 class ReservationService:
     def __init__(self, db: Session):
         self.repo = ReservationRepository(db)
@@ -39,7 +43,10 @@ class ReservationService:
         for key, value in data.items():
             if value is not None and hasattr(reservation, key):
                 if key == "status":
-                    value = ReservationStatus(value)
+                    try:
+                        value = ReservationStatus(value)
+                    except ValueError:
+                        raise InvalidEnumValueError(f"Invalid status: {value}. Must be one of: {[e.value for e in ReservationStatus]}")
                 setattr(reservation, key, value)
         return self.repo.update(reservation)
 

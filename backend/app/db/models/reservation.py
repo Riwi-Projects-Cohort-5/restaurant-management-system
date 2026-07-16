@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, date
 
 from sqlalchemy import Column, String, DateTime, Integer, Enum as SAEnum, ForeignKey, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
@@ -19,7 +20,7 @@ class Reservation(Base):
 
     id = Column(String(30), primary_key=True)
     customer_id = Column(String(30), ForeignKey("customers.id"), nullable=False)
-    table_id = Column(String(30), ForeignKey("tables.id"), nullable=False)
+    table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=True)
     reservation_date = Column(DateTime(timezone=True), nullable=False)
     guest_count = Column(Integer, nullable=False)
     status = Column(SAEnum(ReservationStatus), nullable=False, default=ReservationStatus.PENDING)
