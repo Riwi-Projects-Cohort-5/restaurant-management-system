@@ -1,111 +1,84 @@
-/**
- * SalesChart Component
- * @module components/dashboard/SalesChart
- *
- * Bar chart rendered via Chart.js showing weekly sales with "this week" and
- * "last week" overlay. Requires Chart.js to be loaded globally.
- *
- * @param {Object} props
- * @param {Array<string>} props.labels - X-axis labels, e.g. ['Mon','Tue',…]
- * @param {Array<number>} props.thisWeek - This week's sales values
- * @param {Array<number>} props.lastWeek - Last week's sales values
- */
+var chartInstance = null;
 
-let _chart = null;
+var SalesChart = {
+  renderLegend: function () {
+    var html = '<div class="flex gap-2 mb-4">';
+    html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> This Week</span>';
+    html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500">Last Week</span>';
+    html += '</div>';
+    return html;
+  },
 
-export function render(props = {}) {
-  const { labels = [], thisWeek = [], lastWeek = [] } = props;
+  init: function () {
+    var canvas = document.getElementById('salesChart');
+    if (!canvas || !window.Chart) return;
 
-  return `
-    <div class="bg-white rounded-xl p-5 border border-brand-200">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-bold text-brand-900">Weekly Sales</h3>
-        <div class="flex items-center gap-4 text-xs text-secondary-500">
-          <span class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-500"></span>
-            This Week
-          </span>
-          <span class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full bg-neutral-300"></span>
-            Last Week
-          </span>
-        </div>
-      </div>
-      <canvas id="sales-chart-canvas" class="h-64" data-labels='${JSON.stringify(labels)}' data-this-week='${JSON.stringify(thisWeek)}' data-last-week='${JSON.stringify(lastWeek)}'></canvas>
-    </div>
-  `;
-}
-
-export function init() {
-  if (typeof Chart === 'undefined') {
-    console.warn('[SalesChart] Chart.js is not loaded.');
-    return;
-  }
-
-  const canvas = document.getElementById('sales-chart-canvas');
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d');
-  const labels = JSON.parse(canvas.dataset.labels || '[]');
-  const thisWeek = JSON.parse(canvas.dataset.thisWeek || '[]');
-  const lastWeek = JSON.parse(canvas.dataset.lastWeek || '[]');
-
-  _chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'This Week',
-          data: thisWeek,
-          backgroundColor: 'rgba(79, 70, 229, 0.85)',
-          borderRadius: 6,
-          borderSkipped: false,
-          barPercentage: 0.6,
-        },
-        {
-          label: 'Last Week',
-          data: lastWeek,
-          backgroundColor: 'rgba(229, 231, 235, 1)',
-          borderRadius: 6,
-          borderSkipped: false,
-          barPercentage: 0.6,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ` $${ctx.parsed.y.toLocaleString()}`,
+    var ctx = canvas.getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [
+          {
+            label: 'This Week',
+            data: [2800, 4500, 3600, 5200, 5800, 6200, 4800],
+            backgroundColor: '#E57722',
+            borderRadius: 6,
+            barPercentage: 0.6,
           },
-        },
+          {
+            label: 'Last Week',
+            data: [2200, 3800, 3100, 4600, 5100, 5500, 4200],
+            backgroundColor: '#F2BA7A',
+            borderRadius: 6,
+            barPercentage: 0.6,
+          }
+        ]
       },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9ca3af', font: { size: 12 } },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1E1B16',
+            titleColor: '#FEFAF5',
+            bodyColor: '#E8E3DA',
+            borderColor: '#3D352A',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8,
+            callbacks: {
+              label: function (ctx) { return ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString(); }
+            }
+          }
         },
-        y: {
-          grid: { color: 'rgba(79, 70, 229, 0.08)' },
-          ticks: {
-            color: '#9ca3af',
-            font: { size: 12 },
-            callback: (v) => `$${v.toLocaleString()}`,
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#958877', font: { size: 12, weight: 500 } },
+            border: { display: false },
           },
-          beginAtZero: true,
-        },
-      },
-    },
-  });
-}
+          y: {
+            grid: { color: 'rgba(0,0,0,0.06)', drawBorder: false },
+            ticks: {
+              color: '#958877',
+              font: { size: 11 },
+              callback: function (v) { return '$' + (v / 1000).toFixed(0) + 'k'; }
+            },
+            border: { display: false },
+          }
+        }
+      }
+    });
+  },
 
-export function destroy() {
-  if (_chart) {
-    _chart.destroy();
-    _chart = null;
+  destroy: function () {
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
   }
-}
+};
+
+export default SalesChart;

@@ -1,191 +1,103 @@
-/**
- * Dashboard View
- * @route /dashboard
- *
- * Composes: WelcomeBanner, PageHeader, StatCard, SalesChart, TableStatusCard,
- *           Card, DataTable, Badge
- *
- * State needed:
- * - User name/initials (from auth store)
- * - Orders data (for recent orders table)
- * - Table stats (available/occupied/reserved counts)
- * - Sales data (for chart)
- */
+import WelcomeBanner from '../../components/ui/WelcomeBanner.js';
+import StatCard from '../../components/ui/StatCard.js';
+import SalesChart from '../../components/dashboard/SalesChart.js';
+import TableStatusCard from '../../components/dashboard/TableStatusCard.js';
+import { allOrders } from '../../store/posData.js';
 
-import { render as WelcomeBanner } from '../../components/common/WelcomeBanner.js';
-import { render as PageHeader } from '../../components/common/PageHeader.js';
-import { render as StatCard } from '../../components/ui/StatCard.js';
-import { render as SalesChart } from '../../components/dashboard/SalesChart.js';
-import { render as TableStatusCard } from '../../components/dashboard/TableStatusCard.js';
-import { render as Card } from '../../components/ui/Card.js';
-import { render as DataTable } from '../../components/ui/DataTable.js';
-import { render as Badge } from '../../components/ui/Badge.js';
+var Dashboard = {
+  render: function (el) {
+    var user = window.userData || { name: 'Admin', initials: 'MC' };
+    var recentOrders = allOrders.slice(0, 5);
 
-const statusBadgeMap = {
-  new:        { variant: 'info',    label: 'New' },
-  preparing:  { variant: 'warning', label: 'Preparing' },
-  ready:      { variant: 'success', label: 'Ready' },
-  served:     { variant: 'accent',  label: 'Served' },
-  completed:  { variant: 'neutral', label: 'Completed' },
-  cancelled:  { variant: 'error',   label: 'Cancelled' },
+    var statusMap = {
+      draft: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span> Draft</span>',
+      completed: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-success-100 text-success-700"><span class="w-1.5 h-1.5 rounded-full bg-success-500"></span> Completed</span>',
+      preparing: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Preparing</span>',
+      ready: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Ready</span>',
+      served: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-800"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Served</span>',
+      new: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-info-100 text-info-700"><span class="w-1.5 h-1.5 rounded-full bg-info-500"></span> New</span>',
+      cancelled: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-error-100 text-error-700"><span class="w-1.5 h-1.5 rounded-full bg-error-500"></span> Cancelled</span>'
+    };
+
+    var html = '<div class="space-y-0">';
+
+    html += WelcomeBanner({ user: user, time: 'morning' });
+
+    html += '<div class="flex items-center justify-between mb-6">';
+    html += '<h2 class="text-[22px] font-bold text-brand-900">Overview</h2>';
+    html += '<div class="flex gap-3">';
+    html += '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer"><i data-lucide="download" class="w-4 h-4"></i> Export</button>';
+    html += '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-primary-600 text-white border-primary-600 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">';
+    html += StatCard({ label: 'Total Revenue', value: '$12,450', change: '+12.5%', icon: 'dollar-sign', iconBg: 'bg-brand-100 text-brand-700' });
+    html += StatCard({ label: 'Orders Today', value: '156', change: '+8.2%', icon: 'shopping-bag', iconBg: 'bg-primary-100 text-primary-700' });
+    html += StatCard({ label: 'Active Tables', value: '8 / 12', change: '67% occupancy', icon: 'users', iconBg: 'bg-accent-100 text-accent-700', changeNeutral: true });
+    html += StatCard({ label: 'Reservations', value: '24', change: '+3 today', icon: 'calendar-check', iconBg: 'bg-success-100 text-success-700' });
+    html += '</div>';
+
+    html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">';
+
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
+    html += '<div class="flex items-center justify-between mb-4">';
+    html += '<h3 class="text-base font-semibold text-primary-700 font-display">Weekly Sales</h3>';
+    html += SalesChart.renderLegend();
+    html += '</div>';
+    html += '<div class="relative h-[200px]"><canvas id="salesChart"></canvas></div>';
+    html += '</div>';
+
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
+    html += '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
+    html += '<div class="flex flex-col gap-4">';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">4 tables</span></div>';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">6 tables</span></div>';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">2 tables</span></div>';
+    html += '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500 w-1/2"></div><div class="bg-accent-500 w-[16.67%]"></div><div class="bg-success-500 w-1/3"></div></div></div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
+    html += '<div class="flex items-center justify-between px-5 pt-5 pb-4">';
+    html += '<h3 class="text-base font-semibold text-primary-700 font-display">Recent Orders</h3>';
+    html += '<a href="#/pos" class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 cursor-pointer">View All</a>';
+    html += '</div>';
+    html += '<div class="overflow-x-auto">';
+    html += '<table class="w-full text-sm text-left">';
+    html += '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
+    html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+    recentOrders.forEach(function (o, i) {
+      var zebra = i % 2 === 0 ? 'bg-white' : 'bg-brand-50/50';
+      html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
+      html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + '</td>';
+      html += '<td class="px-4 py-3">Table ' + o.table + '</td>';
+      html += '<td class="px-4 py-3">' + (o.server || '') + '</td>';
+      html += '<td class="px-4 py-3">' + o.items.length + ' items</td>';
+      html += '<td class="px-4 py-3 font-semibold text-brand-800">$' + o.total.toFixed(2) + '</td>';
+      html += '<td class="px-4 py-3">' + (statusMap[o.status] || '') + '</td>';
+      html += '<td class="px-4 py-3 text-neutral-500">' + o.time + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div></div>';
+
+    html += '</div>';
+
+    el.innerHTML = html;
+  },
+
+  init: function () {
+    SalesChart.init();
+  },
+
+  destroy: function () {
+    SalesChart.destroy();
+  }
 };
 
-const recentOrders = [
-  { id: 1043, table: 3, items: 3, total: '$38.50', status: 'new', time: '1 min ago' },
-  { id: 1042, table: 5, items: 2, total: '$42.00', status: 'preparing', time: '5 min ago' },
-  { id: 1041, table: 2, items: 4, total: '$65.50', status: 'ready', time: '12 min ago' },
-  { id: 1040, table: 8, items: 2, total: '$27.00', status: 'served', time: '18 min ago' },
-  { id: 1039, table: 1, items: 2, total: '$37.40', status: 'completed', time: '18 min ago' },
-];
-
-const columns = [
-  { key: 'id', label: 'Order', primary: true },
-  { key: 'table', label: 'Table' },
-  { key: 'items', label: 'Items' },
-  { key: 'total', label: 'Total' },
-  {
-    key: 'status',
-    label: 'Status',
-    render: function (value) {
-      const b = statusBadgeMap[value] || statusBadgeMap.new;
-      return Badge({ variant: b.variant, showDot: true, children: b.label });
-    },
-  },
-  { key: 'time', label: 'Time' },
-];
-
-const salesLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const salesThisWeek = [1200, 1900, 1500, 2100, 1800, 2400, 1600];
-const salesLastWeek = [1100, 1700, 1400, 1900, 1600, 2200, 1500];
-
-/**
- * Render the Dashboard view
- * @returns {string} HTML string
- */
-export function render() {
-  const statsHtml = [
-    StatCard({
-      label: 'Total Revenue',
-      value: '$12,450',
-      icon: 'dollar-sign',
-      iconColor: 'success',
-      change: { value: '+12%', direction: 'up' },
-      changeText: 'vs last month',
-    }),
-    StatCard({
-      label: 'Orders Today',
-      value: '156',
-      icon: 'receipt',
-      iconColor: 'brand',
-      change: { value: '+8%', direction: 'up' },
-      changeText: 'vs yesterday',
-    }),
-    StatCard({
-      label: 'Active Tables',
-      value: '8 / 12',
-      icon: 'table',
-      iconColor: 'primary',
-    }),
-    StatCard({
-      label: 'Reservations',
-      value: '24',
-      icon: 'calendar',
-      iconColor: 'accent',
-      change: { value: '+3', direction: 'up' },
-      changeText: 'vs last week',
-    }),
-  ].join('');
-
-  const recentOrdersTable = DataTable({
-    columns: columns,
-    data: recentOrders,
-  });
-
-  const recentOrdersCard = Card({
-    title: 'Recent Orders',
-    headerRight: '<a href="#/pos" class="text-sm font-semibold text-brand-600 hover:text-brand-800 transition-colors">View All</a>',
-    children: recentOrdersTable,
-  });
-
-  const chartGrid = `
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-      <div class="lg:col-span-2">
-        ${SalesChart({ labels: salesLabels, thisWeek: salesThisWeek, lastWeek: salesLastWeek })}
-      </div>
-      <div class="lg:col-span-1">
-        ${TableStatusCard({ available: 4, occupied: 6, reserved: 2, total: 12 })}
-      </div>
-    </div>
-  `;
-
-  return `
-    <div id="view-dashboard" class="p-6">
-      ${WelcomeBanner({
-        userName: 'Good Evening, Maria',
-        userInitials: 'MC',
-        subtitle: "Here's what's happening at El Fogon today.",
-      })}
-
-      <div class="mt-6">
-        ${PageHeader({
-          title: 'Overview',
-          actions: `
-            <button type="button" data-onclick="handleExport"
-                    class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md
-                           border border-brand-300 bg-white text-brand-700 hover:bg-brand-50
-                           transition-colors duration-fast">
-              <i data-lucide="download" class="w-4 h-4"></i>
-              Export
-            </button>
-            <a href="#/pos" data-onclick="handleNewOrder"
-               class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md
-                      border border-primary-600 bg-primary-600 text-white hover:bg-primary-700
-                      transition-colors duration-fast no-underline">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-              New Order
-            </a>
-          `,
-        })}
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-        ${statsHtml}
-      </div>
-
-      ${chartGrid}
-
-      ${recentOrdersCard}
-    </div>
-  `;
-}
-
-/**
- * Initialize Dashboard view interactivity
- * Binds event handlers for data-onclick attributes
- */
-export function init() {
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.addEventListener('click', window[handlerName]);
-    }
-  });
-
-  if (typeof window.createIcons === 'function') {
-    window.createIcons();
-  }
-}
-
-/**
- * Cleanup Dashboard view listeners
- */
-export function destroy() {
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.removeEventListener('click', window[handlerName]);
-    }
-  });
-}
-
-export default { render, init, destroy };
+export default Dashboard;

@@ -109,17 +109,17 @@ export const RESERVATION_STATUS = {
 };
 
 export const STATUS_LABELS = {
-  pending: "Pendiente",
-  confirmed: "Confirmada",
-  cancelled: "Cancelada",
-  completed: "Completada",
+  pending: "Pending",
+  confirmed: "Confirmed",
+  cancelled: "Cancelled",
+  completed: "Completed",
 };
 
 export const STATUS_COLORS = {
-  pending: { bg: "bg-yellow-100", text: "text-yellow-800", dot: "bg-yellow-500" },
-  confirmed: { bg: "bg-green-100", text: "text-green-800", dot: "bg-green-500" },
-  cancelled: { bg: "bg-red-100", text: "text-red-800", dot: "bg-red-500" },
-  completed: { bg: "bg-gray-100", text: "text-gray-800", dot: "bg-gray-500" },
+  pending: { bg: "bg-accent-100", text: "text-accent-700", dot: "bg-accent-500" },
+  confirmed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
+  cancelled: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },
+  completed: { bg: "bg-secondary-100", text: "text-secondary-700", dot: "bg-secondary-500" },
 };
 
 export function initMockReservations() {

@@ -1,83 +1,36 @@
-/**
- * StatCard Component
- * @param {Object} props
- * @param {string} props.label - Stat label
- * @param {string} props.value - Stat value
- * @param {string} props.icon - Lucide icon name
- * @param {'brand'|'primary'|'accent'|'success'|'secondary'} [props.iconColor='brand']
- * @param {Object} [props.change] - {value: string, direction: 'up'|'down'}
- * @param {string} [props.changeText] - e.g. "vs last month"
- * @param {string} [props.id] - Card ID
- * @returns {string} HTML string
- */
-export function render(props = {}) {
-  const {
-    label = '',
-    value = '',
-    icon = '',
-    iconColor = 'brand',
-    change = null,
-    changeText = '',
-    id = '',
-    className = ''
-  } = props;
+function StatCard(opts) {
+  opts = opts || {};
+  var label = opts.label || '';
+  var value = opts.value || '0';
+  var change = opts.change || '';
+  var icon = opts.icon || 'activity';
+  var iconBg = opts.iconBg || '';
+  var changeNeutral = opts.changeNeutral || false;
 
-  const iconColorClasses = {
-    brand:     'bg-brand-100 text-brand-600',
-    primary:   'bg-primary-100 text-primary-600',
-    accent:    'bg-accent-100 text-accent-600',
-    success:   'bg-success-100 text-success-600',
-    secondary: 'bg-secondary-100 text-secondary-600'
-  };
+  var isPositive = change && !change.startsWith('-') && !changeNeutral;
+  var changeClass = changeNeutral
+    ? 'bg-neutral-100 text-neutral-600'
+    : isPositive
+      ? 'bg-success-100 text-success-700'
+      : 'bg-error-100 text-error-700';
+  var arrowIcon = changeNeutral ? null : (isPositive ? 'trending-up' : 'trending-down');
 
-  const idAttr = id ? `id="${id}"` : '';
-
-  const iconHtml = icon ? `
-    <div class="flex items-center justify-center w-11 h-11 rounded-xl
-                ${iconColorClasses[iconColor] || iconColorClasses.brand}">
-      <i data-lucide="${icon}" class="w-5 h-5"></i>
-    </div>
-  ` : '';
-
-  let changeHtml = '';
+  var html = '<div class="bg-white border border-brand-300 rounded-xl p-5 shadow-sm flex items-start gap-4">';
+  html += '<div class="w-[52px] h-[52px] rounded-lg flex items-center justify-center shrink-0 ' + iconBg + '">';
+  html += '<i data-lucide="' + icon + '" class="w-6 h-6"></i>';
+  html += '</div>';
+  html += '<div class="flex-1 min-w-0">';
+  html += '<p class="text-sm font-medium mb-1 text-secondary-500">' + label + '</p>';
+  html += '<p class="text-[28px] font-bold leading-tight font-display text-brand-900">' + value + '</p>';
   if (change) {
-    const isUp = change.direction === 'up';
-    const arrowIcon = isUp ? 'arrow-up' : 'arrow-down';
-    const changeColor = isUp ? 'text-success-600' : 'text-error-600';
-    changeHtml = `
-      <div class="flex items-center gap-1 mt-2">
-        <i data-lucide="${arrowIcon}" class="w-3.5 h-3.5 ${changeColor}"></i>
-        <span class="text-xs font-semibold ${changeColor}">${change.value}</span>
-        ${changeText ? `<span class="text-xs text-secondary-500 ml-1">${changeText}</span>` : ''}
-      </div>
-    `;
+    html += '<div class="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ' + changeClass + '">';
+    if (arrowIcon) html += '<i data-lucide="' + arrowIcon + '" class="w-3 h-3"></i>';
+    html += change;
+    html += '</div>';
   }
+  html += '</div></div>';
 
-  return `
-    <div ${idAttr}
-         class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden
-                p-5 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-fast
-                ${className}">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm text-secondary-600 leading-tight">${label}</p>
-          <p class="text-2xl font-bold text-neutral-900 mt-1">${value}</p>
-          ${changeHtml}
-        </div>
-        ${iconHtml}
-      </div>
-    </div>
-  `;
+  return html;
 }
 
-/**
- * Initialize StatCard interactivity (no-op for pure display component)
- */
-export function init() {}
-
-/**
- * Cleanup StatCard (no-op for pure display component)
- */
-export function destroy() {}
-
-export default { render, init, destroy };
+export default StatCard;
