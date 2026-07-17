@@ -13,11 +13,10 @@ Fecha    : 2026-07-14
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.config import get_settings
 from app.api.router import api_router
+from app.core.config import get_settings
 
 # Importamos el router principal que contiene todos los módulos
-from app.api.router import api_router
 
 # Cargamos la configuración desde variables de entorno
 settings = get_settings()

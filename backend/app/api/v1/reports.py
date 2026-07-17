@@ -11,12 +11,13 @@ Fecha    : 2026-07-15
 
 """
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.db.database import get_db
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
 from app.core.dependencies import get_current_user
+from app.db.database import get_db
 from app.services.report_service import ReportService
 
 router = APIRouter(prefix="/reports", tags=["Reports"])

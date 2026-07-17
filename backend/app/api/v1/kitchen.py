@@ -11,16 +11,16 @@ Fecha    : 2026-07-15
 
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
 from app.core.dependencies import get_current_user
+from app.db.database import get_db
+from app.db.schemas.kitchen import KitchenOrderOut, KitchenOrderUpdate
 from app.services.kitchen_service import KitchenService
-from app.db.schemas.kitchen import KitchenOrderUpdate, KitchenOrderOut
 
 router = APIRouter(prefix="/kitchen", tags=["Kitchen"])
 
