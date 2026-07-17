@@ -1,216 +1,96 @@
-/**
- * Kitchen View
- * @route /kitchen
- *
- * Composes: PageHeader, KanbanColumn, KanbanCard, Button
- *
- * State:
- * - kitchenOrders: []
- */
+import { kitchenOrders, setKitchenOrders } from '../../store/posData.js';
 
-import { render as PageHeader } from '../../components/common/PageHeader.js';
-import { render as KanbanColumn } from '../../components/kitchen/KanbanColumn.js';
-import { render as Button } from '../../components/ui/Button.js';
-
-const kitchenOrders = [
-  { id: 1043, table: 3, status: 'new', time: 1, items: [{qty:1,name:'Margherita Pizza'},{qty:2,name:'Sparkling Water'},{qty:1,name:'Tiramisu'}], note: 'No olives on pizza' },
-  { id: 1042, table: 5, status: 'preparing', time: 5, items: [{qty:1,name:'Grilled Chicken'},{qty:1,name:'Caesar Salad'}], note: 'Extra dressing' },
-  { id: 1041, table: 2, status: 'ready', time: 12, items: [{qty:1,name:'Ribeye Steak'},{qty:2,name:'House Wine'},{qty:2,name:'Caesar Salad'}], note: null },
-  { id: 1040, table: 8, status: 'preparing', time: 18, items: [{qty:2,name:'Fish Tacos'}], note: null },
-  { id: 1037, table: 6, status: 'new', time: 0, items: [{qty:2,name:'Margherita Pizza'},{qty:2,name:'Sparkling Water'}], note: null },
-];
-
-function getOrdersByStatus(status) {
-  return kitchenOrders.filter(function (o) {
-    return o.status === status;
-  });
+function timeClass(minutes) {
+  return minutes > 15 ? 'text-error-600 font-bold' : '';
 }
 
-function renderKanbanBoard() {
-  var newOrders = getOrdersByStatus('new');
-  var preparingOrders = getOrdersByStatus('preparing');
-  var readyOrders = getOrdersByStatus('ready');
-
-  var newColumn = KanbanColumn({
-    title: 'New Orders',
-    status: 'new',
-    orders: newOrders,
-    actionLabel: 'Start Preparing',
-    actionColor: 'bg-info-600 text-white hover:bg-info-700',
-    onAction: 'kitchenStartPreparing',
-  });
-
-  var preparingColumn = KanbanColumn({
-    title: 'Preparing',
-    status: 'preparing',
-    orders: preparingOrders,
-    actionLabel: 'Mark Ready',
-    actionColor: 'bg-warning-600 text-white hover:bg-warning-700',
-    onAction: 'kitchenMarkReady',
-  });
-
-  var readyColumn = KanbanColumn({
-    title: 'Ready to Serve',
-    status: 'ready',
-    orders: readyOrders,
-    actionLabel: 'Mark Served',
-    actionColor: 'bg-success-600 text-white hover:bg-success-700',
-    onAction: 'kitchenMarkServed',
-  });
-
-  return `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 kanban-board">
-      ${newColumn}
-      ${preparingColumn}
-      ${readyColumn}
-    </div>
-  `;
-}
-
-function renderInnerHtml() {
-  var headerHtml = PageHeader({
-    title: 'Kitchen Dashboard',
-    actions: Button({
-      variant: 'secondary',
-      icon: 'refresh-cw',
-      children: 'Refresh',
-      onClick: 'kitchenRefresh',
-    }),
-  });
-
-  return `
-    ${headerHtml}
-    ${renderKanbanBoard()}
-  `;
-}
-
-/**
- * Render the Kitchen view
- * @returns {string} HTML string
- */
-export function render() {
-  return `
-    <div id="view-kitchen" class="p-6">
-      ${renderInnerHtml()}
-    </div>
-  `;
-}
-
-/**
- * Initialize Kitchen view interactivity
- * Binds event handlers for kanban action buttons
- */
-export function init() {
-  window.kitchenRefresh = function () {
-    rerender();
-  };
-
-  window.kitchenStartPreparing = function (e) {
-    var btn = e.currentTarget || e.target;
-    var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var order = kitchenOrders.find(function (o) { return o.id === orderId; });
-    if (order) {
-      order.status = 'preparing';
-    }
-    rerender();
-  };
-
-  window.kitchenMarkReady = function (e) {
-    var btn = e.currentTarget || e.target;
-    var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var order = kitchenOrders.find(function (o) { return o.id === orderId; });
-    if (order) {
-      order.status = 'ready';
-    }
-    rerender();
-  };
-
-  window.kitchenMarkServed = function (e) {
-    var btn = e.currentTarget || e.target;
-    var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    var idx = kitchenOrders.findIndex(function (o) { return o.id === orderId; });
-    if (idx !== -1) {
-      kitchenOrders.splice(idx, 1);
-    }
-    rerender();
-  };
-
-  window.kitchenViewDetail = function (e) {
-    var btn = e.currentTarget || e.target;
-    var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    console.log('[Kitchen] View detail for order #' + orderId);
-  };
-
-  bindDataOnclcikListeners();
-}
-
-function rerender() {
-  var container = document.getElementById('view-kitchen');
-  if (!container) return;
-  container.innerHTML = renderInnerHtml();
-  bindDataOnclcikListeners();
-}
-
-function bindDataOnclcikListeners() {
-  document.querySelectorAll('[data-onclick-action]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick-action');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.addEventListener('click', window[handlerName]);
-    }
-  });
-
-  document.querySelectorAll('[data-onclick-detail]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick-detail');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.addEventListener('click', window[handlerName]);
-    }
-  });
-
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.addEventListener('click', window[handlerName]);
-    }
-  });
-
-  if (typeof window.createIcons === 'function') {
+function moveOrder(id, fromStatus) {
+  var order = kitchenOrders.find(function (o) { return o.id === id; });
+  if (!order) return;
+  var next = { new: 'preparing', preparing: 'ready', ready: 'ready' };
+  if (order.status === fromStatus && next[fromStatus]) {
+    order.status = next[fromStatus];
+    KitchenView.render(document.getElementById('current-view'));
     window.createIcons();
   }
 }
 
-/**
- * Cleanup Kitchen view
- */
-export function destroy() {
-  var handlers = [
-    'kitchenRefresh', 'kitchenStartPreparing',
-    'kitchenMarkReady', 'kitchenMarkServed',
-    'kitchenViewDetail',
-  ];
-  handlers.forEach(function (name) {
-    delete window[name];
-  });
+function renderColumn(title, status, bgClass) {
+  var orders = kitchenOrders.filter(function (o) { return o.status === status; });
 
-  document.querySelectorAll('[data-onclick-action]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick-action');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.removeEventListener('click', window[handlerName]);
-    }
+  var html = '<div class="flex flex-col gap-3 flex-1 min-w-0">';
+  html += '<div class="flex items-center justify-between px-3">';
+  html += '<h3 class="text-sm font-semibold text-primary-700 font-display">' + title + '</h3>';
+  html += '<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-white text-primary-700 text-xs font-bold border border-brand-300">' + orders.length + '</span>';
+  html += '</div>';
+  html += '<div class="space-y-3">';
+  orders.forEach(function (order) {
+    html += renderCard(order, status);
   });
-
-  document.querySelectorAll('[data-onclick-detail]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick-detail');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.removeEventListener('click', window[handlerName]);
-    }
-  });
-
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.removeEventListener('click', window[handlerName]);
-    }
-  });
+  html += '</div></div>';
+  return html;
 }
 
-export default { render, init, destroy };
+function renderCard(order, status) {
+  var actionLabel = status === 'new' ? 'Start Preparing' : status === 'preparing' ? 'Mark Ready' : 'Delivered';
+
+  var html = '<div class="bg-white border border-brand-300 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">';
+  html += '<div class="flex items-center justify-between mb-2">';
+  html += '<span class="text-sm font-semibold text-primary-700 font-display">Table ' + order.table + '</span>';
+  html += '<span class="text-xs text-brand-500 font-mono ' + timeClass(order.time) + '">' + order.time + ' min</span>';
+  html += '</div>';
+
+  html += '<div class="space-y-1 mb-3">';
+  order.items.forEach(function (item) {
+    html += '<p class="text-sm text-brand-700">' + item.qty + 'x ' + item.name + '</p>';
+  });
+  html += '</div>';
+
+  if (order.note) {
+    html += '<div class="border-l-2 border-accent-400 pl-3 py-1 mb-3">';
+    html += '<p class="text-xs text-brand-500 italic">' + order.note + '</p>';
+    html += '</div>';
+  }
+
+  html += '<div class="flex gap-2">';
+  html += '<button class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Details</button>';
+  html += '<button data-kitchen-action="move" data-order-id="' + order.id + '" data-from-status="' + status + '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors">' + actionLabel + '</button>';
+  html += '</div></div>';
+
+  return html;
+}
+
+var KitchenView = {
+  render: function (el) {
+    var html = '<div class="space-y-6">';
+    html += '<div class="flex items-center justify-between">';
+    html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Kitchen Orders</h2>';
+    html += '<div class="flex gap-3">';
+    html += '<div class="flex items-center gap-2 text-sm text-brand-600">';
+    html += '<span class="w-3 h-3 rounded-full bg-error-500"></span> Urgent (&gt;15 min)';
+    html += '</div>';
+    html += '</div></div>';
+
+    html += '<div class="flex gap-4">';
+    html += renderColumn('New Orders', 'new', 'bg-info-50');
+    html += renderColumn('Preparing', 'preparing', 'bg-accent-50');
+    html += renderColumn('Ready', 'ready', 'bg-success-50');
+    html += '</div></div>';
+
+    el.innerHTML = html;
+
+    el.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-kitchen-action="move"]');
+      if (btn) {
+        var oid = parseInt(btn.getAttribute('data-order-id'));
+        var from = btn.getAttribute('data-from-status');
+        moveOrder(oid, from);
+      }
+    });
+  },
+
+  init: function () {},
+  destroy: function () {}
+};
+
+export default KitchenView;

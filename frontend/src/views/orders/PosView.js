@@ -1,480 +1,464 @@
-/**
- * POS / Orders View
- * @route /pos
- *
- * Sub-views: orders-list, orders-new, orders-detail
- * Composes: PageHeader, OrderFilters, Card, DataTable, Badge, Button,
- *           CategoryTabs, MenuItemCard, CartPanel, StatusStepper,
- *           DetailGrid, DetailSection
- *
- * State:
- * - currentSubView: 'list' | 'new' | 'detail'
- * - currentFilter: 'all' | 'active' | 'closed'
- * - cart: []
- * - allOrders: []
- * - menuItems: []
- * - currentRoleId: number (for order detail)
- */
+import { allOrders, menuItems, LIFECYCLE, canTransition, recalcOrder, currentRole } from '../../store/posData.js';
+import CartPanel from '../../components/pos/CartPanel.js';
+import StatusStepper from '../../components/ui/StatusStepper.js';
+import DataTable from '../../components/ui/DataTable.js';
 
-import { render as PageHeader } from '../../components/common/PageHeader.js';
-import { render as OrderFilters } from '../../components/orders/OrderFilters.js';
-import { render as Card } from '../../components/ui/Card.js';
-import { render as DataTable } from '../../components/ui/DataTable.js';
-import { render as Badge } from '../../components/ui/Badge.js';
-import { render as CategoryTabs } from '../../components/pos/CategoryTabs.js';
-import { render as MenuItemCard } from '../../components/pos/MenuItemCard.js';
-import { render as CartPanel } from '../../components/pos/CartPanel.js';
-import { render as StatusStepper } from '../../components/orders/StatusStepper.js';
-import { render as DetailGrid } from '../../components/common/DetailGrid.js';
-import { render as DetailSection } from '../../components/common/DetailSection.js';
-
-const menuItems = [
-  { id: 1, name: 'Grilled Chicken', price: 24.00, cat: 'Main Course', emoji: '\uD83C\uDF57' },
-  { id: 2, name: 'Caesar Salad', price: 12.00, cat: 'Salads', emoji: '\uD83E\uDD57' },
-  { id: 3, name: 'Margherita Pizza', price: 14.00, cat: 'Pizza', emoji: '\uD83C\uDF55' },
-  { id: 4, name: 'Sparkling Water', price: 3.00, cat: 'Drinks', emoji: '\uD83D\uDCA7' },
-  { id: 5, name: 'Tiramisu', price: 9.00, cat: 'Desserts', emoji: '\uD83C\uDF70' },
-  { id: 6, name: 'Bruschetta', price: 8.00, cat: 'Appetizers', emoji: '\uD83C\uDF5E' },
-  { id: 7, name: 'Ribeye Steak', price: 32.00, cat: 'Main Course', emoji: '\uD83E\uDD69' },
-  { id: 8, name: 'Fish Tacos', price: 13.50, cat: 'Main Course', emoji: '\uD83C\uDF2E' },
-  { id: 9, name: 'Pasta Carbonara', price: 16.00, cat: 'Main Course', emoji: '\uD83C\uDF5D' },
-  { id: 10, name: 'Onion Rings', price: 6.50, cat: 'Appetizers', emoji: '\uD83E\uDDC5' },
-  { id: 11, name: 'Club Sandwich', price: 11.00, cat: 'Burgers', emoji: '\uD83E\uDD6A' },
-  { id: 12, name: 'Iced Tea', price: 4.00, cat: 'Drinks', emoji: '\uD83E\uDDCA' },
-  { id: 13, name: 'House Wine', price: 8.00, cat: 'Drinks', emoji: '\uD83C\uDF77' },
-  { id: 14, name: 'Guacamole', price: 8.00, cat: 'Appetizers', emoji: '\uD83E\uDD51' },
-  { id: 15, name: 'Cheeseburger', price: 15.00, cat: 'Burgers', emoji: '\uD83C\uDF54' },
-  { id: 16, name: 'Chocolate Lava Cake', price: 10.00, cat: 'Desserts', emoji: '\uD83C\uDF6B' },
-];
-
-const allOrders = [
-  { id: 1043, table: 3, items: [{name:'Margherita Pizza',qty:1,price:14.00},{name:'Sparkling Water',qty:2,price:3.00},{name:'Tiramisu',qty:1,price:9.00}], total: 38.50, status: 'new', time: '1 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '8:30 PM' },
-  { id: 1042, table: 5, items: [{name:'Grilled Chicken',qty:1,price:24.00},{name:'Caesar Salad',qty:1,price:12.00}], total: 42.00, status: 'preparing', time: '5 min ago', note: 'Extra dressing', server: 'Juan R.', createdBy: 'admin', placedAt: '8:25 PM' },
-  { id: 1041, table: 2, items: [{name:'Ribeye Steak',qty:1,price:32.00},{name:'House Wine',qty:2,price:8.00},{name:'Caesar Salad',qty:2,price:12.00}], total: 65.50, status: 'ready', time: '12 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '8:18 PM' },
-  { id: 1040, table: 8, items: [{name:'Fish Tacos',qty:2,price:13.50}], total: 27.00, status: 'served', time: '18 min ago', note: null, server: 'Juan R.', createdBy: 'admin', placedAt: '8:12 PM' },
-  { id: 1039, table: 1, items: [{name:'Fish Tacos',qty:2,price:13.50},{name:'Guacamole',qty:1,price:8.00}], total: 37.40, status: 'completed', time: '18 min ago', note: null, server: 'Maria C.', createdBy: 'waiter', placedAt: '8:10 PM' },
-  { id: 1038, table: 10, items: [{name:'Pasta Carbonara',qty:2,price:16.00},{name:'Bruschetta',qty:1,price:8.00},{name:'Tiramisu',qty:1,price:9.00},{name:'House Wine',qty:2,price:8.00}], total: 64.90, status: 'cancelled', time: '25 min ago', note: 'Cliente se fue', server: 'Juan R.', createdBy: 'admin', placedAt: '7:55 PM' },
-  { id: 1037, table: 6, items: [{name:'Margherita Pizza',qty:2,price:14.00},{name:'Sparkling Water',qty:2,price:3.00}], total: 37.40, status: 'completed', time: '35 min ago', note: null, server: 'Maria C.', createdBy: 'waiter', placedAt: '7:45 PM' },
-  { id: 1036, table: 3, items: [{name:'Club Sandwich',qty:1,price:11.00},{name:'Onion Rings',qty:1,price:6.50},{name:'Iced Tea',qty:1,price:4.00}], total: 23.65, status: 'completed', time: '42 min ago', note: null, server: 'Juan R.', createdBy: 'waiter', placedAt: '7:38 PM' },
-  { id: 1035, table: 9, items: [{name:'Ribeye Steak',qty:2,price:32.00},{name:'Caesar Salad',qty:2,price:12.00},{name:'House Wine',qty:2,price:8.00}], total: 118.80, status: 'completed', time: '50 min ago', note: null, server: 'Maria C.', createdBy: 'admin', placedAt: '7:30 PM' },
-];
-
-const statusBadgeMap = {
-  new:        { variant: 'info',    label: 'New' },
-  preparing:  { variant: 'warning', label: 'Preparing' },
-  ready:      { variant: 'success', label: 'Ready' },
-  served:     { variant: 'accent',  label: 'Served' },
-  completed:  { variant: 'neutral', label: 'Completed' },
-  cancelled:  { variant: 'error',   label: 'Cancelled' },
-};
-
-let _state = {
-  currentSubView: 'list',
-  currentFilter: 'all',
-  cart: [],
-  selectedTable: 1,
-  activeCategory: 'All',
-  selectedOrderId: null,
-};
-
-const TAX_RATE = 0.10;
-
-function getCategories() {
-  const cats = ['All'];
-  menuItems.forEach(function (item) {
-    if (cats.indexOf(item.cat) === -1) {
-      cats.push(item.cat);
-    }
-  });
-  return cats;
-}
+var subView = 'orders';
+var activeFilter = 'all';
+var selectedOrderId = null;
+var editingOrder = null;
+var editingItems = null;
 
 function getFilteredOrders() {
-  if (_state.currentFilter === 'all') return allOrders;
-  if (_state.currentFilter === 'active') {
-    return allOrders.filter(function (o) {
-      return o.status === 'new' || o.status === 'preparing' || o.status === 'ready' || o.status === 'served';
+  if (activeFilter === 'active') return allOrders.filter(function (o) { return o.status !== 'completed' && o.status !== 'cancelled'; });
+  if (activeFilter === 'closed') return allOrders.filter(function (o) { return o.status === 'completed' || o.status === 'cancelled'; });
+  return allOrders;
+}
+
+function renderOrderList(container) {
+  var orders = getFilteredOrders();
+
+  var html = '<div class="flex flex-col gap-4">';
+  html += '<div class="flex items-center gap-3">';
+  html += '<div class="flex bg-brand-100 rounded-xl p-1">';
+  ['all', 'active', 'closed'].forEach(function (f) {
+    var isActive = activeFilter === f;
+    html += '<button data-filter="' + f + '" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer border-0 ' +
+      (isActive ? 'bg-white text-primary-700 shadow-sm' : 'bg-transparent text-brand-500 hover:text-primary-700') + '">' +
+      f.charAt(0).toUpperCase() + f.slice(1) + '</button>';
+  });
+  html += '</div>';
+  html += '<div class="flex-1"></div>';
+  html += '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">' +
+    '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  html += '</div>';
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm text-left">';
+  html += '<thead class="text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300"><tr>';
+  html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Placed</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Actions</th>';
+  html += '</tr></thead><tbody class="divide-y divide-brand-200">';
+
+  orders.forEach(function (order, i) {
+    var bg = i % 2 === 0 ? 'bg-white' : 'bg-brand-50/50';
+    var st = statusBadge(order.status);
+    var canCancel = canTransition(currentRole, order.status, 'cancelled');
+    var canDelete = currentRole === 'admin' && (order.status === 'draft' || order.status === 'new');
+    html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
+    html += '<td class="px-4 py-3 font-semibold text-primary-700">#' + order.id + '</td>';
+    html += '<td class="px-4 py-3">' + order.table + '</td>';
+    html += '<td class="px-4 py-3">' + order.items.length + '</td>';
+    html += '<td class="px-4 py-3 font-mono text-xs">$' + order.total.toFixed(2) + '</td>';
+    html += '<td class="px-4 py-3">' + st + '</td>';
+    html += '<td class="px-4 py-3 text-brand-500">' + order.time + '</td>';
+    html += '<td class="px-4 py-3">' + order.server + '</td>';
+    html += '<td class="px-4 py-3"><div class="flex items-center gap-2">';
+    html += '<button data-action="view-detail" data-order-id="' + order.id + '" class="text-primary-600 hover:text-primary-800 text-xs font-semibold bg-transparent border-0 cursor-pointer">Details</button>';
+    if (canCancel) {
+      html += '<button data-action="cancel-order" data-order-id="' + order.id + '" class="text-error-600 hover:text-error-800 text-xs font-semibold bg-transparent border-0 cursor-pointer">Cancel</button>';
+    }
+    if (canDelete) {
+      html += '<button data-action="delete-order" data-order-id="' + order.id + '" class="text-error-500 hover:text-error-700 text-xs bg-transparent border-0 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>';
+    }
+    html += '</div></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+  setupOrderListEvents(container);
+}
+
+function renderNewOrder(container) {
+  var categories = ['All', 'Main Course', 'Pizza', 'Salads', 'Burgers', 'Appetizers', 'Desserts', 'Drinks'];
+  var activeCat = 'All';
+
+  var html = '<div class="pos-layout flex gap-6">';
+  html += '<div class="flex-1 min-w-0 space-y-4">';
+  html += '<div class="pos-categories flex gap-2 flex-wrap">';
+  categories.forEach(function (cat) {
+    html += '<button data-cat="' + cat + '" class="px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border ' +
+      (cat === activeCat ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50') + '">' + cat + '</button>';
+  });
+  html += '</div>';
+
+  html += '<div class="menu-grid grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))">';
+  menuItems.forEach(function (item) {
+    html += '<div class="menu-item-card bg-white border border-brand-300 rounded-xl p-4 hover:border-primary-400 hover:shadow-md transition-all cursor-pointer flex flex-col gap-2">';
+    html += '<div class="text-3xl">' + (item.emoji || '\uD83C\uDF7D\uFE0F') + '</div>';
+    html += '<h4 class="text-sm font-semibold text-primary-800 font-display">' + item.name + '</h4>';
+    html += '<p class="text-xs text-brand-500">' + item.cat + '</p>';
+    html += '<p class="text-sm font-bold text-primary-700">$' + item.price.toFixed(2) + '</p>';
+    html += '<button data-action="add-to-cart" data-item-id="' + item.id + '" class="mt-auto w-full h-8 px-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold border-0 cursor-pointer transition-colors">Add to Order</button>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="w-[340px] shrink-0">';
+  html += CartPanel();
+  html += '</div></div>';
+
+  container.innerHTML = html;
+  setupNewOrderEvents(container);
+}
+
+function renderOrderDetail(container, orderId) {
+  var order = allOrders.find(function (o) { return o.id === orderId; });
+  if (!order) { subView = 'orders'; renderOrderList(container); return; }
+
+  var isEditing = editingOrder && editingOrder.id === order.id;
+  var displayOrder = isEditing ? editingOrder : order;
+  var subtotal = displayOrder.items.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
+  var tax = Math.round(subtotal * 0.1 * 100) / 100;
+  var total = Math.round((subtotal + tax) * 100) / 100;
+  var isCancelled = displayOrder.status === 'cancelled';
+
+  var html = '<div class="space-y-6 max-w-3xl">';
+  html += '<div class="flex items-center justify-between">';
+  html += '<button data-action="back-to-orders" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Orders</button>';
+  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Order #' + displayOrder.id + '</h2>';
+  html += '</div>';
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl p-6 shadow-sm">';
+  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-4">Order Status</h3>';
+  html += StatusStepper({ status: displayOrder.status, cancelled: isCancelled });
+  html += '</div>';
+
+  html += DetailGridCompact([
+    { label: 'Table', value: displayOrder.table },
+    { label: 'Server', value: displayOrder.server },
+    { label: 'Status', value: displayOrder.status },
+    { label: 'Placed', value: displayOrder.placedAt || displayOrder.time },
+    { label: 'Total', value: '$' + total.toFixed(2) },
+    { label: 'Notes', value: displayOrder.note || '—' },
+  ]);
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl p-5 shadow-sm">';
+  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-3">Items</h3>';
+  html += '<div class="overflow-x-auto"><table class="w-full text-sm">';
+  html += '<thead class="text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300"><tr>';
+  html += '<th class="px-4 py-3 text-left">Item</th><th class="px-4 py-3 text-left">Price</th><th class="px-4 py-3 text-left">Qty</th><th class="px-4 py-3 text-left">Subtotal</th>';
+  if (isEditing) html += '<th class="px-4 py-3 text-left">Actions</th>';
+  html += '</tr></thead><tbody class="divide-y divide-brand-200">';
+
+  displayOrder.items.forEach(function (item, idx) {
+    var sub = (item.price * item.qty).toFixed(2);
+    html += '<tr>';
+    if (isEditing) {
+      html += '<td class="px-4 py-2"><input data-edit-field="name" data-idx="' + idx + '" value="' + item.name + '" class="w-full border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
+      html += '<td class="px-4 py-2"><input data-edit-field="price" data-idx="' + idx + '" type="number" step="0.01" value="' + item.price + '" class="w-20 border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
+      html += '<td class="px-4 py-2"><input data-edit-field="qty" data-idx="' + idx + '" type="number" min="1" value="' + item.qty + '" class="w-16 border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
+      html += '<td class="px-4 py-2 font-mono text-xs">$' + sub + '</td>';
+      html += '<td class="px-4 py-2"><button data-action="remove-edit-item" data-idx="' + idx + '" class="text-error-500 hover:text-error-700 bg-transparent border-0 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>';
+    } else {
+      html += '<td class="px-4 py-2 font-semibold text-primary-700">' + item.name + '</td>';
+      html += '<td class="px-4 py-2 font-mono text-xs">$' + item.price.toFixed(2) + '</td>';
+      html += '<td class="px-4 py-2">' + item.qty + '</td>';
+      html += '<td class="px-4 py-2 font-mono text-xs">$' + sub + '</td>';
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl p-5 shadow-sm">';
+  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-3">Note</h3>';
+  if (isEditing) {
+    html += '<textarea id="order-note" class="w-full border border-brand-300 rounded-lg p-3 text-sm h-24" placeholder="Add a note...">' + (displayOrder.note || '') + '</textarea>';
+  } else {
+    html += '<p class="text-sm text-brand-600 italic">' + (displayOrder.note || 'No notes') + '</p>';
+  }
+  html += '</div>';
+
+  html += '<div class="flex flex-wrap gap-3">';
+  if (isEditing) {
+    html += '<button data-action="save-edit" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Save Changes</button>';
+    html += '<button data-action="cancel-edit" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Cancel</button>';
+  } else {
+    var transitions = getNextStatuses(displayOrder.status);
+    transitions.forEach(function (t) {
+      html += '<button data-action="transition" data-target="' + t + '" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer capitalize">Next: ' + t + '</button>';
     });
-  }
-  return allOrders.filter(function (o) {
-    return o.status === 'completed' || o.status === 'cancelled';
-  });
-}
 
-function getCartTotals() {
-  var subtotal = 0;
-  _state.cart.forEach(function (item) {
-    subtotal += item.price * item.qty;
-  });
-  var tax = subtotal * TAX_RATE;
-  return { subtotal: subtotal, tax: tax, total: subtotal + tax };
-}
-
-function buildStatusStepper(status) {
-  var steps = [
-    { label: 'Placed', status: 'done' },
-    { label: 'Preparing', status: '' },
-    { label: 'Ready', status: '' },
-    { label: 'Served', status: '' },
-  ];
-
-  if (status === 'cancelled') {
-    return StatusStepper({ steps: steps, isCancelled: true });
-  }
-
-  var statusIndex = {
-    new: 0,
-    preparing: 1,
-    ready: 2,
-    served: 3,
-    completed: 3,
-  };
-  var currentIdx = statusIndex[status] != null ? statusIndex[status] : -1;
-
-  steps = steps.map(function (s, idx) {
-    if (idx < currentIdx) return { label: s.label, status: 'done' };
-    if (idx === currentIdx) return { label: s.label, status: 'current' };
-    return { label: s.label, status: '' };
-  });
-
-  return StatusStepper({ steps: steps, isCancelled: false });
-}
-
-function buildOrderDetailHtml(order) {
-  var statusIdx = { new: 0, preparing: 1, ready: 2, served: 3, completed: 3, cancelled: -1 };
-  var statusLabel = (statusBadgeMap[order.status] || statusBadgeMap.new).label;
-
-  var detailCells = [
-    { label: 'Order ID', value: '#' + order.id },
-    { label: 'Table', value: 'Table ' + order.table },
-    { label: 'Server', value: order.server },
-    { label: 'Placed At', value: order.placedAt },
-    { label: 'Status', value: statusLabel },
-    { label: 'Total', value: '$' + order.total.toFixed(2) },
-  ];
-
-  var itemsListHtml = order.items.map(function (item) {
-    return `
-      <div class="flex justify-between py-2 border-b border-brand-100 last:border-0">
-        <div class="flex items-center gap-3">
-          <span class="text-sm font-semibold text-brand-900">${item.qty}x</span>
-          <span class="text-sm text-secondary-700">${item.name}</span>
-        </div>
-        <span class="text-sm font-semibold text-brand-900">$${(item.price * item.qty).toFixed(2)}</span>
-      </div>
-    `;
-  }).join('');
-
-  var noteHtml = order.note
-    ? DetailSection({
-        title: 'Special Instructions',
-        children: '<p class="text-sm text-secondary-600">' + order.note + '</p>',
-      })
-    : '';
-
-  return `
-    <div class="space-y-6">
-      ${buildStatusStepper(order.status)}
-      ${DetailGrid({ cells: detailCells })}
-      ${DetailSection({
-        title: 'Order Items',
-        headerRight: '<span class="text-sm font-semibold text-brand-900">' + order.items.length + ' items</span>',
-        children: itemsListHtml,
-      })}
-      ${noteHtml}
-    </div>
-  `;
-}
-
-function renderOrdersList() {
-  var headerHtml = PageHeader({
-    title: 'Orders',
-    actions: '<button type="button" data-onclick="posNewOrder" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border border-primary-600 bg-primary-600 text-white hover:bg-primary-700 transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>',
-  });
-
-  var filtersHtml = OrderFilters({
-    activeFilter: _state.currentFilter,
-    onFilter: 'posFilterOrders',
-  });
-
-  var tableCols = [
-    { key: 'id', label: 'Order', primary: true, render: function (v) { return '#' + v; } },
-    { key: 'table', label: 'Table', render: function (v) { return 'Table ' + v; } },
-    { key: 'items', label: 'Items', render: function (v) { return v.length; } },
-    { key: 'total', label: 'Total', render: function (v) { return '$' + v.toFixed(2); } },
-    {
-      key: 'status',
-      label: 'Status',
-      render: function (value) {
-        var b = statusBadgeMap[value] || statusBadgeMap.new;
-        return Badge({ variant: b.variant, showDot: true, children: b.label });
-      },
-    },
-    { key: 'time', label: 'Time' },
-    {
-      key: 'id',
-      label: '',
-      render: function (v, row) {
-        if (row.status === 'completed' || row.status === 'cancelled') return '';
-        return '<button type="button" data-onclick="posViewDetail" data-order-id="' + v + '" class="text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors">View</button>';
-      },
-    },
-  ];
-
-  var filteredOrders = getFilteredOrders();
-  var tableHtml = DataTable({ columns: tableCols, data: filteredOrders });
-
-  return `
-    <div id="orders-list">
-      ${headerHtml}
-      ${filtersHtml}
-      ${Card({ children: tableHtml })}
-    </div>
-  `;
-}
-
-function renderOrdersNew() {
-  var headerHtml = PageHeader({
-    title: 'New Order',
-    backButton: { label: 'Back', onClick: 'posBackToList' },
-    actions: '<span class="inline-flex items-center gap-1.5 rounded-full font-semibold px-2.5 py-0.5 text-xs bg-info-100 text-info-700">Table ' + _state.selectedTable + '</span>',
-  });
-
-  var categories = getCategories();
-  var filteredItems = _state.activeCategory === 'All'
-    ? menuItems
-    : menuItems.filter(function (m) { return m.cat === _state.activeCategory; });
-
-  var categoryTabsHtml = CategoryTabs({
-    categories: categories,
-    activeCategory: _state.activeCategory,
-    onSelect: 'posSelectCategory',
-  });
-
-  var menuGridHtml = '<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">';
-  filteredItems.forEach(function (item) {
-    menuGridHtml += MenuItemCard({ item: item, onClick: 'posAddToCart' });
-  });
-  menuGridHtml += '</div>';
-
-  var totals = getCartTotals();
-  var cartHtml = CartPanel({
-    tableNumber: _state.selectedTable,
-    items: _state.cart,
-    subtotal: totals.subtotal,
-    tax: totals.tax,
-    total: totals.total,
-    onUpdateQty: 'posUpdateQty',
-    onRemove: 'posRemoveFromCart',
-    onSendOrder: 'posSendOrder',
-    onSaveDraft: 'posSaveDraft',
-    onDropOrder: 'posDropOrder',
-  });
-
-  return `
-    <div id="orders-new">
-      ${headerHtml}
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pos-layout">
-        <div class="lg:col-span-2">
-          ${categoryTabsHtml}
-          ${menuGridHtml}
-        </div>
-        <div class="lg:col-span-1">
-          ${cartHtml}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderOrdersDetail() {
-  var order = allOrders.find(function (o) { return o.id === _state.selectedOrderId; });
-  if (!order) return '';
-
-  var headerHtml = PageHeader({
-    title: 'Order #' + order.id,
-    backButton: { label: 'Back', onClick: 'posBackToList' },
-  });
-
-  var detailHtml = buildOrderDetailHtml(order);
-
-  return `
-    <div id="orders-detail">
-      ${headerHtml}
-      ${Card({ children: detailHtml })}
-    </div>
-  `;
-}
-
-function renderInnerHtml() {
-  if (_state.currentSubView === 'list') {
-    return renderOrdersList();
-  } else if (_state.currentSubView === 'new') {
-    return renderOrdersNew();
-  } else if (_state.currentSubView === 'detail') {
-    return renderOrdersDetail();
-  }
-  return '';
-}
-
-/**
- * Render the POS view
- * @returns {string} HTML string
- */
-export function render() {
-  return `
-    <div id="view-pos" class="p-6">
-      ${renderInnerHtml()}
-    </div>
-  `;
-}
-
-/**
- * Initialize POS view interactivity
- * Binds event handlers for data-onclick attributes
- */
-export function init() {
-  window.posFilterOrders = function (e) {
-    var btn = e.currentTarget || e.target;
-    var filter = btn.getAttribute('data-filter');
-    if (filter) {
-      _state.currentFilter = filter;
-      rerender();
+    if (canTransition(currentRole, displayOrder.status, 'cancelled')) {
+      html += '<button data-action="cancel-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-error-500 hover:bg-error-600 text-white border-0 cursor-pointer">Cancel Order</button>';
     }
-  };
 
-  window.posNewOrder = function () {
-    _state.currentSubView = 'new';
-    _state.cart = [];
-    _state.activeCategory = 'All';
-    rerender();
-  };
-
-  window.posBackToList = function () {
-    _state.currentSubView = 'list';
-    rerender();
-  };
-
-  window.posSelectCategory = function (e) {
-    var btn = e.currentTarget || e.target;
-    var cat = btn.getAttribute('data-category');
-    if (cat) {
-      _state.activeCategory = cat;
-      rerender();
+    if (displayOrder.status === 'draft') {
+      html += '<button data-action="drop-draft" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-warning-500 hover:bg-warning-600 text-white border-0 cursor-pointer">Drop Draft</button>';
     }
-  };
 
-  window.posAddToCart = function (e) {
-    var card = e.currentTarget || e.target;
-    var itemId = parseInt(card.getAttribute('data-item-id'), 10);
-    var menuItem = menuItems.find(function (m) { return m.id === itemId; });
-    if (!menuItem) return;
+    if (currentRole === 'admin' && (displayOrder.status === 'draft' || displayOrder.status === 'new')) {
+      html += '<button data-action="delete-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
+    }
 
-    var existing = _state.cart.find(function (c) { return c.id === menuItem.id; });
-    if (existing) {
-      existing.qty += 1;
-    } else {
-      _state.cart.push({
-        id: menuItem.id,
-        name: menuItem.name,
-        price: menuItem.price,
-        qty: 1,
-        emoji: menuItem.emoji,
+    html += '<button data-action="start-edit" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i> Edit Items</button>';
+  }
+
+  html += '</div></div>';
+
+  container.innerHTML = html;
+  setupOrderDetailEvents(container, order);
+}
+
+function getNextStatuses(status) {
+  var next = [];
+  LIFECYCLE.forEach(function (s, i) {
+    if (i > LIFECYCLE.indexOf(status) && canTransition(currentRole, status, s)) {
+      if (next.length === 0) next.push(s);
+    }
+  });
+  return next;
+}
+
+function statusBadge(status) {
+  var colors = { completed: 'success', preparing: 'warning', new: 'info', draft: 'brand', cancelled: 'error', ready: 'accent', served: 'neutral' };
+  var c = colors[status] || 'brand';
+  return '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-' + c + '-100 text-' + c + '-700"><span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>' + status + '</span>';
+}
+
+function DetailGridCompact(items) {
+  var html = '<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">';
+  items.forEach(function (item) {
+    html += '<div class="bg-white border border-brand-300 rounded-xl p-3">';
+    html += '<span class="block text-[11px] font-semibold uppercase tracking-wider text-brand-500 mb-0.5">' + item.label + '</span>';
+    html += '<span class="block text-sm font-semibold text-primary-800">' + (item.value || '') + '</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function setupOrderListEvents(container) {
+  container.addEventListener('click', function (e) {
+    var filterBtn = e.target.closest('[data-filter]');
+    if (filterBtn) {
+      activeFilter = filterBtn.getAttribute('data-filter');
+      renderOrderList(container);
+      window.createIcons();
+      return;
+    }
+
+    var newBtn = e.target.closest('[data-action="new-order"]');
+    if (newBtn) {
+      subView = 'new';
+      editingOrder = null;
+      renderNewOrder(container);
+      window.createIcons();
+      return;
+    }
+
+    var detailBtn = e.target.closest('[data-action="view-detail"]');
+    if (detailBtn) {
+      var id = parseInt(detailBtn.getAttribute('data-order-id'));
+      selectedOrderId = id;
+      subView = 'detail';
+      editingOrder = null;
+      renderOrderDetail(container, id);
+      window.createIcons();
+      return;
+    }
+
+    var cancelBtn = e.target.closest('[data-action="cancel-order"]');
+    if (cancelBtn) {
+      var cid = parseInt(cancelBtn.getAttribute('data-order-id'));
+      var order = allOrders.find(function (o) { return o.id === cid; });
+      if (order && canTransition(currentRole, order.status, 'cancelled')) {
+        order.status = 'cancelled';
+        renderOrderList(container);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var delBtn = e.target.closest('[data-action="delete-order"]');
+    if (delBtn) {
+      var did = parseInt(delBtn.getAttribute('data-order-id'));
+      var idx = allOrders.findIndex(function (o) { return o.id === did; });
+      if (idx > -1 && currentRole === 'admin') {
+        allOrders.splice(idx, 1);
+        renderOrderList(container);
+        window.createIcons();
+      }
+      return;
+    }
+  });
+}
+
+function setupNewOrderEvents(container) {
+  container.addEventListener('click', function (e) {
+    var addBtn = e.target.closest('[data-action="add-to-cart"]');
+    if (addBtn) {
+      var itemId = parseInt(addBtn.getAttribute('data-item-id'));
+      var item = menuItems.find(function (m) { return m.id === itemId; });
+      if (item) {
+        window.dispatchEvent(new CustomEvent('cart:add', { detail: { item: item } }));
+      }
+      return;
+    }
+
+    var catBtn = e.target.closest('[data-cat]');
+    if (catBtn) {
+      var cat = catBtn.getAttribute('data-cat');
+      container.querySelectorAll('[data-cat]').forEach(function (b) {
+        b.className = 'px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border ' +
+          (b.getAttribute('data-cat') === cat ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50');
       });
+      var grid = container.querySelector('.menu-grid');
+      if (grid) {
+        grid.querySelectorAll('.menu-item-card').forEach(function (card) {
+          var itemCat = card.querySelector('p.text-xs').textContent;
+          card.style.display = (cat === 'All' || itemCat === cat) ? '' : 'none';
+        });
+      }
+      return;
     }
-    rerender();
-  };
 
-  window.posUpdateQty = function (e) {
-    var btn = e.currentTarget || e.target;
-    var itemId = parseInt(btn.getAttribute('data-item-id'), 10);
-    var item = _state.cart.find(function (c) { return c.id === itemId; });
-    if (!item) return;
-    item.qty += 1;
-    rerender();
-  };
+    var backBtn = e.target.closest('[data-action="back-to-orders"]');
+    if (backBtn) {
+      subView = 'orders';
+      renderOrderList(container);
+      window.createIcons();
+      return;
+    }
+  });
+}
 
-  window.posRemoveFromCart = function (e) {
-    var btn = e.currentTarget || e.target;
-    var itemId = parseInt(btn.getAttribute('data-item-id'), 10);
-    var item = _state.cart.find(function (c) { return c.id === itemId; });
-    if (!item) return;
-    if (item.qty <= 1) {
-      _state.cart = _state.cart.filter(function (c) { return c.id !== itemId; });
+function setupOrderDetailEvents(container, order) {
+  container.addEventListener('click', function (e) {
+    var backBtn = e.target.closest('[data-action="back-to-orders"]');
+    if (backBtn) {
+      subView = 'orders';
+      editingOrder = null;
+      renderOrderList(container);
+      window.createIcons();
+      return;
+    }
+
+    var transBtn = e.target.closest('[data-action="transition"]');
+    if (transBtn) {
+      var target = transBtn.getAttribute('data-target');
+      var oid = parseInt(transBtn.getAttribute('data-order-id'));
+      var o = allOrders.find(function (ord) { return ord.id === oid; });
+      if (o && canTransition(currentRole, o.status, target)) {
+        o.status = target;
+        renderOrderDetail(container, oid);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var cancelBtn = e.target.closest('[data-action="cancel-order"]');
+    if (cancelBtn) {
+      var cid = parseInt(cancelBtn.getAttribute('data-order-id'));
+      var co = allOrders.find(function (ord) { return ord.id === cid; });
+      if (co && canTransition(currentRole, co.status, 'cancelled')) {
+        co.status = 'cancelled';
+        renderOrderDetail(container, cid);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var dropBtn = e.target.closest('[data-action="drop-draft"]');
+    if (dropBtn) {
+      var did = parseInt(dropBtn.getAttribute('data-order-id'));
+      var didx = allOrders.findIndex(function (o) { return o.id === did; });
+      if (didx > -1) {
+        allOrders.splice(didx, 1);
+        subView = 'orders';
+        renderOrderList(container);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var delBtn = e.target.closest('[data-action="delete-order"]');
+    if (delBtn) {
+      var delId = parseInt(delBtn.getAttribute('data-order-id'));
+      var delIdx = allOrders.findIndex(function (o) { return o.id === delId; });
+      if (delIdx > -1 && currentRole === 'admin') {
+        allOrders.splice(delIdx, 1);
+        subView = 'orders';
+        renderOrderList(container);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var editBtn = e.target.closest('[data-action="start-edit"]');
+    if (editBtn) {
+      var eid = parseInt(editBtn.getAttribute('data-order-id'));
+      var eo = allOrders.find(function (o) { return o.id === eid; });
+      if (eo) {
+        editingOrder = JSON.parse(JSON.stringify(eo));
+        renderOrderDetail(container, eid);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var saveBtn = e.target.closest('[data-action="save-edit"]');
+    if (saveBtn) {
+      if (editingOrder) {
+        var noteEl = container.querySelector('#order-note');
+        if (noteEl) editingOrder.note = noteEl.value;
+        editingOrder.items.forEach(function (item) {
+          var nameEl = container.querySelector('[data-edit-field="name"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
+          var priceEl = container.querySelector('[data-edit-field="price"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
+          var qtyEl = container.querySelector('[data-edit-field="qty"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
+          if (nameEl) item.name = nameEl.value;
+          if (priceEl) item.price = parseFloat(priceEl.value) || item.price;
+          if (qtyEl) item.qty = parseInt(qtyEl.value) || item.qty;
+        });
+        recalcOrder(editingOrder);
+        var orig = allOrders.find(function (o) { return o.id === editingOrder.id; });
+        if (orig) Object.assign(orig, editingOrder);
+        editingOrder = null;
+        renderOrderDetail(container, orig.id);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var cancelEditBtn = e.target.closest('[data-action="cancel-edit"]');
+    if (cancelEditBtn) {
+      editingOrder = null;
+      renderOrderDetail(container, order.id);
+      window.createIcons();
+      return;
+    }
+
+    var removeItemBtn = e.target.closest('[data-action="remove-edit-item"]');
+    if (removeItemBtn && editingOrder) {
+      var ridx = parseInt(removeItemBtn.getAttribute('data-idx'));
+      editingOrder.items.splice(ridx, 1);
+      recalcOrder(editingOrder);
+      renderOrderDetail(container, editingOrder.id);
+      window.createIcons();
+      return;
+    }
+  });
+}
+
+var PosView = {
+  render: function (el) {
+    if (subView === 'new') {
+      renderNewOrder(el);
+    } else if (subView === 'detail' && selectedOrderId) {
+      renderOrderDetail(el, selectedOrderId);
     } else {
-      item.qty -= 1;
+      subView = 'orders';
+      renderOrderList(el);
     }
-    rerender();
-  };
-
-  window.posSendOrder = function () {
-    if (_state.cart.length === 0) return;
-    _state.cart = [];
-    _state.currentSubView = 'list';
-    rerender();
-  };
-
-  window.posSaveDraft = function () {
-    _state.currentSubView = 'list';
-    rerender();
-  };
-
-  window.posDropOrder = function () {
-    _state.cart = [];
-    rerender();
-  };
-
-  window.posViewDetail = function (e) {
-    var btn = e.currentTarget || e.target;
-    var orderId = parseInt(btn.getAttribute('data-order-id'), 10);
-    _state.selectedOrderId = orderId;
-    _state.currentSubView = 'detail';
-    rerender();
-  };
-
-  bindDataOnclcikListeners();
-}
-
-function rerender() {
-  var container = document.getElementById('view-pos');
-  if (!container) return;
-  container.innerHTML = renderInnerHtml();
-  bindDataOnclcikListeners();
-}
-
-function bindDataOnclcikListeners() {
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.addEventListener('click', window[handlerName]);
-    }
-  });
-
-  if (typeof window.createIcons === 'function') {
+  },
+  init: function () {
     window.createIcons();
+  },
+  destroy: function () {
+    editingOrder = null;
   }
-}
+};
 
-/**
- * Cleanup POS view
- */
-export function destroy() {
-  var handlers = [
-    'posFilterOrders', 'posNewOrder', 'posBackToList',
-    'posSelectCategory', 'posAddToCart', 'posUpdateQty',
-    'posRemoveFromCart', 'posSendOrder', 'posSaveDraft',
-    'posDropOrder', 'posViewDetail',
-  ];
-  handlers.forEach(function (name) {
-    delete window[name];
-  });
-
-  document.querySelectorAll('[data-onclick]').forEach(function (el) {
-    var handlerName = el.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      el.removeEventListener('click', window[handlerName]);
-    }
-  });
-}
-
-export default { render, init, destroy };
+export default PosView;

@@ -1,107 +1,121 @@
-import { initMockUsers } from "./services/mockUsers.js";
-import * as authStore from "./store/auth.js";
-import { renderLogin } from "./views/auth/login.js";
-import { renderRegister } from "./views/auth/register.js";
-import { renderReservations } from "./views/reservations/list.js";
-import { renderReservationStatus } from "./views/reservations/status.js";
-import { getHomeRoute } from "./utils/routeGuard.js";
+import { createIcons, icons } from 'lucide';
+import * as authStore from './store/auth.js';
+import { getHomeRoute, isRouteAllowed } from './utils/routeGuard.js';
+import AppShell from './components/layout/AppShell.js';
+import Dashboard from './views/dashboard/Dashboard.js';
+import PosView from './views/orders/PosView.js';
+import Kitchen from './views/kitchen/Kitchen.js';
+import TablesView from './views/tables/Tables.js';
+import LoginView from './views/auth/LoginView.js';
+import RegisterView from './views/auth/RegisterView.js';
+import ReservationsView from './views/reservations/ReservationsView.js';
+import { initMockUsers } from './services/mockUsers.js';
 
 initMockUsers();
 
-const app = document.getElementById("app");
+window.createIcons = function () {
+  createIcons({ icons });
+};
 
-function route() {
-  const hash = window.location.hash || "#/login";
-  const path = hash.replace("#", "");
+var currentView = null;
+var appEl = document.getElementById('app');
 
-  if (!authStore.isAuthenticated() && path !== "/login") {
-    window.location.hash = "#/login";
+var routes = {
+  '/login': { view: LoginView, shell: false, auth: false },
+  '/register': { view: RegisterView, shell: false, auth: false },
+  '/dashboard': { view: Dashboard, shell: true, auth: true },
+  '/pos': { view: PosView, shell: true, auth: true },
+  '/kitchen': { view: Kitchen, shell: true, auth: true },
+  '/tables': { view: TablesView, shell: true, auth: true },
+  '/reservations': { view: ReservationsView, shell: true, auth: true },
+  '/admin': { view: PosView, shell: true, auth: true },
+  '/orders': { view: PosView, shell: true, auth: true },
+};
+
+function getRoute() {
+  return window.location.hash.slice(1) || '/login';
+}
+
+function destroyView() {
+  if (currentView && currentView.destroy) {
+    currentView.destroy();
+  }
+  currentView = null;
+}
+
+function renderView() {
+  var path = getRoute();
+  var user = authStore.currentUser();
+
+  if (path !== '/login' && path !== '/register') {
+    if (!user) {
+      window.location.hash = '#/login';
+      return;
+    }
+  }
+
+  if (path === '/login' || path === '/register') {
+    if (user) {
+      var home = getHomeRoute(user.role);
+      window.location.hash = '#' + home;
+      return;
+    }
+  }
+
+  var route = routes[path];
+  if (!route) {
+    if (user) {
+      var defaultRoute = getHomeRoute(user.role);
+      window.location.hash = '#' + defaultRoute;
+    } else {
+      window.location.hash = '#/login';
+    }
     return;
   }
 
-  if (authStore.isAuthenticated() && (path === "/login" || path === "/")) {
-    window.location.hash = `#${getHomeRoute(authStore.currentUser().role)}`;
+  if (route.auth && !user) {
+    window.location.hash = '#/login';
     return;
   }
 
-  switch (path) {
-    case "/login":
-      renderLogin(app);
-      break;
-    case "/admin":
-    case "/create-user":
-      renderRegister(app);
-      break;
-    case "/dashboard":
-      renderDashboard(app, "Dashboard");
-      break;
-    case "/orders":
-      renderDashboard(app, "Orders");
-      break;
-    case "/kitchen":
-      renderDashboard(app, "Kitchen");
-      break;
-    case "/payments":
-      renderDashboard(app, "Payments");
-      break;
-    case "/reservations":
-      renderReservations(app);
-      break;
-    case "/reservation-status":
-      renderReservationStatus(app);
-      break;
-    default:
-      window.location.hash = "#/login";
+  if (route.shell) {
+    window.currentRole = user ? user.role : 'admin';
+    window.userData = user ? {
+      name: user.displayName || user.username || 'Admin',
+      initials: (user.displayName || user.username || 'AD').split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2),
+      role: user.role || 'admin',
+    } : { name: 'Admin', initials: 'AD', role: 'admin' };
+    AppShell.render(appEl);
+  }
+
+  var container = route.shell ? document.getElementById('main-content') : appEl;
+  if (!container) return;
+
+  destroyView();
+
+  container.innerHTML = '';
+  var viewEl = document.createElement('div');
+  viewEl.id = 'current-view';
+  container.appendChild(viewEl);
+
+  route.view.render(viewEl);
+  currentView = route.view;
+
+  window.createIcons();
+
+  if (route.view.init) {
+    route.view.init();
   }
 }
 
-function renderDashboard(app, title) {
-  const user = authStore.currentUser();
-  app.innerHTML = `
-    <div class="min-h-screen bg-gray-50">
-      <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">${title}</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-600">
-                ${user.username}
-                <span class="ml-1 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
-                  ${user.role}
-                </span>
-              </span>
-              ${
-                user.role === "admin"
-                  ? '<a href="#/create-user" class="text-sm text-indigo-600 hover:underline">Create User</a><a href="#/reservations" class="text-sm text-indigo-600 hover:underline">Reservas</a>'
-                  : ""
-              }
-              ${
-                user.role === "client"
-                  ? '<a href="#/reservation-status" class="text-sm text-indigo-600 hover:underline">Mis Reservas</a>'
-                  : ""
-              }
-              <button
-                id="logout-btn"
-                class="rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-      <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <p class="text-gray-600">Welcome, <strong>${user.username}</strong>. You are logged in as <strong>${user.role}</strong>.</p>
-      </main>
-    </div>
-  `;
-  document.getElementById("logout-btn").addEventListener("click", () => {
-    authStore.logout();
-    window.location.hash = "#/login";
-  });
-}
+window.addEventListener('hashchange', function () {
+  renderView();
+});
 
-window.addEventListener("hashchange", route);
-route();
+window.navigate = function (path) {
+  window.location.hash = '#' + path;
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  renderView();
+});

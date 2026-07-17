@@ -1,19 +1,9 @@
-/* ============================================
-   Tailwind v4 Config — El Fogón
-   Uses @theme directive for customization
-   Source: docs/design-system/primitives.md
-   ============================================ */
-
 @import "tailwindcss";
 
-/* ── Theme configuration ── */
 @theme {
-  /* Fonts */
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'Fira Mono', monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
 
-  /* Colors — Brand */
   --color-brand-50:  #FEF7EE;
   --color-brand-100: #FCEDD7;
   --color-brand-200: #F8D7AE;
@@ -25,7 +15,6 @@
   --color-brand-800: #8D3919;
   --color-brand-900: #723117;
 
-  /* Colors — Primary */
   --color-primary-50:  #EFFCF6;
   --color-primary-100: #D9F7E8;
   --color-primary-200: #B5EDD4;
@@ -37,7 +26,6 @@
   --color-primary-800: #135843;
   --color-primary-900: #114838;
 
-  /* Colors — Neutral */
   --color-neutral-0:   #FFFFFF;
   --color-neutral-50:  #F9FAFB;
   --color-neutral-100: #F3F4F6;
@@ -51,7 +39,6 @@
   --color-neutral-900: #111827;
   --color-neutral-950: #030712;
 
-  /* Colors — Secondary */
   --color-secondary-50:  #F8F7F6;
   --color-secondary-100: #EFEDE9;
   --color-secondary-200: #DDD9D1;
@@ -63,7 +50,6 @@
   --color-secondary-800: #5E544B;
   --color-secondary-900: #4F473F;
 
-  /* Colors — Accent */
   --color-accent-50:  #FFFBEB;
   --color-accent-100: #FEF3C7;
   --color-accent-200: #FDE68A;
@@ -75,7 +61,6 @@
   --color-accent-800: #92400E;
   --color-accent-900: #78350F;
 
-  /* Colors — Success */
   --color-success-50:  #F0FDF4;
   --color-success-100: #DCFCE7;
   --color-success-200: #BBF7D0;
@@ -87,7 +72,6 @@
   --color-success-800: #166534;
   --color-success-900: #14532D;
 
-  /* Colors — Warning */
   --color-warning-50:  #FFFBEB;
   --color-warning-100: #FEF3C7;
   --color-warning-200: #FDE68A;
@@ -99,7 +83,6 @@
   --color-warning-800: #92400E;
   --color-warning-900: #78350F;
 
-  /* Colors — Error */
   --color-error-50:  #FEF2F2;
   --color-error-100: #FEE2E2;
   --color-error-200: #FECACA;
@@ -111,7 +94,6 @@
   --color-error-800: #991B1B;
   --color-error-900: #7F1D1D;
 
-  /* Colors — Info */
   --color-info-50:  #EFF6FF;
   --color-info-100: #DBEAFE;
   --color-info-200: #BFDBFE;
@@ -122,145 +104,55 @@
   --color-info-700: #1D4ED8;
   --color-info-800: #1E40AF;
   --color-info-900: #1E3A8A;
+}
 
-  /* Spacing */
-  --spacing-0:  0;
-  --spacing-1:  4px;
-  --spacing-2:  8px;
-  --spacing-3:  12px;
-  --spacing-4:  16px;
-  --spacing-5:  20px;
-  --spacing-6:  24px;
-  --spacing-7:  28px;
-  --spacing-8:  32px;
-  --spacing-9:  36px;
-  --spacing-10: 40px;
-  --spacing-12: 48px;
-  --spacing-14: 56px;
-  --spacing-16: 64px;
-  --spacing-20: 80px;
-  --spacing-24: 96px;
-  --spacing-32: 128px;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* Border Radius */
-  --radius-none: 0;
-  --radius-xs:   2px;
-  --radius-sm:   4px;
-  --radius-md:   6px;
-  --radius-lg:   8px;
-  --radius-xl:   12px;
-  --radius-2xl:  16px;
-  --radius-3xl:  24px;
-  --radius-full: 9999px;
+html { font-size: 16px; -webkit-font-smoothing: antialiased; }
 
-  /* Border Widths */
-  --border-width-none: 0;
-  --border-width-xs:   1px;
-  --border-width-sm:   2px;
-  --border-width-md:   3px;
-  --border-width-lg:   4px;
+body {
+  font-family: var(--font-sans);
+  color: var(--color-neutral-900);
+  background: var(--color-brand-100);
+  line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
+}
 
-  /* Shadows */
-  --shadow-xs:  0 1px 2px 0 rgba(0,0,0,0.05);
-  --shadow-sm:  0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
-  --shadow-md:  0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-  --shadow-lg:  0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
-  --shadow-xl:  0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
-  --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
 
-  /* Opacity */
-  --opacity-0:  0;
-  --opacity-5:  0.05;
-  --opacity-10: 0.1;
-  --opacity-20: 0.2;
-  --opacity-25: 0.25;
-  --opacity-30: 0.3;
-  --opacity-40: 0.4;
-  --opacity-50: 0.5;
-  --opacity-60: 0.6;
-  --opacity-70: 0.7;
-  --opacity-75: 0.75;
-  --opacity-80: 0.8;
-  --opacity-90: 0.9;
-  --opacity-95: 0.95;
-  --opacity-100: 1;
+a { color: var(--color-primary-700); text-decoration: none; }
+a:hover { color: var(--color-primary-800); text-decoration: underline; }
 
-  /* Transitions */
-  --duration-fast:   100ms;
-  --duration-normal: 200ms;
-  --duration-slow:   300ms;
+button { cursor: pointer; font-family: inherit; }
+img { max-width: 100%; }
 
-  /* ── Font Sizes ── */
-  --text-2xs:   10px;
-  --text-xs:    12px;
-  --text-sm:    14px;
-  --text-base:  16px;
-  --text-lg:    18px;
-  --text-xl:    20px;
-  --text-2xl:   24px;
-  --text-3xl:   30px;
-  --text-4xl:   36px;
-  --text-5xl:   48px;
-  --text-6xl:   60px;
+.login-logo-desktop { display: none; }
+.login-logo-mobile { display: block; }
 
-  /* ── Font Weights ── */
-  --font-weight-light:     300;
-  --font-weight-normal:    400;
-  --font-weight-medium:    500;
-  --font-weight-semibold:  600;
-  --font-weight-bold:      700;
-  --font-weight-extrabold: 800;
+@media (min-width: 1024px) {
+  .login-logo-desktop { display: block !important; }
+  .login-logo-mobile { display: none !important; }
+}
 
-  /* ── Line Heights ── */
-  --leading-none:    1;
-  --leading-tight:   1.25;
-  --leading-snug:    1.375;
-  --leading-normal:  1.5;
-  --leading-relaxed: 1.625;
-  --leading-loose:   2;
+@media (min-width: 768px) and (max-width: 1023px) {
+  .login-logo-desktop { display: none !important; }
+  .login-logo-mobile { display: none !important; }
+}
 
-  /* ── Letter Spacing ── */
-  --tracking-tighter: -0.05em;
-  --tracking-tight:   -0.025em;
-  --tracking-normal:   0em;
-  --tracking-wide:     0.025em;
-  --tracking-wider:    0.05em;
-  --tracking-widest:   0.1em;
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-brand-300); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-brand-400); }
 
-  /* ── Icon Sizes ── */
-  --icon-xs:  12px;
-  --icon-sm:  16px;
-  --icon-md:  20px;
-  --icon-lg:  24px;
-  --icon-xl:  32px;
-  --icon-2xl: 40px;
-
-  /* ── Grid & Layout ── */
-  --grid-columns: 12;
-  --grid-gutter:  24px;
-  --gutter-mobile:  16px;
-  --gutter-tablet:  24px;
-  --gutter-desktop: 32px;
-  --page-margin-mobile:  16px;
-  --page-margin-tablet:  32px;
-  --page-margin-desktop: 48px;
-
-  /* ── Breakpoints (reference) ── */
-  --breakpoint-sm:  640px;
-  --breakpoint-md:  768px;
-  --breakpoint-lg:  1024px;
-  --breakpoint-xl:  1280px;
-  --breakpoint-2xl: 1440px;
-
-  /* ── Container Max Widths ── */
-  --container-sm:  640px;
-  --container-md:  768px;
-  --container-lg:  1024px;
-  --container-xl:  1280px;
-  --container-2xl: 1440px;
-
-  /* ── Focus Rings ── */
-  --ring-brand: 0 0 0 3px rgba(229, 119, 34, 0.1);
-  --ring-error: 0 0 0 3px rgba(220, 38, 38, 0.1);
-  --ring-focus: 0 0 0 3px rgba(31, 170, 125, 0.1);
+input[type="checkbox"]:checked + .checkbox-box {
+  background-color: var(--color-brand-500);
+  border-color: var(--color-brand-500);
+}
+input[type="checkbox"]:checked + .checkbox-box svg {
+  opacity: 1;
 }

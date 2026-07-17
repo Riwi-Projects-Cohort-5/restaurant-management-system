@@ -1,88 +1,33 @@
-/**
- * Button Component
- * @param {Object} props
- * @param {'primary'|'secondary'|'danger'|'ghost'|'brand'|'accent'} [props.variant='primary']
- * @param {'sm'|'md'|'lg'} [props.size='md']
- * @param {string} [props.icon] - Lucide icon name
- * @param {boolean} [props.iconOnly=false]
- * @param {boolean} [props.disabled=false]
- * @param {string} [props.onClick] - Event handler function name
- * @param {string} props.children - Button label HTML
- * @returns {string} HTML string
- */
-export function render(props = {}) {
-  const {
-    variant = 'primary',
-    size = 'md',
-    icon = '',
-    iconOnly = false,
-    disabled = false,
-    onClick = '',
-    children = '',
-    id = '',
-    type = 'button',
-    className = ''
-  } = props;
+var variants = {
+  primary:   'bg-primary-600 hover:bg-primary-700 text-white',
+  secondary: 'bg-brand-500 hover:bg-brand-600 text-white',
+  danger:    'bg-error-500 hover:bg-error-600 text-white',
+  ghost:     'bg-transparent hover:bg-brand-50 text-brand-600 border border-brand-300',
+  brand:     'bg-brand-500 hover:bg-brand-600 text-white',
+  accent:    'bg-accent-400 hover:bg-accent-500 text-white',
+};
 
-  const variantClasses = {
-    primary:   'bg-primary-600 text-white border-primary-600 hover:bg-primary-700',
-    secondary: 'bg-white text-brand-700 border-brand-300 hover:bg-brand-50',
-    danger:    'bg-error-600 text-white border-error-600 hover:bg-error-700',
-    ghost:     'bg-transparent text-brand-700 border-transparent hover:bg-brand-50',
-    brand:     'bg-brand-500 text-white border-brand-500 hover:bg-brand-600',
-    accent:    'bg-accent-400 text-white border-accent-400 hover:bg-accent-500'
-  };
+var sizes = {
+  sm: 'h-8 px-3 text-xs',
+  md: 'h-10 px-4 text-sm',
+  lg: 'h-12 px-6 text-base',
+};
 
-  const sizeClasses = {
-    sm: 'h-8 px-3 text-xs',
-    md: 'h-10 px-4 text-sm',
-    lg: 'h-12 px-6 text-base'
-  };
+function Button(opts) {
+  opts = opts || {};
+  var variant = variants[opts.variant] || variants.primary;
+  var size = opts.size ? (sizes[opts.size] || sizes.md) : sizes.md;
+  var disabled = opts.disabled ? ' disabled opacity-50 pointer-events-none' : '';
+  var icon = opts.icon
+    ? '<i data-lucide="' + opts.icon + '" class="w-4 h-4"></i>'
+    : '';
+  var fullWidth = opts.fullWidth ? ' w-full flex-1' : '';
+  var className = 'inline-flex items-center justify-center gap-2 font-semibold rounded-md border border-transparent transition-colors cursor-pointer ' + variant + ' ' + size + disabled + fullWidth;
 
-  const iconOnlyClass = iconOnly ? 'w-10 h-10 p-0' : '';
-  const disabledClass = disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '';
-  const idAttr = id ? `id="${id}"` : '';
-  const clickAttr = onClick ? `data-onclick="${onClick}"` : '';
-  const typeAttr = type || 'button';
-
-  return `
-    <button
-      type="${typeAttr}"
-      ${idAttr}
-      ${clickAttr}
-      class="inline-flex items-center justify-center gap-2 font-semibold rounded-md border
-             transition-colors duration-fast
-             ${variantClasses[variant] || variantClasses.primary}
-             ${iconOnlyClass || sizeClasses[size] || sizeClasses.md}
-             ${disabledClass}
-             ${className}"
-      ${disabled ? 'disabled' : ''}
-    >
-      ${icon ? `<i data-lucide="${icon}" class="w-4 h-4 shrink-0"></i>` : ''}
-      ${iconOnly ? '' : children}
-    </button>
-  `;
+  return '<button class="' + className + '" id="' + (opts.id || '') + '">' + icon + '<span>' + (opts.text || '') + '</span></button>';
 }
 
-/**
- * Initialize Button interactivity
- * Attaches click handlers via data-onclick attribute
- */
-export function init() {
-  const buttons = document.querySelectorAll('[data-onclick]');
-  buttons.forEach(function (btn) {
-    const handlerName = btn.getAttribute('data-onclick');
-    if (handlerName && typeof window[handlerName] === 'function') {
-      btn.addEventListener('click', window[handlerName]);
-    }
-  });
-}
+Button.variants = variants;
+Button.sizes = sizes;
 
-/**
- * Cleanup Button listeners
- */
-export function destroy() {
-  // Cleanup handled by container
-}
-
-export default { render, init, destroy };
+export default Button;

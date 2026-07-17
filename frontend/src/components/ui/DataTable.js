@@ -1,85 +1,34 @@
-/**
- * DataTable Component
- * @param {Object} props
- * @param {Array} props.columns - [{key: string, label: string, render?: Function, className?: string}]
- * @param {Array} props.data - Array of row objects
- * @param {Function} [props.onRowClick] - Row click handler (receives row object, returns string data-attr)
- * @param {string} [props.id] - Table wrapper ID
- * @param {string} [props.className] - Additional classes for wrapper
- * @returns {string} HTML string
- */
-export function render(props = {}) {
-  const {
-    columns = [],
-    data = [],
-    onRowClick = null,
-    id = '',
-    className = ''
-  } = props;
+function DataTable(opts) {
+  opts = opts || {};
+  var columns = opts.columns || [];
+  var rows = opts.rows || [];
+  var className = opts.className || '';
 
-  const idAttr = id ? `id="${id}"` : '';
+  var html = '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden ' + className + '">';
+  html += '<div class="overflow-x-auto"><table class="w-full text-sm text-left">';
 
-  const theadHtml = columns.map(function (col) {
-    return `<th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-secondary-600">${col.label}</th>`;
-  }).join('');
-
-  const tbodyHtml = data.map(function (row, rowIndex) {
-    const clickAttr = onRowClick
-      ? `data-row-index="${rowIndex}" class="cursor-pointer"`
-      : '';
-
-    const cellsHtml = columns.map(function (col) {
-      const isPrimary = col.primary;
-      const cellClass = isPrimary ? 'px-4 py-3 font-semibold text-brand-800' : 'px-4 py-3';
-      const content = col.render ? col.render(row[col.key], row) : (row[col.key] ?? '');
-      return `<td class="${cellClass} ${col.className || ''}">${content}</td>`;
-    }).join('');
-
-    return `
-      <tr class="border-b border-brand-100 hover:bg-brand-50 transition-colors duration-fast"
-          ${clickAttr}>
-        ${cellsHtml}
-      </tr>
-    `;
-  }).join('');
-
-  return `
-    <div class="overflow-x-auto ${className}">
-      <table class="w-full text-sm" ${idAttr}>
-        <thead>
-          <tr class="border-b-2 border-brand-200">
-            ${theadHtml}
-          </tr>
-        </thead>
-        <tbody>
-          ${tbodyHtml}
-        </tbody>
-      </table>
-    </div>
-  `;
-}
-
-/**
- * Initialize DataTable interactivity
- * Attaches row click handlers
- */
-export function init() {
-  const clickableRows = document.querySelectorAll('[data-row-index]');
-  clickableRows.forEach(function (row) {
-    row.addEventListener('click', function () {
-      const event = new CustomEvent('datatable:rowclick', {
-        detail: { rowIndex: parseInt(row.getAttribute('data-row-index'), 10) }
-      });
-      row.dispatchEvent(event);
-    });
+  html += '<thead class="text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300">';
+  html += '<tr>';
+  columns.forEach(function (col) {
+    html += '<th class="px-4 py-3 whitespace-nowrap">' + col.label + '</th>';
   });
+  html += '</tr></thead>';
+
+  html += '<tbody class="divide-y divide-brand-200">';
+  rows.forEach(function (row, i) {
+    var bg = i % 2 === 0 ? 'bg-white' : 'bg-brand-50/50';
+    html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
+    columns.forEach(function (col) {
+      var cellClass = 'px-4 py-3';
+      if (col.primary) cellClass += ' font-semibold text-primary-700';
+      if (col.mono) cellClass += ' font-mono text-xs';
+      html += '<td class="' + cellClass + '">' + (col.render ? col.render(row) : (row[col.key] || '')) + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table></div></div>';
+
+  return html;
 }
 
-/**
- * Cleanup DataTable listeners
- */
-export function destroy() {
-  // Cleanup handled by container
-}
-
-export default { render, init, destroy };
+export default DataTable;
