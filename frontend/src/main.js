@@ -13,6 +13,7 @@ import PaymentsView from './views/payments/PaymentsView.js';
 import MenuView from './views/menu/MenuView.js';
 import { initMockUsers } from './services/mockUsers.js';
 
+console.log('[app] main.js executing');
 initMockUsers();
 
 window.createIcons = function () {
@@ -48,79 +49,89 @@ function destroyView() {
 }
 
 function renderView() {
-  var path = getRoute();
-  var user = authStore.currentUser();
+  try {
+    console.log('[app] renderView start', getRoute());
+    var path = getRoute();
+    var user = authStore.currentUser();
 
-  if (path !== '/login' && path !== '/register') {
-    if (!user) {
-      window.location.hash = '#/login';
-      return;
-    }
-  }
-
-  if (path === '/login' || path === '/register') {
-    if (user) {
-      var home = getHomeRoute(user.role);
-      window.location.hash = '#' + home;
-      return;
-    }
-  }
-
-  var route = routes[path];
-  if (!route) {
-    if (user) {
-      var defaultRoute = getHomeRoute(user.role);
-      window.location.hash = '#' + defaultRoute;
-    } else {
-      window.location.hash = '#/login';
-    }
-    return;
-  }
-
-  if (route.auth && !user) {
-    window.location.hash = '#/login';
-    return;
-  }
-
-  if (route.shell) {
-    window.currentRole = user ? user.role : 'admin';
-    var roleLabels = { admin: 'Administrator', waiter: 'Waiter', chef: 'Chef', cashier: 'Cashier', client: 'Client' };
-    var username = user ? (user.displayName || user.username || 'Admin') : 'Admin';
-    var initials = username.split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
-    var roleText = roleLabels[user ? user.role : 'admin'] || 'Administrator';
-    window.userData = {
-      name: username,
-      initials: initials,
-      role: roleText,
-    };
-    AppShell.render(appEl);
-    AppShell.updateTopbarTitle(path);
-    var logoutBtn = document.getElementById('appShellLogout');
-    if (logoutBtn) {
-      logoutBtn.onclick = function () {
-        authStore.logout();
+    if (path !== '/login' && path !== '/register') {
+      if (!user) {
         window.location.hash = '#/login';
-      };
+        return;
+      }
     }
-  }
 
-  var container = route.shell ? document.getElementById('main-content') : appEl;
-  if (!container) return;
+    if (path === '/login' || path === '/register') {
+      if (user) {
+        var home = getHomeRoute(user.role);
+        window.location.hash = '#' + home;
+        return;
+      }
+    }
 
-  destroyView();
+    var route = routes[path];
+    if (!route) {
+      if (user) {
+        var defaultRoute = getHomeRoute(user.role);
+        window.location.hash = '#' + defaultRoute;
+      } else {
+        window.location.hash = '#/login';
+      }
+      return;
+    }
 
-  container.innerHTML = '';
-  var viewEl = document.createElement('div');
-  viewEl.id = 'current-view';
-  container.appendChild(viewEl);
+    if (route.auth && !user) {
+      window.location.hash = '#/login';
+      return;
+    }
 
-  route.view.render(viewEl);
-  currentView = route.view;
+    if (route.shell) {
+      window.currentRole = user ? user.role : 'admin';
+      var roleLabels = { admin: 'Administrator', waiter: 'Waiter', chef: 'Chef', cashier: 'Cashier', client: 'Client' };
+      var username = user ? (user.displayName || user.username || 'Admin') : 'Admin';
+      var initials = username.split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+      var roleText = roleLabels[user ? user.role : 'admin'] || 'Administrator';
+      window.userData = {
+        name: username,
+        initials: initials,
+        role: roleText,
+      };
+      AppShell.render(appEl);
+      AppShell.updateTopbarTitle(path);
+      var logoutBtn = document.getElementById('appShellLogout');
+      if (logoutBtn) {
+        logoutBtn.onclick = function () {
+          authStore.logout();
+          window.location.hash = '#/login';
+        };
+      }
+    }
 
-  window.createIcons();
+    var container = route.shell ? document.getElementById('main-content') : appEl;
+    if (!container) return;
 
-  if (route.view.init) {
-    route.view.init();
+    destroyView();
+
+    container.innerHTML = '';
+    var viewEl = document.createElement('div');
+    viewEl.id = 'current-view';
+    container.appendChild(viewEl);
+
+    route.view.render(viewEl);
+    currentView = route.view;
+
+    window.createIcons();
+
+    if (route.view.init) {
+      route.view.init();
+    }
+
+    console.log('[app] renderView ok');
+  } catch (err) {
+    console.error('[app] renderView failed', err);
+    if (appEl) {
+      appEl.innerHTML = '<pre style="color:red;padding:1rem;">' + err.stack + '</pre>';
+    }
   }
 }
 

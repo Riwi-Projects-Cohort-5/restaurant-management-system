@@ -36,8 +36,8 @@ import '../../components/forms/PasswordToggle.js';
  * Render the Login view HTML
  * @returns {string} HTML string
  */
-export function render(container) {
-  container.innerHTML = `
+export function render() {
+  return `
     <div class="grid w-full min-h-screen overflow-hidden
                 lg:grid-cols-[2fr_1fr]" id="loginPage">
 
