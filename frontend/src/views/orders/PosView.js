@@ -1,7 +1,6 @@
 import { allOrders, menuItems, LIFECYCLE, canTransition, recalcOrder, currentRole } from '../../store/posData.js';
 import CartPanel from '../../components/pos/CartPanel.js';
 import StatusStepper from '../../components/ui/StatusStepper.js';
-import DataTable from '../../components/ui/DataTable.js';
 
 var subView = 'orders';
 var activeFilter = 'all';
@@ -15,82 +14,120 @@ function getFilteredOrders() {
   return allOrders;
 }
 
+function statusBadge(status) {
+  var map = {
+    draft:     { bg: 'bg-neutral-100', text: 'text-neutral-600', dot: 'bg-neutral-500' },
+    completed: { bg: 'bg-success-100', text: 'text-success-700', dot: 'bg-success-500' },
+    preparing: { bg: 'bg-warning-100', text: 'text-warning-700', dot: 'bg-warning-500' },
+    ready:     { bg: 'bg-brand-100', text: 'text-brand-700', dot: 'bg-brand-500' },
+    served:    { bg: 'bg-accent-100', text: 'text-accent-700', dot: 'bg-accent-500' },
+    new:       { bg: 'bg-info-100', text: 'text-info-700', dot: 'bg-info-500' },
+    cancelled: { bg: 'bg-error-100', text: 'text-error-700', dot: 'bg-error-500' }
+  };
+  var s = map[status] || map.draft;
+  return '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ' + s.bg + ' ' + s.text + '"><span class="w-1.5 h-1.5 rounded-full ' + s.dot + '"></span>' + status + '</span>';
+}
+
 function renderOrderList(container) {
   var orders = getFilteredOrders();
 
-  var html = '<div class="flex flex-col gap-4">';
-  html += '<div class="flex items-center gap-3">';
-  html += '<div class="flex bg-brand-100 rounded-xl p-1">';
+  var html = '';
+
+  html += '<div class="flex items-center justify-between mb-6">';
+  html += '<h2 class="text-xl font-bold text-brand-900">Orders</h2>';
+  html += '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
+  html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  html += '</div>';
+
+  html += '<div class="flex gap-2 mb-5">';
   ['all', 'active', 'closed'].forEach(function (f) {
     var isActive = activeFilter === f;
-    html += '<button data-filter="' + f + '" class="px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer border-0 ' +
-      (isActive ? 'bg-white text-primary-700 shadow-sm' : 'bg-transparent text-brand-500 hover:text-primary-700') + '">' +
+    html += '<button data-filter="' + f + '" class="px-4 py-1.5 rounded-full text-[13px] font-semibold border cursor-pointer transition-colors ' +
+      (isActive
+        ? 'bg-brand-500 text-white border-brand-500'
+        : 'bg-white text-secondary-700 border-brand-200 hover:border-brand-300 hover:bg-brand-50') + '">' +
       f.charAt(0).toUpperCase() + f.slice(1) + '</button>';
   });
   html += '</div>';
-  html += '<div class="flex-1"></div>';
-  html += '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">' +
-    '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
-  html += '</div>';
 
   html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-sm text-left">';
-  html += '<thead class="text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300"><tr>';
-  html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Placed</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Actions</th>';
+  html += '<thead><tr class="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300">';
+  html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th><th class="px-4 py-3">Actions</th>';
   html += '</tr></thead><tbody class="divide-y divide-brand-200">';
 
   orders.forEach(function (order, i) {
     var bg = i % 2 === 0 ? 'bg-white' : 'bg-brand-50/50';
     var st = statusBadge(order.status);
     var canCancel = canTransition(currentRole, order.status, 'cancelled');
-    var canDelete = currentRole === 'admin' && (order.status === 'draft' || order.status === 'new');
+    var canDelete = currentRole === 'admin' && (order.status === 'completed' || order.status === 'cancelled');
+    var canDropDraft = order.status === 'draft' && (currentRole === 'admin' || order.createdBy === currentRole);
     html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
     html += '<td class="px-4 py-3 font-semibold text-primary-700">#' + order.id + '</td>';
-    html += '<td class="px-4 py-3">' + order.table + '</td>';
-    html += '<td class="px-4 py-3">' + order.items.length + '</td>';
-    html += '<td class="px-4 py-3 font-mono text-xs">$' + order.total.toFixed(2) + '</td>';
+    html += '<td class="px-4 py-3">Table ' + order.table + '</td>';
+    html += '<td class="px-4 py-3">' + (order.server || '—') + '</td>';
+    html += '<td class="px-4 py-3">' + order.items.length + ' items</td>';
+    html += '<td class="px-4 py-3 font-semibold text-primary-700">$' + order.total.toFixed(2) + '</td>';
     html += '<td class="px-4 py-3">' + st + '</td>';
-    html += '<td class="px-4 py-3 text-brand-500">' + order.time + '</td>';
-    html += '<td class="px-4 py-3">' + order.server + '</td>';
+    html += '<td class="px-4 py-3 text-secondary-500">' + order.time + '</td>';
     html += '<td class="px-4 py-3"><div class="flex items-center gap-2">';
-    html += '<button data-action="view-detail" data-order-id="' + order.id + '" class="text-primary-600 hover:text-primary-800 text-xs font-semibold bg-transparent border-0 cursor-pointer">Details</button>';
+    html += '<button data-action="view-detail" data-order-id="' + order.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 hover:text-brand-700 border-0 cursor-pointer" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>';
     if (canCancel) {
-      html += '<button data-action="cancel-order" data-order-id="' + order.id + '" class="text-error-600 hover:text-error-800 text-xs font-semibold bg-transparent border-0 cursor-pointer">Cancel</button>';
+      html += '<button data-action="cancel-order" data-order-id="' + order.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-error-600 hover:text-error-800 hover:bg-error-50 border-0 cursor-pointer" title="Cancel"><i data-lucide="x-circle" class="w-4 h-4"></i></button>';
     }
-    if (canDelete) {
-      html += '<button data-action="delete-order" data-order-id="' + order.id + '" class="text-error-500 hover:text-error-700 text-xs bg-transparent border-0 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>';
+    if (canDelete || canDropDraft) {
+      html += '<button data-action="delete-order" data-order-id="' + order.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-error-600 hover:text-error-800 hover:bg-error-50 border-0 cursor-pointer" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
     }
     html += '</div></td>';
     html += '</tr>';
   });
 
   html += '</tbody></table></div></div>';
-  html += '</div>';
 
   container.innerHTML = html;
   setupOrderListEvents(container);
+}
+
+function renderMenuCard(item, action, actionAttr) {
+  var html = '<div class="bg-white border border-brand-300 rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center" data-action="' + action + '" ' + actionAttr + '="' + item.id + '">';
+  html += '<div class="w-20 h-20 rounded-lg flex items-center justify-center text-3xl mb-3 bg-brand-50">' + (item.emoji || '\uD83C\uDF7D\uFE0F') + '</div>';
+  html += '<div class="text-sm font-semibold text-brand-900 mb-0.5">' + item.name + '</div>';
+  html += '<div class="text-[15px] font-bold text-brand-600">$' + item.price.toFixed(2) + '</div>';
+  html += '<div class="text-xs text-secondary-500 mt-1">' + item.cat + '</div>';
+  html += '</div>';
+  return html;
 }
 
 function renderNewOrder(container) {
   var categories = ['All', 'Main Course', 'Pizza', 'Salads', 'Burgers', 'Appetizers', 'Desserts', 'Drinks'];
   var activeCat = 'All';
 
-  var html = '<div class="pos-layout flex gap-6">';
+  var html = '';
+
+  html += '<div class="flex items-center justify-between mb-6">';
+  html += '<button data-action="back-to-orders" class="inline-flex items-center justify-center gap-2 font-semibold bg-transparent text-brand-700 border border-transparent hover:bg-brand-100 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+  html += '<h2 class="text-xl font-bold text-brand-900">New Order</h2>';
+  html += '<div class="flex items-center gap-3">';
+  html += '<span class="text-sm text-secondary-600">Table:</span>';
+  html += '<button class="inline-flex items-center gap-2 h-8 px-3 rounded-md bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 text-sm font-semibold cursor-pointer"><i data-lucide="square" class="w-4 h-4"></i> Table 5 <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>';
+  html += '</div></div>';
+
+  html += '<div class="flex gap-6">';
+
   html += '<div class="flex-1 min-w-0 space-y-4">';
-  html += '<div class="pos-categories flex gap-2 flex-wrap">';
+  html += '<div class="flex gap-2 flex-wrap">';
   categories.forEach(function (cat) {
-    html += '<button data-cat="' + cat + '" class="px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border ' +
-      (cat === activeCat ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50') + '">' + cat + '</button>';
+    html += '<button data-cat="' + cat + '" class="px-4 py-1.5 rounded-full text-[13px] font-semibold border cursor-pointer transition-colors ' +
+      (cat === activeCat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50') + '">' + cat + '</button>';
   });
   html += '</div>';
 
-  html += '<div class="menu-grid grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))">';
+  html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">';
   menuItems.forEach(function (item) {
-    html += '<div class="menu-item-card bg-white border border-brand-300 rounded-xl p-4 hover:border-primary-400 hover:shadow-md transition-all cursor-pointer flex flex-col gap-2">';
-    html += '<div class="text-3xl">' + (item.emoji || '\uD83C\uDF7D\uFE0F') + '</div>';
-    html += '<h4 class="text-sm font-semibold text-primary-800 font-display">' + item.name + '</h4>';
-    html += '<p class="text-xs text-brand-500">' + item.cat + '</p>';
-    html += '<p class="text-sm font-bold text-primary-700">$' + item.price.toFixed(2) + '</p>';
-    html += '<button data-action="add-to-cart" data-item-id="' + item.id + '" class="mt-auto w-full h-8 px-3 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold border-0 cursor-pointer transition-colors">Add to Order</button>';
+    html += '<div data-action="add-to-cart" data-item-id="' + item.id + '" class="bg-white border border-brand-300 rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)]">';
+    html += '<div class="w-20 h-20 rounded-lg flex items-center justify-center text-3xl mb-3 bg-brand-50">' + (item.emoji || '\uD83C\uDF7D\uFE0F') + '</div>';
+    html += '<div class="text-sm font-semibold text-brand-900 mb-0.5">' + item.name + '</div>';
+    html += '<div class="text-[15px] font-bold text-brand-600">$' + item.price.toFixed(2) + '</div>';
+    html += '<div class="text-xs text-secondary-500 mt-1">' + item.cat + '</div>';
     html += '</div>';
   });
   html += '</div></div>';
@@ -109,125 +146,197 @@ function renderOrderDetail(container, orderId) {
 
   var isEditing = editingOrder && editingOrder.id === order.id;
   var displayOrder = isEditing ? editingOrder : order;
-  var subtotal = displayOrder.items.reduce(function (s, i) { return s + i.price * i.qty; }, 0);
-  var tax = Math.round(subtotal * 0.1 * 100) / 100;
-  var total = Math.round((subtotal + tax) * 100) / 100;
   var isCancelled = displayOrder.status === 'cancelled';
+  var isDraft = displayOrder.status === 'draft';
+  var isClosed = displayOrder.status === 'completed' || displayOrder.status === 'cancelled';
+  var isActive = ['draft','new','preparing','ready','served'].indexOf(displayOrder.status) !== -1;
+  var canEditItems = isDraft && (currentRole === 'admin' || displayOrder.createdBy === currentRole) && currentRole !== 'cook';
+  var canDropDraft = isDraft && (currentRole === 'admin' || displayOrder.createdBy === currentRole) && currentRole !== 'cook';
+  var canCancelOrder = isActive && !isDraft && currentRole === 'admin';
+  var canDelete = isClosed && currentRole === 'admin';
+  var canEditNote = currentRole !== 'cook';
 
-  var html = '<div class="space-y-6 max-w-3xl">';
-  html += '<div class="flex items-center justify-between">';
-  html += '<button data-action="back-to-orders" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Orders</button>';
-  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Order #' + displayOrder.id + '</h2>';
-  html += '</div>';
+  var lifecycleIdx = LIFECYCLE.indexOf(displayOrder.status);
 
-  html += '<div class="bg-white border border-brand-300 rounded-xl p-6 shadow-sm">';
-  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-4">Order Status</h3>';
-  html += StatusStepper({ status: displayOrder.status, cancelled: isCancelled });
-  html += '</div>';
-
-  html += DetailGridCompact([
-    { label: 'Table', value: displayOrder.table },
-    { label: 'Server', value: displayOrder.server },
-    { label: 'Status', value: displayOrder.status },
-    { label: 'Placed', value: displayOrder.placedAt || displayOrder.time },
-    { label: 'Total', value: '$' + total.toFixed(2) },
-    { label: 'Notes', value: displayOrder.note || '—' },
-  ]);
-
-  html += '<div class="bg-white border border-brand-300 rounded-xl p-5 shadow-sm">';
-  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-3">Items</h3>';
-  html += '<div class="overflow-x-auto"><table class="w-full text-sm">';
-  html += '<thead class="text-[11px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300"><tr>';
-  html += '<th class="px-4 py-3 text-left">Item</th><th class="px-4 py-3 text-left">Price</th><th class="px-4 py-3 text-left">Qty</th><th class="px-4 py-3 text-left">Subtotal</th>';
-  if (isEditing) html += '<th class="px-4 py-3 text-left">Actions</th>';
-  html += '</tr></thead><tbody class="divide-y divide-brand-200">';
-
-  displayOrder.items.forEach(function (item, idx) {
-    var sub = (item.price * item.qty).toFixed(2);
-    html += '<tr>';
-    if (isEditing) {
-      html += '<td class="px-4 py-2"><input data-edit-field="name" data-idx="' + idx + '" value="' + item.name + '" class="w-full border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
-      html += '<td class="px-4 py-2"><input data-edit-field="price" data-idx="' + idx + '" type="number" step="0.01" value="' + item.price + '" class="w-20 border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
-      html += '<td class="px-4 py-2"><input data-edit-field="qty" data-idx="' + idx + '" type="number" min="1" value="' + item.qty + '" class="w-16 border border-brand-300 rounded px-2 py-1 text-sm" /></td>';
-      html += '<td class="px-4 py-2 font-mono text-xs">$' + sub + '</td>';
-      html += '<td class="px-4 py-2"><button data-action="remove-edit-item" data-idx="' + idx + '" class="text-error-500 hover:text-error-700 bg-transparent border-0 cursor-pointer"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></td>';
-    } else {
-      html += '<td class="px-4 py-2 font-semibold text-primary-700">' + item.name + '</td>';
-      html += '<td class="px-4 py-2 font-mono text-xs">$' + item.price.toFixed(2) + '</td>';
-      html += '<td class="px-4 py-2">' + item.qty + '</td>';
-      html += '<td class="px-4 py-2 font-mono text-xs">$' + sub + '</td>';
-    }
-    html += '</tr>';
+  var steps = LIFECYCLE.map(function (s, i) {
+    if (isCancelled) return { label: s, cls: '' };
+    var cls = '';
+    if (i < lifecycleIdx) cls = 'done';
+    else if (i === lifecycleIdx) cls = 'current';
+    return { label: s, cls: cls };
   });
 
-  html += '</tbody></table></div></div>';
-
-  html += '<div class="bg-white border border-brand-300 rounded-xl p-5 shadow-sm">';
-  html += '<h3 class="text-sm font-semibold text-primary-700 font-display mb-3">Note</h3>';
-  if (isEditing) {
-    html += '<textarea id="order-note" class="w-full border border-brand-300 rounded-lg p-3 text-sm h-24" placeholder="Add a note...">' + (displayOrder.note || '') + '</textarea>';
-  } else {
-    html += '<p class="text-sm text-brand-600 italic">' + (displayOrder.note || 'No notes') + '</p>';
-  }
-  html += '</div>';
-
-  html += '<div class="flex flex-wrap gap-3">';
-  if (isEditing) {
-    html += '<button data-action="save-edit" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Save Changes</button>';
-    html += '<button data-action="cancel-edit" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Cancel</button>';
-  } else {
-    var transitions = getNextStatuses(displayOrder.status);
-    transitions.forEach(function (t) {
-      html += '<button data-action="transition" data-target="' + t + '" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer capitalize">Next: ' + t + '</button>';
-    });
-
-    if (canTransition(currentRole, displayOrder.status, 'cancelled')) {
-      html += '<button data-action="cancel-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-error-500 hover:bg-error-600 text-white border-0 cursor-pointer">Cancel Order</button>';
+  var transitions = [];
+  if (!isClosed && !isCancelled) {
+    if (currentRole === 'admin') {
+      if (lifecycleIdx > 0 && !isDraft) transitions.push({ to: LIFECYCLE[lifecycleIdx-1], label: '\u2190 Back', btnCls: 'bg-white text-brand-700 border border-brand-300 hover:bg-brand-50' });
+      if (lifecycleIdx < LIFECYCLE.length - 1) transitions.push({ to: LIFECYCLE[lifecycleIdx+1], label: 'Next \u2192', btnCls: 'bg-primary-600 text-white border border-primary-600 hover:bg-primary-700' });
+      transitions.push({ to: 'cancelled', label: 'Cancel', btnCls: 'bg-error-600 text-white border border-error-600 hover:bg-error-700' });
+    } else if (currentRole === 'waiter') {
+      if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 0) {
+        transitions.push({ to: LIFECYCLE[lifecycleIdx+1], label: lifecycleIdx === 0 ? 'Send to Kitchen' : 'Next \u2192', btnCls: 'bg-primary-600 text-white border border-primary-600 hover:bg-primary-700' });
+      }
+    } else if (currentRole === 'cook') {
+      if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 4) {
+        var tLabels = { 1: 'Start Preparing', 2: 'Mark Ready', 3: 'Served' };
+        transitions.push({ to: LIFECYCLE[lifecycleIdx+1], label: tLabels[lifecycleIdx] || 'Next \u2192', btnCls: 'bg-primary-600 text-white border border-primary-600 hover:bg-primary-700' });
+      }
     }
-
-    if (displayOrder.status === 'draft') {
-      html += '<button data-action="drop-draft" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-warning-500 hover:bg-warning-600 text-white border-0 cursor-pointer">Drop Draft</button>';
-    }
-
-    if (currentRole === 'admin' && (displayOrder.status === 'draft' || displayOrder.status === 'new')) {
-      html += '<button data-action="delete-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
-    }
-
-    html += '<button data-action="start-edit" data-order-id="' + displayOrder.id + '" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="pencil" class="w-4 h-4"></i> Edit Items</button>';
   }
 
+  var html = '';
+
+  html += '<div class="flex items-center justify-between mb-6">';
+  html += '<button data-action="back-to-orders" class="inline-flex items-center justify-center gap-2 font-semibold bg-transparent text-brand-700 border border-transparent hover:bg-brand-100 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+  html += '<h2 class="text-xl font-bold text-brand-900">Order #' + displayOrder.id + '</h2>';
+  html += '<div class="flex gap-3">';
+  html += statusBadge(displayOrder.status);
+  if (isCancelled) html += '<span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-bold bg-error-100 text-error-700"><i data-lucide="x-circle" class="w-4 h-4"></i> Cancelled</span>';
   html += '</div></div>';
 
-  container.innerHTML = html;
-  setupOrderDetailEvents(container, order);
-}
-
-function getNextStatuses(status) {
-  var next = [];
-  LIFECYCLE.forEach(function (s, i) {
-    if (i > LIFECYCLE.indexOf(status) && canTransition(currentRole, status, s)) {
-      if (next.length === 0) next.push(s);
-    }
-  });
-  return next;
-}
-
-function statusBadge(status) {
-  var colors = { completed: 'success', preparing: 'warning', new: 'info', draft: 'brand', cancelled: 'error', ready: 'accent', served: 'neutral' };
-  var c = colors[status] || 'brand';
-  return '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-' + c + '-100 text-' + c + '-700"><span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>' + status + '</span>';
-}
-
-function DetailGridCompact(items) {
-  var html = '<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">';
-  items.forEach(function (item) {
-    html += '<div class="bg-white border border-brand-300 rounded-xl p-3">';
-    html += '<span class="block text-[11px] font-semibold uppercase tracking-wider text-brand-500 mb-0.5">' + item.label + '</span>';
-    html += '<span class="block text-sm font-semibold text-primary-800">' + (item.value || '') + '</span>';
+  html += '<div class="grid grid-cols-3 gap-4 mb-6">';
+  var summaryCells = [
+    { label: 'Table', value: 'Table ' + displayOrder.table },
+    { label: 'Server', value: displayOrder.server || '\u2014' },
+    { label: 'Placed', value: displayOrder.placedAt || displayOrder.time },
+    { label: 'Items', value: displayOrder.items.length },
+    { label: 'Created By', value: displayOrder.createdBy || '\u2014' },
+    { label: 'Total', value: '$' + displayOrder.total.toFixed(2) }
+  ];
+  summaryCells.forEach(function (c) {
+    html += '<div class="bg-white border border-brand-200 rounded-lg p-4">';
+    html += '<div class="text-[11px] font-bold uppercase tracking-widest text-secondary-500 mb-1">' + c.label + '</div>';
+    html += '<div class="text-[15px] font-semibold text-brand-900' + (c.label === 'Total' ? ' text-lg' : '') + '">' + c.value + '</div>';
     html += '</div>';
   });
   html += '</div>';
-  return html;
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden mb-5">';
+  html += '<div class="flex items-center gap-1 px-5 py-4 bg-white border-b border-brand-100">';
+  steps.forEach(function (s, i) {
+    var dotBg = s.cls === 'done' ? 'bg-primary-600 border-primary-600 text-white' : s.cls === 'current' ? 'bg-brand-500 border-brand-500 text-white shadow-[0_0_0_3px_var(--color-brand-100)]' : 'bg-white border-brand-200 text-brand-400';
+    var labelColor = (s.cls === 'done' || s.cls === 'current') ? 'text-brand-800' : 'text-secondary-500';
+    html += '<div class="flex items-center gap-2">';
+    html += '<div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 shrink-0 ' + dotBg + '">' + (i + 1) + '</div>';
+    html += '<span class="text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap ' + labelColor + '">' + s.label + '</span>';
+    html += '</div>';
+    if (i < steps.length - 1) {
+      var connBg = s.cls === 'done' ? 'bg-primary-500' : 'bg-brand-200';
+      html += '<div class="flex-1 h-0.5 min-w-3 ' + connBg + '"></div>';
+    }
+  });
+  if (isCancelled) html += '<span class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-[13px] font-bold bg-error-100 text-error-700 ml-auto"><i data-lucide="x-circle" class="w-4 h-4"></i> Cancelled</span>';
+  html += '</div></div>';
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden mb-5">';
+  html += '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50"><h3 class="text-sm font-bold text-brand-800">Items</h3>';
+  if (canEditItems && !isEditing) html += '<button data-action="start-edit" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="edit" class="w-4 h-4"></i> Edit Items</button>';
+  html += '</div>';
+  html += '<div class="px-5 py-4" id="detail-items-body">';
+
+  if (isEditing) {
+    displayOrder.items.forEach(function (item, idx) {
+      var sub = (item.price * item.qty).toFixed(2);
+      html += '<div class="flex items-center gap-3 py-3 border-b border-brand-100">';
+      html += '<span class="flex-1 text-sm font-medium text-neutral-700">' + item.name + '</span>';
+      html += '<span class="text-[13px] text-secondary-600 min-w-[64px] text-right">$' + (item.price || 0).toFixed(2) + '</span>';
+      html += '<div class="flex items-center gap-2">';
+      html += '<button class="w-6 h-6 inline-flex items-center justify-center rounded bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer text-xs" data-action="edit-item-qty" data-idx="' + idx + '" data-delta="-1" title="Remove one"><i data-lucide="minus" class="w-3 h-3"></i></button>';
+      html += '<span class="min-w-[20px] text-center font-bold text-brand-800">' + item.qty + '</span>';
+      html += '<button class="w-6 h-6 inline-flex items-center justify-center rounded bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer text-xs" data-action="edit-item-qty" data-idx="' + idx + '" data-delta="1" title="Add one"><i data-lucide="plus" class="w-3 h-3"></i></button>';
+      html += '</div>';
+      html += '<span class="text-sm font-semibold text-brand-800 min-w-[72px] text-right">$' + sub + '</span>';
+      html += '<button data-action="remove-edit-item" data-idx="' + idx + '" class="w-7 h-7 flex items-center justify-center border-none bg-transparent text-error-500 rounded-md cursor-pointer hover:bg-error-50" title="Remove item"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+      html += '</div>';
+    });
+
+    var editCats = ['All', 'Appetizers', 'Main Course', 'Burgers', 'Pizza', 'Salads', 'Drinks', 'Desserts'];
+    html += '<div class="mt-4 pt-4 border-t-2 border-dashed border-brand-200">';
+    html += '<h4 class="text-[13px] font-bold text-brand-700 mb-3"><i data-lucide="plus-circle" class="w-4 h-4 inline-block align-middle mr-1"></i> Add Items</h4>';
+    html += '<div class="flex gap-2 flex-wrap mb-3">';
+    editCats.forEach(function (cat, i) {
+      html += '<button data-detail-cat="' + cat + '" class="px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-colors ' +
+        (i === 0 ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50') + '">' + cat + '</button>';
+    });
+    html += '</div>';
+    html += '<div class="grid gap-3 grid-cols-[repeat(auto-fill,minmax(160px,1fr))] id="detailMenuGrid">';
+    menuItems.forEach(function (item) {
+      html += '<div data-action="add-to-edit-order" data-item-id="' + item.id + '" class="bg-white border border-brand-300 rounded-xl p-3 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)]">';
+      html += '<div class="w-14 h-14 rounded-lg flex items-center justify-center text-2xl mb-2 bg-brand-50">' + (item.emoji || '\uD83C\uDF7D\uFE0F') + '</div>';
+      html += '<div class="text-xs font-semibold text-brand-900 mb-0.5">' + item.name + '</div>';
+      html += '<div class="text-[13px] font-bold text-brand-600">$' + item.price.toFixed(2) + '</div>';
+      html += '<div class="text-[10px] text-secondary-500 mt-0.5">' + item.cat + '</div>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+
+    html += '<div class="flex justify-end gap-3 mt-4">';
+    html += '<button data-action="cancel-edit" class="inline-flex items-center justify-center gap-2 font-semibold bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer">Cancel</button>';
+    html += '<button data-action="save-edit" class="inline-flex items-center justify-center gap-2 font-semibold bg-primary-600 text-white border border-primary-600 hover:bg-primary-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="check" class="w-4 h-4"></i> Done</button>';
+    html += '</div>';
+  } else {
+    html += '<table class="w-full border-collapse">';
+    html += '<thead><tr>';
+    html += '<th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-brand-700 border-b-2 border-brand-200 bg-brand-50">Item</th>';
+    html += '<th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-brand-700 border-b-2 border-brand-200 bg-brand-50">Price</th>';
+    html += '<th class="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-brand-700 border-b-2 border-brand-200 bg-brand-50">Qty</th>';
+    html += '<th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-brand-700 border-b-2 border-brand-200 bg-brand-50">Subtotal</th>';
+    html += '</tr></thead><tbody>';
+    displayOrder.items.forEach(function (item) {
+      html += '<tr>';
+      html += '<td class="px-4 py-3 text-sm border-b border-brand-100 font-medium">' + item.name + '</td>';
+      html += '<td class="px-4 py-3 text-sm border-b border-brand-100 text-right text-secondary-600">$' + (item.price || 0).toFixed(2) + '</td>';
+      html += '<td class="px-4 py-3 text-sm border-b border-brand-100 text-center">' + item.qty + '</td>';
+      html += '<td class="px-4 py-3 text-sm border-b border-brand-100 text-right font-semibold text-brand-800">$' + ((item.price || 0) * item.qty).toFixed(2) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    var sub = displayOrder.total / 1.1;
+    var tax = displayOrder.total - sub;
+    html += '<div class="flex justify-end gap-6 mt-4 pt-4 border-t border-brand-200">';
+    html += '<span class="text-[13px] text-secondary-600">Subtotal</span>';
+    html += '<span class="font-semibold text-sm">$' + sub.toFixed(2) + '</span></div>';
+    html += '<div class="flex justify-end gap-6 mt-1">';
+    html += '<span class="text-[13px] text-secondary-600">Tax (10%)</span>';
+    html += '<span class="font-semibold text-sm">$' + tax.toFixed(2) + '</span></div>';
+    html += '<div class="flex justify-end gap-6 mt-2 pt-2 border-t-2 border-brand-300">';
+    html += '<span class="text-[15px] font-bold text-brand-900">Total</span>';
+    html += '<span class="text-lg font-bold text-brand-900">$' + displayOrder.total.toFixed(2) + '</span></div>';
+  }
+  html += '</div></div>';
+
+  html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden mb-5">';
+  html += '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50"><h3 class="text-sm font-bold text-brand-800">Kitchen Note</h3></div>';
+  html += '<div class="px-5 py-4">';
+  html += '<div class="text-[13px] text-accent-700 italic p-3 bg-accent-50 rounded-md border-l-[3px] border-accent-400">';
+  if (canEditNote) {
+    html += '<textarea id="detailNoteInput" class="w-full border border-brand-300 rounded-md p-3 text-[13px] resize-y min-h-[60px] mb-3 text-neutral-700 bg-white focus:outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.1)]" placeholder="Add a note for the kitchen (e.g. allergy, substitution)...">' + (displayOrder.note || '') + '</textarea>';
+    html += '<button data-action="save-note" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="save" class="w-4 h-4"></i> Save Note</button>';
+  } else {
+    html += '<p class="text-[13px] text-neutral-500 mb-2">Read-only</p>';
+    html += '<div class="bg-neutral-50 border border-neutral-200 rounded-sm p-3 text-[13px] text-neutral-700 min-h-[60px]">';
+    html += displayOrder.note || '<span class="text-neutral-400">No note</span>';
+    html += '</div>';
+  }
+  html += '</div></div></div>';
+
+  var hasActions = transitions.length > 0 || canDropDraft || canCancelOrder || canDelete;
+  if (hasActions) {
+    html += '<div class="flex gap-3 p-5 bg-brand-50 border-t border-brand-200">';
+    if (canDropDraft) html += '<button data-action="drop-draft" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold bg-error-600 text-white border border-error-600 hover:bg-error-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i> Drop Draft</button>';
+    if (canDelete) html += '<button data-action="delete-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold bg-error-600 text-white border border-error-600 hover:bg-error-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete</button>';
+    if (canCancelOrder && !transitions.some(function (t) { return t.to === 'cancelled'; })) {
+      html += '<button data-action="cancel-order" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold bg-error-600 text-white border border-error-600 hover:bg-error-700 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="x-circle" class="w-4 h-4"></i> Cancel</button>';
+    }
+    html += '<div class="flex-1"></div>';
+    transitions.forEach(function (t) {
+      html += '<button data-action="transition" data-target="' + t.to + '" data-order-id="' + displayOrder.id + '" class="inline-flex items-center justify-center gap-2 font-semibold h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer ' + t.btnCls + '">' + t.label + '</button>';
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+  setupOrderDetailEvents(container, order);
 }
 
 function setupOrderListEvents(container) {
@@ -302,14 +411,17 @@ function setupNewOrderEvents(container) {
     if (catBtn) {
       var cat = catBtn.getAttribute('data-cat');
       container.querySelectorAll('[data-cat]').forEach(function (b) {
-        b.className = 'px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer border ' +
-          (b.getAttribute('data-cat') === cat ? 'bg-primary-600 text-white border-primary-600' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50');
+        b.className = 'px-4 py-1.5 rounded-full text-[13px] font-semibold border cursor-pointer transition-colors ' +
+          (b.getAttribute('data-cat') === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50');
       });
-      var grid = container.querySelector('.menu-grid');
+      var grid = container.querySelector('.grid');
       if (grid) {
-        grid.querySelectorAll('.menu-item-card').forEach(function (card) {
-          var itemCat = card.querySelector('p.text-xs').textContent;
-          card.style.display = (cat === 'All' || itemCat === cat) ? '' : 'none';
+        grid.querySelectorAll('[data-action="add-to-cart"]').forEach(function (card) {
+          var catEls = card.querySelectorAll('.text-secondary-500');
+          var cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
+          if (cardCat) {
+            card.style.display = (cat === 'All' || cardCat.textContent === cat) ? '' : 'none';
+          }
         });
       }
       return;
@@ -402,16 +514,6 @@ function setupOrderDetailEvents(container, order) {
     var saveBtn = e.target.closest('[data-action="save-edit"]');
     if (saveBtn) {
       if (editingOrder) {
-        var noteEl = container.querySelector('#order-note');
-        if (noteEl) editingOrder.note = noteEl.value;
-        editingOrder.items.forEach(function (item) {
-          var nameEl = container.querySelector('[data-edit-field="name"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
-          var priceEl = container.querySelector('[data-edit-field="price"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
-          var qtyEl = container.querySelector('[data-edit-field="qty"][data-idx="' + editingOrder.items.indexOf(item) + '"]');
-          if (nameEl) item.name = nameEl.value;
-          if (priceEl) item.price = parseFloat(priceEl.value) || item.price;
-          if (qtyEl) item.qty = parseInt(qtyEl.value) || item.qty;
-        });
         recalcOrder(editingOrder);
         var orig = allOrders.find(function (o) { return o.id === editingOrder.id; });
         if (orig) Object.assign(orig, editingOrder);
@@ -437,6 +539,72 @@ function setupOrderDetailEvents(container, order) {
       recalcOrder(editingOrder);
       renderOrderDetail(container, editingOrder.id);
       window.createIcons();
+      return;
+    }
+
+    var qtyBtn = e.target.closest('[data-action="edit-item-qty"]');
+    if (qtyBtn && editingOrder) {
+      var qidx = parseInt(qtyBtn.getAttribute('data-idx'));
+      var delta = parseInt(qtyBtn.getAttribute('data-delta'));
+      var item = editingOrder.items[qidx];
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) editingOrder.items.splice(qidx, 1);
+        recalcOrder(editingOrder);
+        renderOrderDetail(container, editingOrder.id);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var addEditBtn = e.target.closest('[data-action="add-to-edit-order"]');
+    if (addEditBtn && editingOrder) {
+      var itemId = parseInt(addEditBtn.getAttribute('data-item-id'));
+      var menuItem = menuItems.find(function (m) { return m.id === itemId; });
+      if (menuItem) {
+        var existing = editingOrder.items.find(function (it) { return it.id === menuItem.id; });
+        if (existing) {
+          existing.qty++;
+        } else {
+          editingOrder.items.push({ id: menuItem.id, name: menuItem.name, price: menuItem.price, qty: 1 });
+        }
+        recalcOrder(editingOrder);
+        renderOrderDetail(container, editingOrder.id);
+        window.createIcons();
+      }
+      return;
+    }
+
+    var detailCatBtn = e.target.closest('[data-detail-cat]');
+    if (detailCatBtn) {
+      var cat = detailCatBtn.getAttribute('data-detail-cat');
+      container.querySelectorAll('[data-detail-cat]').forEach(function (b) {
+        b.className = 'px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-colors ' +
+          (b.getAttribute('data-detail-cat') === cat ? 'bg-brand-500 text-white border-brand-500' : 'bg-white text-brand-600 border-brand-300 hover:bg-brand-50');
+      });
+      var grid = container.querySelector('#detailMenuGrid');
+      if (grid) {
+        grid.querySelectorAll('[data-action="add-to-edit-order"]').forEach(function (card) {
+          var catEls = card.querySelectorAll('.text-secondary-500');
+          var cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
+          if (cardCat) {
+            card.style.display = (cat === 'All' || cardCat.textContent === cat) ? '' : 'none';
+          }
+        });
+      }
+      return;
+    }
+
+    var saveNoteBtn = e.target.closest('[data-action="save-note"]');
+    if (saveNoteBtn) {
+      var noteId = parseInt(saveNoteBtn.getAttribute('data-order-id'));
+      var noteOrder = allOrders.find(function (o) { return o.id === noteId; });
+      if (noteOrder) {
+        var noteInput = document.getElementById('detailNoteInput');
+        noteOrder.note = noteInput ? noteInput.value : null;
+        renderOrderDetail(container, noteId);
+        window.createIcons();
+      }
       return;
     }
   });

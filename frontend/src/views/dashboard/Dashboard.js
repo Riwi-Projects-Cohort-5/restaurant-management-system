@@ -1,9 +1,7 @@
 import WelcomeBanner from '../../components/ui/WelcomeBanner.js';
 import StatCard from '../../components/ui/StatCard.js';
-import Card from '../../components/ui/Card.js';
-import TableStatusCard from '../../components/dashboard/TableStatusCard.js';
 import SalesChart from '../../components/dashboard/SalesChart.js';
-import DataTable from '../../components/ui/DataTable.js';
+import TableStatusCard from '../../components/dashboard/TableStatusCard.js';
 import { allOrders } from '../../store/posData.js';
 
 var Dashboard = {
@@ -11,51 +9,82 @@ var Dashboard = {
     var user = window.userData || { name: 'Admin', initials: 'MC' };
     var recentOrders = allOrders.slice(0, 5);
 
-    var cols = [
-      { key: 'id', label: 'Order', primary: true, render: function (r) { return '#' + r.id; } },
-      { key: 'table', label: 'Table', render: function (r) { return 'Table ' + r.table; } },
-      { key: 'server', label: 'Server' },
-      { key: 'total', label: 'Total', render: function (r) { return '$' + r.total.toFixed(2); } },
-      { key: 'status', label: 'Status', render: function (r) {
-        var colors = {
-          completed: 'success',
-          preparing: 'warning',
-          new: 'info',
-          draft: 'brand',
-          cancelled: 'error',
-        };
-        return '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-' + (colors[r.status] || 'brand') + '-100 text-' + (colors[r.status] || 'brand') + '-700"><span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>' + r.status + '</span>';
-      }},
-      { key: 'actions', label: '', render: function () {
-        return '<button class="text-primary-600 hover:text-primary-800 text-sm font-semibold bg-transparent border-0 cursor-pointer">View Details</button>';
-      }},
-    ];
+    var statusMap = {
+      draft: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span> Draft</span>',
+      completed: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-success-100 text-success-700"><span class="w-1.5 h-1.5 rounded-full bg-success-500"></span> Completed</span>',
+      preparing: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Preparing</span>',
+      ready: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Ready</span>',
+      served: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-800"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Served</span>',
+      new: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-info-100 text-info-700"><span class="w-1.5 h-1.5 rounded-full bg-info-500"></span> New</span>',
+      cancelled: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-error-100 text-error-700"><span class="w-1.5 h-1.5 rounded-full bg-error-500"></span> Cancelled</span>'
+    };
 
-    var html = '<div class="space-y-6">';
+    var html = '<div class="space-y-0">';
+
     html += WelcomeBanner({ user: user, time: 'morning' });
 
-    html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">';
-    html += StatCard({ label: 'Total Sales', value: '$12,845', change: '+12.5%', icon: 'dollar-sign', iconBg: 'bg-primary-100 text-primary-600' });
-    html += StatCard({ label: 'Active Orders', value: '3', change: '+2', icon: 'shopping-cart', iconBg: 'bg-accent-100 text-accent-600' });
-    html += StatCard({ label: 'Tables Occupied', value: '5/12', change: '-1', icon: 'grid-3x3', iconBg: 'bg-info-100 text-info-600' });
-    html += StatCard({ label: 'Avg. Service Time', value: '18 min', change: '-3 min', icon: 'clock', iconBg: 'bg-success-100 text-success-600' });
+    html += '<div class="flex items-center justify-between mb-6">';
+    html += '<h2 class="text-[22px] font-bold text-brand-900">Overview</h2>';
+    html += '<div class="flex gap-3">';
+    html += '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer"><i data-lucide="download" class="w-4 h-4"></i> Export</button>';
+    html += '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-primary-600 text-white border-primary-600 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+    html += '</div>';
     html += '</div>';
 
-    html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">';
+    html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">';
+    html += StatCard({ label: 'Total Revenue', value: '$12,450', change: '+12.5%', icon: 'dollar-sign', iconBg: 'bg-brand-100 text-brand-700' });
+    html += StatCard({ label: 'Orders Today', value: '156', change: '+8.2%', icon: 'shopping-bag', iconBg: 'bg-primary-100 text-primary-700' });
+    html += StatCard({ label: 'Active Tables', value: '8 / 12', change: '67% occupancy', icon: 'users', iconBg: 'bg-accent-100 text-accent-700', changeNeutral: true });
+    html += StatCard({ label: 'Reservations', value: '24', change: '+3 today', icon: 'calendar-check', iconBg: 'bg-success-100 text-success-700' });
+    html += '</div>';
+
+    html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">';
+
     html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
-    html += '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Sales Overview</h3>';
-    html += '<div class="relative h-[260px]"><canvas id="salesChart"></canvas></div>';
+    html += '<div class="flex items-center justify-between mb-4">';
+    html += '<h3 class="text-base font-semibold text-primary-700 font-display">Weekly Sales</h3>';
+    html += SalesChart.renderLegend();
     html += '</div>';
-    html += '<div>' + TableStatusCard() + '</div>';
+    html += '<div class="relative h-[200px]"><canvas id="salesChart"></canvas></div>';
     html += '</div>';
 
-    html += '<div>';
-    html += '<div class="flex items-center justify-between mb-3">';
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
+    html += '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
+    html += '<div class="flex flex-col gap-4">';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">4 tables</span></div>';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">6 tables</span></div>';
+    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">2 tables</span></div>';
+    html += '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500 w-1/2"></div><div class="bg-accent-500 w-[16.67%]"></div><div class="bg-success-500 w-1/3"></div></div></div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
+    html += '<div class="flex items-center justify-between px-5 pt-5 pb-4">';
     html += '<h3 class="text-base font-semibold text-primary-700 font-display">Recent Orders</h3>';
-    html += '<a href="#/pos" class="text-sm font-semibold text-primary-600 hover:text-primary-800 bg-transparent border-0 cursor-pointer">View All</a>';
+    html += '<a href="#/pos" class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 cursor-pointer">View All</a>';
     html += '</div>';
-    html += DataTable({ columns: cols, rows: recentOrders });
-    html += '</div>';
+    html += '<div class="overflow-x-auto">';
+    html += '<table class="w-full text-sm text-left">';
+    html += '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
+    html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th>';
+    html += '</tr></thead>';
+    html += '<tbody>';
+    recentOrders.forEach(function (o, i) {
+      var zebra = i % 2 === 0 ? 'bg-white' : 'bg-brand-50/50';
+      html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
+      html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + '</td>';
+      html += '<td class="px-4 py-3">Table ' + o.table + '</td>';
+      html += '<td class="px-4 py-3">' + (o.server || '') + '</td>';
+      html += '<td class="px-4 py-3">' + o.items.length + ' items</td>';
+      html += '<td class="px-4 py-3 font-semibold text-brand-800">$' + o.total.toFixed(2) + '</td>';
+      html += '<td class="px-4 py-3">' + (statusMap[o.status] || '') + '</td>';
+      html += '<td class="px-4 py-3 text-neutral-500">' + o.time + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '</div></div>';
 
     html += '</div>';
 

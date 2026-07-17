@@ -5,16 +5,15 @@ function WelcomeBanner(opts) {
   var initials = user.initials || 'MC';
   var time = opts.time || 'morning';
 
-  var html = '<div class="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-secondary-900 rounded-2xl p-8 text-white">';
-  html += '<div class="absolute top-[-80px] right-[-80px] w-[260px] h-[260px] rounded-full bg-white/10 pointer-events-none"></div>';
-  html += '<div class="absolute bottom-[-40px] right-[120px] w-[160px] h-[160px] rounded-full bg-white/5 pointer-events-none"></div>';
-  html += '<div class="relative z-10 flex items-center justify-between">';
-  html += '<div>';
-  html += '<h2 class="text-[28px] font-bold font-display mb-1">Good ' + time + ', ' + name + '</h2>';
-  html += '<p class="text-brand-200 text-[15px]">Here\'s what\'s happening with your restaurant today.</p>';
+  var html = '<div class="relative overflow-hidden rounded-2xl p-8 mb-6 flex items-center justify-between shadow-[0_8px_32px_rgba(114,49,23,0.25),0_2px_8px_rgba(0,0,0,0.1)]" style="background:linear-gradient(135deg, #E57722 0%, #B14616 40%, #4F473F 100%);">';
+  html += '<div class="absolute rounded-full pointer-events-none w-[450px] h-[450px]" style="top:-60%;right:-5%;background:radial-gradient(circle,rgba(251,191,36,0.25) 0%,transparent 70%);"></div>';
+  html += '<div class="absolute rounded-full pointer-events-none w-[350px] h-[350px]" style="bottom:-40%;left:20%;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);"></div>';
+  html += '<div class="relative z-10">';
+  html += '<h2 class="text-white mb-1 font-display text-[28px] font-bold tracking-tight">Good ' + time + ', ' + name + '</h2>';
+  html += '<p class="text-[15px] font-normal text-brand-200">Here\'s what\'s happening at El Fogón today.</p>';
   html += '</div>';
-  html += '<div class="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center text-lg font-bold font-display">' + initials + '</div>';
-  html += '</div></div>';
+  html += '<div class="relative z-10 flex-shrink-0 flex items-center justify-center rounded-full w-16 h-16 bg-white text-[20px] font-bold text-brand-600">' + initials + '</div>';
+  html += '</div>';
 
   return html;
 }

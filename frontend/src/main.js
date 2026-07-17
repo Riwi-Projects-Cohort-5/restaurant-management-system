@@ -80,12 +80,24 @@ function renderView() {
 
   if (route.shell) {
     window.currentRole = user ? user.role : 'admin';
-    window.userData = user ? {
-      name: user.displayName || user.username || 'Admin',
-      initials: (user.displayName || user.username || 'AD').split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2),
-      role: user.role || 'admin',
-    } : { name: 'Admin', initials: 'AD', role: 'admin' };
+    var roleLabels = { admin: 'Administrator', waiter: 'Waiter', chef: 'Chef', cashier: 'Cashier', client: 'Client' };
+    var username = user ? (user.displayName || user.username || 'Admin') : 'Admin';
+    var initials = username.split(' ').map(function (w) { return w[0]; }).join('').toUpperCase().slice(0, 2);
+    var roleText = roleLabels[user ? user.role : 'admin'] || 'Administrator';
+    window.userData = {
+      name: username,
+      initials: initials,
+      role: roleText,
+    };
     AppShell.render(appEl);
+    AppShell.updateTopbarTitle(path);
+    var logoutBtn = document.getElementById('appShellLogout');
+    if (logoutBtn) {
+      logoutBtn.onclick = function () {
+        authStore.logout();
+        window.location.hash = '#/login';
+      };
+    }
   }
 
   var container = route.shell ? document.getElementById('main-content') : appEl;

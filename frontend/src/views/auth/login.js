@@ -17,18 +17,18 @@ export function render(container) {
 
       <main class="flex flex-col items-center justify-center z-10 bg-brand-100 lg:p-12 md:max-lg:bg-transparent md:max-lg:p-8 max-md:min-h-screen max-md:px-6 max-md:py-8">
 
-        <div style="margin-bottom:48px" class="hidden md:flex items-center gap-4 lg:hidden">
+        <div class="mb-12 hidden md:flex items-center gap-4 lg:hidden">
           <img src="/src/assets/logos/logo-01.png" alt="El Fogon" class="h-auto w-[147px] object-contain" draggable="false">
           <img src="/src/assets/logos/logo-03.png" alt="El Fogon" class="h-auto w-[277px] object-contain" draggable="false">
         </div>
 
-        <div style="padding:32px" class="w-full max-w-[440px] bg-brand-100 md:max-lg:backdrop-blur-md md:max-lg:rounded-2xl md:max-lg:shadow-[0_8px_30px_rgba(114,49,23,0.12)]">
+        <div class="p-8 w-full max-w-[440px] bg-brand-100 md:max-lg:backdrop-blur-md md:max-lg:rounded-2xl md:max-lg:shadow-[0_8px_30px_rgba(114,49,23,0.12)]">
 
         <form class="login-form flex flex-col gap-6 w-full" id="loginForm" novalidate>
 
           <header class="flex flex-col items-center gap-20">
-            <img style="display:none" class="login-logo-desktop h-[180px] w-auto pb-6 object-contain" src="/src/assets/logos/logo-01.png" alt="El Fogon" draggable="false">
-            <img style="display:block" class="login-logo-mobile h-[240px] w-auto pb-6 object-contain" src="/src/assets/logos/logo-00.png" alt="El Fogon" draggable="false">
+            <img class="hidden lg:block login-logo-desktop h-[180px] w-auto pb-6 object-contain" src="/src/assets/logos/logo-01.png" alt="El Fogon" draggable="false">
+            <img class="block lg:hidden login-logo-mobile h-[240px] w-auto pb-6 object-contain" src="/src/assets/logos/logo-00.png" alt="El Fogon" draggable="false">
             <div class="flex flex-col gap-3">
               <h1 class="text-heading font-semibold leading-snug text-neutral-900">Good to see you again</h1>
               <p class="text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
@@ -83,8 +83,7 @@ export function init() {
   var passwordHtml = '<div class="flex flex-col gap-1">';
   passwordHtml += '<label class="text-sm font-medium leading-loose text-neutral-900" for="password">Password</label>';
   passwordHtml += '<div class="relative flex items-center">';
-  passwordHtml += '<input style="padding-left:12px;padding-right:40px" ' +
-    'class="w-full h-11 text-sm font-normal leading-normal text-neutral-900 box-border ' +
+  passwordHtml += '<input class="w-full h-11 text-sm font-normal leading-normal text-neutral-900 box-border pl-3 pr-10 ' +
     'bg-brand-50 border border-brand-300 rounded-md outline-none ' +
     'transition-colors duration-100 ' +
     'placeholder:text-neutral-400 ' +

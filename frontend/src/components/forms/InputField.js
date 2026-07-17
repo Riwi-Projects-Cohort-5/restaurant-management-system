@@ -11,8 +11,7 @@ function InputField(opts) {
   var html = '<div class="flex flex-col gap-1">';
   html += '<label class="text-sm font-medium leading-loose text-neutral-900" for="' + id + '">' + label + '</label>';
   html += '<div class="relative flex items-center">';
-  html += '<input style="padding-left:12px;padding-right:12px" ' +
-    'class="w-full h-11 text-sm font-normal leading-normal text-neutral-900 box-border ' +
+  html += '<input class="w-full h-11 text-sm font-normal leading-normal text-neutral-900 box-border pl-3 pr-3 ' +
     'bg-brand-50 border border-brand-300 rounded-md outline-none ' +
     'transition-colors duration-100 ' +
     'placeholder:text-neutral-400 ' +

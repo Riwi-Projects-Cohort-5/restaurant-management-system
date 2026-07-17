@@ -104,51 +104,83 @@
   --color-info-700: #1D4ED8;
   --color-info-800: #1E40AF;
   --color-info-900: #1E3A8A;
+
+  --topbar-height: 64px;
+  --sidebar-width: 256px;
+  --sidebar-collapsed: 64px;
+
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --animate-duration-fast: 100ms;
+  --animate-duration-normal: 200ms;
+  --animate-duration-slow: 300ms;
+
+  --spacing-sp-0: 0px;
+  --spacing-sp-1: 4px;
+  --spacing-sp-2: 8px;
+  --spacing-sp-3: 12px;
+  --spacing-sp-4: 16px;
+  --spacing-sp-5: 20px;
+  --spacing-sp-6: 24px;
+  --spacing-sp-7: 28px;
+  --spacing-sp-8: 32px;
+  --spacing-sp-9: 36px;
+  --spacing-sp-10: 40px;
+  --spacing-sp-12: 48px;
+  --spacing-sp-14: 56px;
+  --spacing-sp-16: 64px;
+  --spacing-sp-20: 80px;
+  --spacing-sp-24: 96px;
+  --spacing-sp-32: 128px;
+
+  --radius-radius-none: 0px;
+  --radius-radius-xs: 2px;
+  --radius-radius-sm: 4px;
+  --radius-radius-md: 6px;
+  --radius-radius-lg: 8px;
+  --radius-radius-xl: 12px;
+  --radius-radius-2xl: 16px;
+  --radius-radius-3xl: 24px;
+  --radius-radius-full: 9999px;
+
+  --text-text-label: 13px;
+  --text-text-button: 14px;
+  --text-text-heading: 28px;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Base styles (inside @layer base so Tailwind utilities can override) ── */
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+    color: var(--color-neutral-900);
+    background: var(--color-brand-100);
+    line-height: 1.5;
+    overflow: hidden;
+    height: 100vh;
+  }
 
-html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
 
-body {
-  font-family: var(--font-sans);
-  color: var(--color-neutral-900);
-  background: var(--color-brand-100);
-  line-height: 1.5;
-  overflow: hidden;
-  height: 100vh;
+  a { color: var(--color-primary-700); text-decoration: none; }
+  a:hover { color: var(--color-primary-800); }
+
+  tr:last-child td { border-bottom: none; }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-}
-
-a { color: var(--color-primary-700); text-decoration: none; }
-a:hover { color: var(--color-primary-800); text-decoration: underline; }
-
-button { cursor: pointer; font-family: inherit; }
-img { max-width: 100%; }
-
-.login-logo-desktop { display: none; }
-.login-logo-mobile { display: block; }
-
-@media (min-width: 1024px) {
-  .login-logo-desktop { display: block !important; }
-  .login-logo-mobile { display: none !important; }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-  .login-logo-desktop { display: none !important; }
-  .login-logo-mobile { display: none !important; }
-}
-
+/* ── Scrollbar (can't be Tailwind) ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-brand-300); border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-brand-400); }
 
+/* ── Checkbox :checked + sibling (can't be Tailwind) ── */
 input[type="checkbox"]:checked + .checkbox-box {
   background-color: var(--color-brand-500);
   border-color: var(--color-brand-500);
