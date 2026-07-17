@@ -1,9 +1,9 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.db.models.reservation import Reservation, ReservationStatus
+from app.db.models.reservation import Reservation
 
 
 class ReservationRepository:

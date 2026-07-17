@@ -1,12 +1,13 @@
+import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, Integer, Enum as SAEnum, ForeignKey, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.db.database import Base
-import enum
 
 
 class KitchenOrderStatus(str, enum.Enum):

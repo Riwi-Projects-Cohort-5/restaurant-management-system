@@ -11,16 +11,16 @@ Fecha    : 2026-07-16
 
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
 from app.core.dependencies import get_current_user
+from app.db.database import get_db
+from app.db.schemas.category import CategoryCreate, CategoryOut, CategoryUpdate
 from app.services.category_service import CategoryService
-from app.db.schemas.category import CategoryCreate, CategoryUpdate, CategoryOut
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 

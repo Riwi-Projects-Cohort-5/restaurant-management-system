@@ -1,11 +1,11 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash
 from app.db.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
-from app.core.security import get_password_hash
 
 
 class InvalidEnumValueError(Exception):

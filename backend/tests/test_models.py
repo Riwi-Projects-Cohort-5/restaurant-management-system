@@ -1,8 +1,20 @@
 from app.db.models import (
-    User, Customer, Table, Reservation, Category,
-    MenuItem, Order, OrderItem, KitchenOrder, Payment,
-    InventoryItem, InventoryMovement, Recipe,
-    Supplier, Purchase, PurchaseDetail,
+    Category,
+    Customer,
+    InventoryItem,
+    InventoryMovement,
+    KitchenOrder,
+    MenuItem,
+    Order,
+    OrderItem,
+    Payment,
+    Purchase,
+    PurchaseDetail,
+    Recipe,
+    Reservation,
+    Supplier,
+    Table,
+    User,
 )
 
 

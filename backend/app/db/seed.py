@@ -1,17 +1,15 @@
 import uuid
-from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.db.models.user import User, UserRole
-from app.db.models.customer import Customer
-from app.db.models.table import Table, TableStatus
-from app.db.models.category import Category
-from app.db.models.menu_item import MenuItem
-from app.db.models.inventory_item import InventoryItem
-from app.db.models.supplier import Supplier
-from app.db.models.recipe import Recipe
 from app.core.security import get_password_hash
+from app.db.models.category import Category
+from app.db.models.customer import Customer
+from app.db.models.inventory_item import InventoryItem
+from app.db.models.menu_item import MenuItem
+from app.db.models.supplier import Supplier
+from app.db.models.table import Table, TableStatus
+from app.db.models.user import User, UserRole
 
 
 def seed_database(db: Session) -> None:

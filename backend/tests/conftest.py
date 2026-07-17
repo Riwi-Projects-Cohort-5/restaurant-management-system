@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
 import pytest
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
@@ -10,7 +10,10 @@ from app.db.database import Base
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
+TEST_DATABASE_URL = os.environ.get(
+    "TEST_DATABASE_URL",
+    os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/restaurant_db_test"),
+)
 
 
 def _ensure_test_database():

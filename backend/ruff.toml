@@ -4,3 +4,4 @@ target-version = "py313"
 [lint]
 select = ["E", "F", "I"]
 exclude = ["alembic/versions"]
+ignore = ["E501"]

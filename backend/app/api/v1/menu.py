@@ -13,23 +13,23 @@ Fecha    : 2026-07-14
 
 """
 
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-# Importamos la función que provee la sesión de base de datos
-from app.db.database import get_db
-
 # Importamos la dependencia de autenticación JWT
 from app.core.dependencies import get_current_user
 
-# Importamos el servicio que contiene la lógica de negocio del menú
-from app.services.menu_item_service import MenuItemService
+# Importamos la función que provee la sesión de base de datos
+from app.db.database import get_db
 
 # Importamos los schemas de validación de datos (Pydantic)
-from app.db.schemas.menu_item import MenuItemCreate, MenuItemUpdate, MenuItemOut
+from app.db.schemas.menu_item import MenuItemCreate, MenuItemOut, MenuItemUpdate
+
+# Importamos el servicio que contiene la lógica de negocio del menú
+from app.services.menu_item_service import MenuItemService
 
 # Creamos el router con su prefijo y etiqueta para la documentación automática
 router = APIRouter(prefix="/menu", tags=["Menu"])

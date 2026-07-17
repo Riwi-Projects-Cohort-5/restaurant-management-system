@@ -1,8 +1,7 @@
-from uuid import UUID
 from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 
 from app.db.models.order import Order, OrderStatus
 

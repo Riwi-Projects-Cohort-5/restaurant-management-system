@@ -14,16 +14,16 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth,
-    users,
     categories,
-    tables,
-    reservations,
+    inventory,
+    kitchen,
     menu,
     orders,
-    kitchen,
-    inventory,
     payments,
     reports,
+    reservations,
+    tables,
+    users,
 )
 
 # Router principal que agrupa todos los módulos bajo /api/v1

@@ -1,13 +1,12 @@
-from uuid import UUID
 from typing import Optional
-from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
 from app.db.models.order import Order, OrderStatus
 from app.db.models.order_item import OrderItem
-from app.repositories.order_repository import OrderRepository
 from app.repositories.menu_item_repository import MenuItemRepository
+from app.repositories.order_repository import OrderRepository
 
 
 class InvalidEnumValueError(Exception):
