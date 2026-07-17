@@ -132,6 +132,10 @@ window.navigate = function (path) {
   window.location.hash = '#' + path;
 };
 
-document.addEventListener('DOMContentLoaded', function () {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function () {
+    renderView();
+  });
+} else {
   renderView();
-});
+}
