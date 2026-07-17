@@ -54,3 +54,10 @@ htmlcov/
 .pytest_cache/
 .cache/
 test.db
+
+# AI Tools
+.kilo/
+.opencode/
+
+# Design
+penpot-ai-kit/
