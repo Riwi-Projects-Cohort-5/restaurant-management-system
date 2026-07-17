@@ -21,7 +21,6 @@ window.createIcons = function () {
 };
 
 var currentView = null;
-var appEl = document.getElementById('app');
 
 var routes = {
   '/login': { view: LoginView, shell: false, auth: false },
@@ -96,7 +95,7 @@ function renderView() {
         initials: initials,
         role: roleText,
       };
-      AppShell.render(appEl);
+      AppShell.render(document.getElementById('app'));
       AppShell.updateTopbarTitle(path);
       var logoutBtn = document.getElementById('appShellLogout');
       if (logoutBtn) {
@@ -107,7 +106,7 @@ function renderView() {
       }
     }
 
-    var container = route.shell ? document.getElementById('main-content') : appEl;
+    var container = route.shell ? document.getElementById('main-content') : document.getElementById('app');
     if (!container) return;
 
     destroyView();
@@ -129,8 +128,9 @@ function renderView() {
     console.log('[app] renderView ok');
   } catch (err) {
     console.error('[app] renderView failed', err);
-    if (appEl) {
-      appEl.innerHTML = '<pre style="color:red;padding:1rem;">' + err.stack + '</pre>';
+    var errorEl = document.getElementById('app');
+    if (errorEl) {
+      errorEl.innerHTML = '<pre style="color:red;padding:1rem;">' + err.stack + '</pre>';
     }
   }
 }
