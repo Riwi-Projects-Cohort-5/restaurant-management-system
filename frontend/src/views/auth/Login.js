@@ -27,17 +27,15 @@
  */
 
 import { createIcons, Eye, EyeOff } from 'lucide';
+import * as authStore from '../../store/auth.js';
+import { getHomeRoute } from '../../utils/routeGuard.js';
 import '../../components/forms/InputField.js';
 import '../../components/forms/CheckboxField.js';
 import '../../components/forms/SubmitButton.js';
 import '../../components/forms/PasswordToggle.js';
 
-/**
- * Render the Login view HTML
- * @returns {string} HTML string
- */
-export function render() {
-  return `
+export function render(container) {
+  container.innerHTML = `
     <div class="grid w-full min-h-screen overflow-hidden
                 lg:grid-cols-[2fr_1fr]" id="loginPage">
 
@@ -81,6 +79,9 @@ export function render() {
           </header>
 
           <!-- Body -->
+          <div id="login-error" class="hidden rounded-md bg-error-50 border border-error-200 p-3">
+            <p class="text-sm text-error-700"></p>
+          </div>
           <div class="flex flex-col gap-6" id="formBody"></div>
 
           <!-- Footer -->
@@ -179,6 +180,51 @@ export function init() {
       EyeOff
     }
   });
+
+  var form = document.getElementById('loginForm');
+  var errorBox = document.getElementById('login-error');
+  var errorText = errorBox ? errorBox.querySelector('p') : null;
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var emailInput = document.getElementById('email');
+      var passwordInput = document.getElementById('password');
+      var signInBtn = document.getElementById('signInBtn');
+
+      var email = emailInput ? emailInput.value.trim() : '';
+      var password = passwordInput ? passwordInput.value : '';
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        var emailErr = document.getElementById('emailError');
+        if (emailInput) emailInput.classList.add('error');
+        if (emailErr) { emailErr.classList.remove('hidden'); emailErr.classList.add('flex'); }
+        return;
+      }
+
+      if (!password) return;
+
+      if (signInBtn) {
+        signInBtn.disabled = true;
+        signInBtn.textContent = 'Signing in...';
+      }
+
+      var username = email.split('@')[0];
+      var result = authStore.login(username, password);
+
+      if (result.success) {
+        window.location.hash = '#' + getHomeRoute(result.user.role);
+      } else {
+        if (signInBtn) {
+          signInBtn.disabled = false;
+          signInBtn.textContent = 'Sign In';
+        }
+        if (errorText) errorText.textContent = result.error || 'Invalid credentials';
+        if (errorBox) errorBox.classList.remove('hidden');
+      }
+    });
+  }
 }
 
 /**

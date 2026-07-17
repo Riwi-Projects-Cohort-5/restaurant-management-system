@@ -453,3 +453,5 @@ export function renderMenu(el) {
     renderList(el);
   }
 }
+
+export default { render: renderMenu, init: function () {}, destroy: function () {} };
