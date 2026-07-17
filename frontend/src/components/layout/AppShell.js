@@ -127,6 +127,8 @@ var AppShell = {
       '/kitchen': 'Kitchen Dashboard',
       '/tables': 'Table Management',
       '/reservations': 'Reservations',
+      '/payments': 'Payments',
+      '/menu': 'Menu Management',
       '/admin': 'Admin',
       '/orders': 'POS / Orders',
     };

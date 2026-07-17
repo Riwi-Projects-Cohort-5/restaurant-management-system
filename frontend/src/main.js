@@ -9,6 +9,8 @@ import TablesView from './views/tables/Tables.js';
 import LoginView from './views/auth/LoginView.js';
 import RegisterView from './views/auth/RegisterView.js';
 import ReservationsView from './views/reservations/ReservationsView.js';
+import PaymentsView from './views/payments/PaymentsView.js';
+import MenuView from './views/menu/MenuView.js';
 import { initMockUsers } from './services/mockUsers.js';
 
 initMockUsers();
@@ -28,6 +30,8 @@ var routes = {
   '/kitchen': { view: Kitchen, shell: true, auth: true },
   '/tables': { view: TablesView, shell: true, auth: true },
   '/reservations': { view: ReservationsView, shell: true, auth: true },
+  '/payments': { view: PaymentsView, shell: true, auth: true },
+  '/menu': { view: MenuView, shell: true, auth: true },
   '/admin': { view: PosView, shell: true, auth: true },
   '/orders': { view: PosView, shell: true, auth: true },
 };

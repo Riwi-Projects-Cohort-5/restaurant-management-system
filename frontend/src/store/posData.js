@@ -1,21 +1,18 @@
-export const menuItems = [
-  { id: 1, name: 'Grilled Chicken', price: 18.50, cat: 'Main Course', emoji: '\uD83C\uDF57' },
-  { id: 2, name: 'Ribeye Steak', price: 32.00, cat: 'Main Course', emoji: '\uD83E\uDD69' },
-  { id: 3, name: 'Margherita Pizza', price: 14.00, cat: 'Pizza', emoji: '\uD83C\uDF55' },
-  { id: 4, name: 'Caesar Salad', price: 12.00, cat: 'Salads', emoji: '\uD83E\uDD57' },
-  { id: 5, name: 'Classic Burger', price: 15.00, cat: 'Burgers', emoji: '\uD83C\uDF54' },
-  { id: 6, name: 'Pasta Carbonara', price: 16.00, cat: 'Main Course', emoji: '\uD83C\uDF5D' },
-  { id: 7, name: 'Fish Tacos', price: 13.50, cat: 'Main Course', emoji: '\uD83C\uDF2E' },
-  { id: 8, name: 'Club Sandwich', price: 11.00, cat: 'Burgers', emoji: '\uD83E\uDD6A' },
-  { id: 9, name: 'French Fries', price: 5.00, cat: 'Appetizers', emoji: '\uD83C\uDF5F' },
-  { id: 10, name: 'Onion Rings', price: 6.50, cat: 'Appetizers', emoji: '\uD83E\uDDC5' },
-  { id: 11, name: 'Bruschetta', price: 8.00, cat: 'Appetizers', emoji: '\uD83C\uDF5E' },
-  { id: 12, name: 'Tiramisu', price: 9.00, cat: 'Desserts', emoji: '\uD83C\uDF70' },
-  { id: 13, name: 'Sparkling Water', price: 3.00, cat: 'Drinks', emoji: '\uD83D\uDCA7' },
-  { id: 14, name: 'House Wine', price: 8.00, cat: 'Drinks', emoji: '\uD83C\uDF77' },
-  { id: 15, name: 'Iced Tea', price: 4.00, cat: 'Drinks', emoji: '\uD83E\uDDCA' },
-  { id: 16, name: 'Grilled Salmon', price: 24.00, cat: 'Main Course', emoji: '\uD83C\uDF1F' },
-];
+import { getAllProducts, getAllCategories, initMockProducts, initMockCategories } from '../services/menuService.js';
+
+initMockCategories();
+initMockProducts();
+
+export const menuItems = getAllProducts().map(function (product) {
+  var category = getAllCategories().find(function (c) { return c.id === product.category_id; });
+  return {
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    cat: category ? category.name : 'Other',
+    emoji: product.image_url || null
+  };
+}).filter(function (item) { return item.available; });
 
 export const allOrders = [
   { id: 1043, table: 3, items: [{name:'Margherita Pizza',qty:1,price:14.00},{name:'Caesar Salad',qty:1,price:12.00},{name:'Iced Tea',qty:2,price:4.00}], total: 38.50, status: 'draft', time: '1 min ago', note: 'Sin camareros \u2014 cocinero pide no usar camareros en la pizza', server: 'Maria C.', createdBy: 'waiter', placedAt: '8:42 PM' },
