@@ -1,33 +1,36 @@
 function PasswordToggle(opts) {
   var inputId = opts.inputId;
 
-  var html = '<button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 ' +
-    'flex items-center justify-center w-5 h-5 p-0 ' +
-    'bg-transparent border-none cursor-pointer text-neutral-400 ' +
-    'hover:text-neutral-600" data-input="' + inputId + '" aria-label="Toggle password visibility">';
+  var html =
+    '<button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 ' +
+    "flex items-center justify-center w-5 h-5 p-0 " +
+    "bg-transparent border-none cursor-pointer text-neutral-400 " +
+    'hover:text-neutral-600" data-input="' +
+    inputId +
+    '" aria-label="Toggle password visibility">';
   html += '<i data-lucide="eye" class="icon-eye w-5 h-5"></i>';
   html += '<i data-lucide="eye-off" class="icon-eye-off w-5 h-5 hidden"></i>';
-  html += '</button>';
+  html += "</button>";
   return html;
 }
 
 function initPasswordToggles() {
-  var toggles = document.querySelectorAll('.password-toggle');
+  var toggles = document.querySelectorAll(".password-toggle");
   toggles.forEach(function (toggle) {
     var inputId = toggle.dataset.input;
     var input = document.getElementById(inputId);
     if (!input) return;
 
-    toggle.addEventListener('click', function () {
-      var isPassword = input.type === 'password';
-      input.type = isPassword ? 'text' : 'password';
+    toggle.addEventListener("click", function () {
+      var isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
 
-      var eyeIcon = toggle.querySelector('.icon-eye');
-      var eyeOffIcon = toggle.querySelector('.icon-eye-off');
+      var eyeIcon = toggle.querySelector(".icon-eye");
+      var eyeOffIcon = toggle.querySelector(".icon-eye-off");
 
       if (eyeIcon && eyeOffIcon) {
-        eyeIcon.style.display = isPassword ? 'none' : 'block';
-        eyeOffIcon.style.display = isPassword ? 'block' : 'none';
+        eyeIcon.style.display = isPassword ? "none" : "block";
+        eyeOffIcon.style.display = isPassword ? "block" : "none";
       }
     });
   });

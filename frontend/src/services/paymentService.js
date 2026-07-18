@@ -53,13 +53,13 @@ export function createPayment(data) {
   const payments = getMockPayments();
 
   const newPayment = {
-    id: 'pay-' + String(payments.length + 1).padStart(3, '0'),
+    id: "pay-" + String(payments.length + 1).padStart(3, "0"),
     order_id: data.order_id,
     cashier_id: data.cashier_id,
     payment_method: data.payment_method,
     amount: data.amount,
     payment_date: new Date().toISOString(),
-    status: 'pending',
+    status: "pending",
     reference_number: data.reference_number || null,
   };
 
@@ -72,21 +72,21 @@ export function updatePaymentStatus(id, newStatus) {
   const payment = updateMockPayment(id, { status: newStatus });
 
   if (!payment) {
-    return { success: false, error: 'Payment not found' };
+    return { success: false, error: "Payment not found" };
   }
 
   return { success: true, payment };
 }
 
 export function refundPayment(id) {
-  return updatePaymentStatus(id, 'refunded');
+  return updatePaymentStatus(id, "refunded");
 }
 
 export function deletePayment(id) {
   const success = deleteMockPayment(id);
 
   if (!success) {
-    return { success: false, error: 'Payment not found' };
+    return { success: false, error: "Payment not found" };
   }
 
   return { success: true };

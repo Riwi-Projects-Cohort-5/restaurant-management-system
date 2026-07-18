@@ -4,9 +4,7 @@ import {
   updateMockProduct,
   deleteMockProduct,
 } from "./mockProducts.js";
-import {
-  getMockCategories,
-} from "./mockCategories.js";
+import { getMockCategories } from "./mockCategories.js";
 
 export { initMockProducts } from "./mockProducts.js";
 export { initMockCategories } from "./mockCategories.js";

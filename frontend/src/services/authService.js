@@ -9,9 +9,7 @@ import {
 
 export function login(username, password) {
   const users = getUsers();
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
+  const user = users.find((u) => u.username === username && u.password === password);
 
   if (!user) {
     return { success: false, error: "Invalid username or password" };

@@ -184,9 +184,7 @@ function renderUserList(container) {
         </div>
         <div class="flex items-center space-x-2">
           <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            u.role === "admin"
-              ? "bg-purple-100 text-purple-800"
-              : "bg-gray-100 text-gray-800"
+            u.role === "admin" ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-800"
           }">
             ${ROLE_LABELS[u.role] || u.role}
           </span>

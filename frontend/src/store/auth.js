@@ -29,15 +29,15 @@ export function logout() {
   authStore.setState({ user: null, isAuthenticated: false, error: null });
 }
 
-export function  currentUser() {
+export function currentUser() {
   return authStore.getState().user;
 }
 
-export function  isAuthenticated() {
+export function isAuthenticated() {
   return authStore.getState().isAuthenticated;
 }
 
-export function  error() {
+export function error() {
   return authStore.getState().error;
 }
 
