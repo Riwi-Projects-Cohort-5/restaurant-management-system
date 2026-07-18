@@ -26,13 +26,13 @@
  *   }
  */
 
-import { createIcons, Eye, EyeOff } from 'lucide';
-import * as authStore from '../../store/auth.js';
-import { getHomeRoute } from '../../utils/routeGuard.js';
-import '../../components/forms/InputField.js';
-import '../../components/forms/CheckboxField.js';
-import '../../components/forms/SubmitButton.js';
-import '../../components/forms/PasswordToggle.js';
+import { createIcons, Eye, EyeOff } from "lucide";
+import * as authStore from "../../store/auth.js";
+import { getHomeRoute } from "../../utils/routeGuard.js";
+import "../../components/forms/InputField.js";
+import "../../components/forms/CheckboxField.js";
+import "../../components/forms/SubmitButton.js";
+import "../../components/forms/PasswordToggle.js";
 
 export function render(container) {
   container.innerHTML = `
@@ -112,21 +112,21 @@ export function render(container) {
  * Call after render() to bind events
  */
 export function init() {
-  const formBody = document.getElementById('formBody');
-  const checkboxContainer = document.getElementById('checkboxContainer');
-  const submitContainer = document.getElementById('submitContainer');
+  const formBody = document.getElementById("formBody");
+  const checkboxContainer = document.getElementById("checkboxContainer");
+  const submitContainer = document.getElementById("submitContainer");
 
   if (!formBody || !checkboxContainer || !submitContainer) return;
 
   // Email input
   formBody.innerHTML += InputField({
-    id: 'email',
-    label: 'Email address',
-    type: 'email',
-    placeholder: 'you@elfogon.com',
-    error: 'Please enter a valid email address',
+    id: "email",
+    label: "Email address",
+    type: "email",
+    placeholder: "you@elfogon.com",
+    error: "Please enter a valid email address",
     required: true,
-    autocomplete: 'email'
+    autocomplete: "email",
   });
 
   // Password input with toggle
@@ -150,56 +150,59 @@ export function init() {
           autocomplete="current-password"
           required
         >
-        ${PasswordToggle({ inputId: 'password' })}
+        ${PasswordToggle({ inputId: "password" })}
       </div>
     </div>
   `;
 
   // Checkbox
   checkboxContainer.innerHTML = CheckboxField({
-    id: 'keepSignedIn',
-    label: 'Keep me signed in'
+    id: "keepSignedIn",
+    label: "Keep me signed in",
   });
 
   // Submit button
   submitContainer.innerHTML = SubmitButton({
-    text: 'Sign In',
-    id: 'signInBtn'
+    text: "Sign In",
+    id: "signInBtn",
   });
 
   // Initialize components
-  initInputField('email');
-  initCheckboxField('keepSignedIn');
-  initSubmitButton('signInBtn', { loadingText: 'Signing in...' });
+  initInputField("email");
+  initCheckboxField("keepSignedIn");
+  initSubmitButton("signInBtn", { loadingText: "Signing in..." });
   initPasswordToggles();
 
   // Initialize Lucide icons
   createIcons({
     icons: {
       Eye,
-      EyeOff
-    }
+      EyeOff,
+    },
   });
 
-  var form = document.getElementById('loginForm');
-  var errorBox = document.getElementById('login-error');
-  var errorText = errorBox ? errorBox.querySelector('p') : null;
+  var form = document.getElementById("loginForm");
+  var errorBox = document.getElementById("login-error");
+  var errorText = errorBox ? errorBox.querySelector("p") : null;
 
   if (form) {
-    form.addEventListener('submit', function (e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      var emailInput = document.getElementById('email');
-      var passwordInput = document.getElementById('password');
-      var signInBtn = document.getElementById('signInBtn');
+      var emailInput = document.getElementById("email");
+      var passwordInput = document.getElementById("password");
+      var signInBtn = document.getElementById("signInBtn");
 
-      var email = emailInput ? emailInput.value.trim() : '';
-      var password = passwordInput ? passwordInput.value : '';
+      var email = emailInput ? emailInput.value.trim() : "";
+      var password = passwordInput ? passwordInput.value : "";
 
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        var emailErr = document.getElementById('emailError');
-        if (emailInput) emailInput.classList.add('error');
-        if (emailErr) { emailErr.classList.remove('hidden'); emailErr.classList.add('flex'); }
+        var emailErr = document.getElementById("emailError");
+        if (emailInput) emailInput.classList.add("error");
+        if (emailErr) {
+          emailErr.classList.remove("hidden");
+          emailErr.classList.add("flex");
+        }
         return;
       }
 
@@ -207,21 +210,21 @@ export function init() {
 
       if (signInBtn) {
         signInBtn.disabled = true;
-        signInBtn.textContent = 'Signing in...';
+        signInBtn.textContent = "Signing in...";
       }
 
-      var username = email.split('@')[0];
+      var username = email.split("@")[0];
       var result = authStore.login(username, password);
 
       if (result.success) {
-        window.location.hash = '#' + getHomeRoute(result.user.role);
+        window.location.hash = "#" + getHomeRoute(result.user.role);
       } else {
         if (signInBtn) {
           signInBtn.disabled = false;
-          signInBtn.textContent = 'Sign In';
+          signInBtn.textContent = "Sign In";
         }
-        if (errorText) errorText.textContent = result.error || 'Invalid credentials';
-        if (errorBox) errorBox.classList.remove('hidden');
+        if (errorText) errorText.textContent = result.error || "Invalid credentials";
+        if (errorBox) errorBox.classList.remove("hidden");
       }
     });
   }

@@ -4,19 +4,19 @@
  */
 
 (function () {
-  'use strict';
+  "use strict";
 
   // ── DOM refs ──
-  const form = document.getElementById('loginForm');
-  const emailInput = document.getElementById('email');
-  const passwordInput = document.getElementById('password');
-  const passwordToggle = document.getElementById('passwordToggle');
-  const emailError = document.getElementById('emailError');
-  const signInBtn = document.getElementById('signInBtn');
+  const form = document.getElementById("loginForm");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const passwordToggle = document.getElementById("passwordToggle");
+  const emailError = document.getElementById("emailError");
+  const signInBtn = document.getElementById("signInBtn");
 
   // ── Initialize Lucide icons ──
   function initIcons() {
-    if (typeof lucide !== 'undefined') {
+    if (typeof lucide !== "undefined") {
       lucide.createIcons();
     }
   }
@@ -25,16 +25,16 @@
   function setupPasswordToggle() {
     if (!passwordToggle || !passwordInput) return;
 
-    passwordToggle.addEventListener('click', function () {
-      const isPassword = passwordInput.type === 'password';
-      passwordInput.type = isPassword ? 'text' : 'password';
+    passwordToggle.addEventListener("click", function () {
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
 
-      const eyeIcon = passwordToggle.querySelector('.icon-eye');
-      const eyeOffIcon = passwordToggle.querySelector('.icon-eye-off');
+      const eyeIcon = passwordToggle.querySelector(".icon-eye");
+      const eyeOffIcon = passwordToggle.querySelector(".icon-eye-off");
 
       if (eyeIcon && eyeOffIcon) {
-        eyeIcon.style.display = isPassword ? 'none' : 'block';
-        eyeOffIcon.style.display = isPassword ? 'block' : 'none';
+        eyeIcon.style.display = isPassword ? "none" : "block";
+        eyeOffIcon.style.display = isPassword ? "block" : "none";
       }
     });
   }
@@ -48,11 +48,11 @@
     if (!emailInput || !emailError) return;
 
     if (show) {
-      emailInput.classList.add('error');
-      emailError.classList.add('visible');
+      emailInput.classList.add("error");
+      emailError.classList.add("visible");
     } else {
-      emailInput.classList.remove('error');
-      emailError.classList.remove('visible');
+      emailInput.classList.remove("error");
+      emailError.classList.remove("visible");
     }
   }
 
@@ -60,8 +60,8 @@
   function setupErrorClear() {
     if (!emailInput) return;
 
-    emailInput.addEventListener('input', function () {
-      if (emailInput.classList.contains('error')) {
+    emailInput.addEventListener("input", function () {
+      if (emailInput.classList.contains("error")) {
         showEmailError(false);
       }
     });
@@ -71,11 +71,11 @@
   function setupFormSubmit() {
     if (!form) return;
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const email = emailInput ? emailInput.value.trim() : '';
-      const password = passwordInput ? passwordInput.value : '';
+      const email = emailInput ? emailInput.value.trim() : "";
+      const password = passwordInput ? passwordInput.value : "";
       let hasError = false;
 
       // Validate email
@@ -95,26 +95,26 @@
 
       // Simulate sign-in
       signInBtn.disabled = true;
-      signInBtn.textContent = 'Signing in...';
+      signInBtn.textContent = "Signing in...";
 
       setTimeout(function () {
         signInBtn.disabled = false;
-        signInBtn.textContent = 'Sign In';
+        signInBtn.textContent = "Sign In";
       }, 2000);
     });
   }
 
   // ── Checkbox toggle ──
   function setupCheckbox() {
-    const checkbox = document.getElementById('keepSignedIn');
-    const checkboxBox = document.querySelector('.checkbox-box');
+    const checkbox = document.getElementById("keepSignedIn");
+    const checkboxBox = document.querySelector(".checkbox-box");
     if (!checkbox || !checkboxBox) return;
 
-    checkbox.addEventListener('change', function () {
+    checkbox.addEventListener("change", function () {
       if (checkbox.checked) {
-        checkboxBox.classList.add('checked');
+        checkboxBox.classList.add("checked");
       } else {
-        checkboxBox.classList.remove('checked');
+        checkboxBox.classList.remove("checked");
       }
     });
   }
@@ -129,10 +129,9 @@
   }
 
   // Run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }
-
 })();

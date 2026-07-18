@@ -24,6 +24,8 @@ yarn-error.log*
 .next/
 .nuxt/
 .vercel/
+package-lock.json
+yarn.lock
 
 # Vite
 frontend/dist/

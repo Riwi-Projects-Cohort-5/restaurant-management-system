@@ -1,10 +1,11 @@
 #!/bin/bash
+set -e
 
-echo "=== Backup antes de apagar ==="
+echo "=== Running backup ==="
 bash "$(dirname "$0")/backup.sh"
 
 echo ""
-echo "=== Apagando contenedores ==="
+echo "=== Stopping containers ==="
 docker-compose down
 
-echo "Listo."
+echo "Done."
