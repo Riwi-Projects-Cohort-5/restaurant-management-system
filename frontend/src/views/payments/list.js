@@ -584,3 +584,5 @@ export function renderPayments(el) {
     renderList(el);
   }
 }
+
+export default { render: renderPayments, init: function () {}, destroy: function () {} };

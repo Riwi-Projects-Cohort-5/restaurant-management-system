@@ -27,17 +27,15 @@
  */
 
 import { createIcons, Eye, EyeOff } from 'lucide';
+import * as authStore from '../../store/auth.js';
+import { getHomeRoute } from '../../utils/routeGuard.js';
 import '../../components/forms/InputField.js';
 import '../../components/forms/CheckboxField.js';
 import '../../components/forms/SubmitButton.js';
 import '../../components/forms/PasswordToggle.js';
 
-/**
- * Render the Login view HTML
- * @returns {string} HTML string
- */
-export function render() {
-  return `
+export function render(container) {
+  container.innerHTML = `
     <div class="grid w-full min-h-screen overflow-hidden
                 lg:grid-cols-[2fr_1fr]" id="loginPage">
 
@@ -47,8 +45,8 @@ export function render() {
       <aside class="relative overflow-hidden
                     max-lg:absolute max-lg:inset-0 max-lg:z-0
                     max-md:hidden" aria-hidden="true">
-        <img src="/src/assets/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
-        <img src="/src/assets/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
+        <img src="/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
+        <img src="/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
       </aside>
 
       <!-- ═══════════════════════════════════════════
@@ -61,8 +59,8 @@ export function render() {
 
         <!-- Tablet: dual logos -->
         <div class="hidden md:max-lg:flex items-center gap-4 mb-8">
-          <img src="/src/assets/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
-          <img src="/src/assets/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
+          <img src="/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
+          <img src="/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
         </div>
 
         <form class="login-form flex flex-col gap-8 w-full max-w-[380px]
@@ -71,9 +69,9 @@ export function render() {
           <!-- Header -->
           <header class="flex flex-col items-center gap-5">
             <img class="logo h-[220px] w-auto pb-8 object-contain hidden lg:block"
-                 src="/src/assets/logos/logo-01.png" alt="El Fogón" draggable="false">
+                 src="/logos/logo-01.png" alt="El Fogón" draggable="false">
             <img class="logo h-[300px] w-auto pb-8 object-contain md:hidden"
-                 src="/src/assets/logos/logo-00.png" alt="El Fogón" draggable="false">
+                 src="/logos/logo-00.png" alt="El Fogón" draggable="false">
             <div class="flex flex-col gap-3">
               <h1 class="text-heading font-semibold leading-snug text-neutral-900">Good to see you again</h1>
               <p class="text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
@@ -81,6 +79,9 @@ export function render() {
           </header>
 
           <!-- Body -->
+          <div id="login-error" class="hidden rounded-md bg-error-50 border border-error-200 p-3">
+            <p class="text-sm text-error-700"></p>
+          </div>
           <div class="flex flex-col gap-6" id="formBody"></div>
 
           <!-- Footer -->
@@ -179,6 +180,51 @@ export function init() {
       EyeOff
     }
   });
+
+  var form = document.getElementById('loginForm');
+  var errorBox = document.getElementById('login-error');
+  var errorText = errorBox ? errorBox.querySelector('p') : null;
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var emailInput = document.getElementById('email');
+      var passwordInput = document.getElementById('password');
+      var signInBtn = document.getElementById('signInBtn');
+
+      var email = emailInput ? emailInput.value.trim() : '';
+      var password = passwordInput ? passwordInput.value : '';
+
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        var emailErr = document.getElementById('emailError');
+        if (emailInput) emailInput.classList.add('error');
+        if (emailErr) { emailErr.classList.remove('hidden'); emailErr.classList.add('flex'); }
+        return;
+      }
+
+      if (!password) return;
+
+      if (signInBtn) {
+        signInBtn.disabled = true;
+        signInBtn.textContent = 'Signing in...';
+      }
+
+      var username = email.split('@')[0];
+      var result = authStore.login(username, password);
+
+      if (result.success) {
+        window.location.hash = '#' + getHomeRoute(result.user.role);
+      } else {
+        if (signInBtn) {
+          signInBtn.disabled = false;
+          signInBtn.textContent = 'Sign In';
+        }
+        if (errorText) errorText.textContent = result.error || 'Invalid credentials';
+        if (errorBox) errorBox.classList.remove('hidden');
+      }
+    });
+  }
 }
 
 /**

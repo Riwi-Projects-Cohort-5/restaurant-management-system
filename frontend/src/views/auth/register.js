@@ -196,3 +196,5 @@ function renderUserList(container) {
     )
     .join("");
 }
+
+export default { render: renderRegister, init: function () {}, destroy: function () {} };

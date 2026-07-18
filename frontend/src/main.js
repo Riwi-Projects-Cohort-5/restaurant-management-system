@@ -6,14 +6,13 @@ import Dashboard from './views/dashboard/Dashboard.js';
 import PosView from './views/orders/PosView.js';
 import Kitchen from './views/kitchen/Kitchen.js';
 import TablesView from './views/tables/Tables.js';
-import LoginView from './views/auth/LoginView.js';
-import RegisterView from './views/auth/RegisterView.js';
-import ReservationsView from './views/reservations/ReservationsView.js';
-import PaymentsView from './views/payments/PaymentsView.js';
-import MenuView from './views/menu/MenuView.js';
+import Login from './views/auth/Login.js';
+import Register from './views/auth/register.js';
+import Reservations from './views/reservations/list.js';
+import Payments from './views/payments/list.js';
+import Menu from './views/menu/list.js';
 import { initMockUsers } from './services/mockUsers.js';
 
-console.log('[app] main.js executing');
 initMockUsers();
 
 window.createIcons = function () {
@@ -23,15 +22,15 @@ window.createIcons = function () {
 var currentView = null;
 
 var routes = {
-  '/login': { view: LoginView, shell: false, auth: false },
-  '/register': { view: RegisterView, shell: false, auth: false },
+  '/login': { view: Login, shell: false, auth: false },
+  '/register': { view: Register, shell: false, auth: false },
   '/dashboard': { view: Dashboard, shell: true, auth: true },
   '/pos': { view: PosView, shell: true, auth: true },
   '/kitchen': { view: Kitchen, shell: true, auth: true },
   '/tables': { view: TablesView, shell: true, auth: true },
-  '/reservations': { view: ReservationsView, shell: true, auth: true },
-  '/payments': { view: PaymentsView, shell: true, auth: true },
-  '/menu': { view: MenuView, shell: true, auth: true },
+  '/reservations': { view: Reservations, shell: true, auth: true },
+  '/payments': { view: Payments, shell: true, auth: true },
+  '/menu': { view: Menu, shell: true, auth: true },
   '/admin': { view: PosView, shell: true, auth: true },
   '/orders': { view: PosView, shell: true, auth: true },
 };
@@ -49,7 +48,6 @@ function destroyView() {
 
 function renderView() {
   try {
-    console.log('[app] renderView start', getRoute());
     var path = getRoute();
     var user = authStore.currentUser();
 
@@ -124,8 +122,6 @@ function renderView() {
     if (route.view.init) {
       route.view.init();
     }
-
-    console.log('[app] renderView ok');
   } catch (err) {
     console.error('[app] renderView failed', err);
     var errorEl = document.getElementById('app');

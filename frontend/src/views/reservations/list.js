@@ -407,3 +407,5 @@ export function renderReservations(container) {
     renderList(container);
   }
 }
+
+export default { render: renderReservations, init: function () {}, destroy: function () {} };

@@ -6,7 +6,6 @@ __pycache__/
 dist/
 build/
 *.egg
-.env
 .venv
 venv/
 env/
@@ -15,18 +14,43 @@ venv.bak/
 # FastAPI / Uvicorn
 *.log
 *.pid
+*.sock
 
 # Node
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.next/
+.nuxt/
+.vercel/
 
 # Vite
 frontend/dist/
+frontend/.vite/
 
 # Tailwind
 frontend/src/output.css
+
+# Database
+database/backups/*
+!database/backups/.gitkeep
+*.db
+*.sqlite3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+test.db
+.tox/
+
+# Environment
+.env
+.env.local
+.env.production
+.env.*.local
 
 # IDE
 .vscode/
@@ -35,29 +59,12 @@ frontend/src/output.css
 *.swo
 *~
 .DS_Store
+Thumbs.db
 
 # Docker
 docker-compose.override.yml
 
-# Database
-database/backups/*
-!database/backups/.gitkeep
-
-# Environment
-.env
-.env.local
-.env.production
-
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
-.cache/
-test.db
-
 # AI Tools
 .kilo/
 .opencode/
-
-# Design
 penpot-ai-kit/
