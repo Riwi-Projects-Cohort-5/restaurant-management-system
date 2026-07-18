@@ -29,8 +29,8 @@ var AppShell = {
   renderSidebarHeader: function (el) {
     el.innerHTML =
       '<div class="flex items-center gap-3">' +
-        '<img src="/src/assets/logos/logo-01.png" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
-        '<img src="/src/assets/logos/logo-03.png" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
+        '<img src="/logos/logo-01.png" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
+        '<img src="/logos/logo-03.png" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
       '</div>';
   },
 

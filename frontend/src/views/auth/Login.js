@@ -45,8 +45,8 @@ export function render(container) {
       <aside class="relative overflow-hidden
                     max-lg:absolute max-lg:inset-0 max-lg:z-0
                     max-md:hidden" aria-hidden="true">
-        <img src="/src/assets/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
-        <img src="/src/assets/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
+        <img src="/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
+        <img src="/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
       </aside>
 
       <!-- ═══════════════════════════════════════════
@@ -59,8 +59,8 @@ export function render(container) {
 
         <!-- Tablet: dual logos -->
         <div class="hidden md:max-lg:flex items-center gap-4 mb-8">
-          <img src="/src/assets/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
-          <img src="/src/assets/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
+          <img src="/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
+          <img src="/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
         </div>
 
         <form class="login-form flex flex-col gap-8 w-full max-w-[380px]
@@ -69,9 +69,9 @@ export function render(container) {
           <!-- Header -->
           <header class="flex flex-col items-center gap-5">
             <img class="logo h-[220px] w-auto pb-8 object-contain hidden lg:block"
-                 src="/src/assets/logos/logo-01.png" alt="El Fogón" draggable="false">
+                 src="/logos/logo-01.png" alt="El Fogón" draggable="false">
             <img class="logo h-[300px] w-auto pb-8 object-contain md:hidden"
-                 src="/src/assets/logos/logo-00.png" alt="El Fogón" draggable="false">
+                 src="/logos/logo-00.png" alt="El Fogón" draggable="false">
             <div class="flex flex-col gap-3">
               <h1 class="text-heading font-semibold leading-snug text-neutral-900">Good to see you again</h1>
               <p class="text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
