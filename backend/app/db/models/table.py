@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -24,9 +24,10 @@ class Table(Base):
     number = Column(Integer, unique=True, nullable=False)
     capacity = Column(Integer, nullable=False)
     status = Column(SAEnum("available", "occupied", "reserved", "maintenance", name="tablestatus", create_type=False), nullable=False, default="available")
-    location = Column(String(100), nullable=True)
+    location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
+    location_ref = relationship("Location", back_populates="tables", foreign_keys=[location_id])
     reservations = relationship("Reservation", back_populates="table")
     orders = relationship("Order", back_populates="table")

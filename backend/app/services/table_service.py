@@ -24,8 +24,8 @@ class TableService:
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Table]:
         return self.repo.get_all(skip, limit)
 
-    def create(self, number: int, capacity: int, location: Optional[str] = None) -> Table:
-        table = Table(number=number, capacity=capacity, location=location)
+    def create(self, number: int, capacity: int, location_id: Optional[UUID] = None) -> Table:
+        table = Table(number=number, capacity=capacity, location_id=location_id)
         return self.repo.create(table)
 
     def update(self, table_id: UUID, data: dict) -> Optional[Table]:

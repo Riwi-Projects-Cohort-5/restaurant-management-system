@@ -4,6 +4,7 @@ from app.db.models import (
     InventoryItem,
     InventoryMovement,
     KitchenOrder,
+    Location,
     MenuItem,
     Order,
     OrderItem,
@@ -20,18 +21,19 @@ from app.db.models import (
 
 def test_all_models_import() -> None:
     models = [
-        User, Customer, Table, Reservation, Category,
+        User, Customer, Table, Location, Reservation, Category,
         MenuItem, Order, OrderItem, KitchenOrder, Payment,
         InventoryItem, InventoryMovement, Recipe,
         Supplier, Purchase, PurchaseDetail,
     ]
-    assert len(models) == 16
+    assert len(models) == 17
 
 
 def test_model_tablenames() -> None:
     assert User.__tablename__ == "users"
     assert Customer.__tablename__ == "customers"
     assert Table.__tablename__ == "tables"
+    assert Location.__tablename__ == "locations"
     assert Reservation.__tablename__ == "reservations"
     assert Category.__tablename__ == "categories"
     assert MenuItem.__tablename__ == "menu_items"

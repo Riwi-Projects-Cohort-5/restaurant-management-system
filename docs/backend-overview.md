@@ -49,6 +49,7 @@ El sistema está dividido en módulos funcionales que responden a las necesidade
 
 - Auth: autenticación de usuarios y gestión de sesiones
 - Users: administración de personal y perfiles del sistema
+- Locations: gestión de ubicaciones del restaurante
 - Inventory: manejo de stock e inventario
 - Kitchen: procesamiento de órdenes y seguimiento de cocina
 - Menu: administración de categorías y productos del menú

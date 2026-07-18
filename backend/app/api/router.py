@@ -17,6 +17,7 @@ from app.api.v1 import (
     categories,
     inventory,
     kitchen,
+    locations,
     menu,
     orders,
     payments,
@@ -32,6 +33,7 @@ api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(categories.router)
+api_router.include_router(locations.router)
 api_router.include_router(tables.router)
 api_router.include_router(reservations.router)
 api_router.include_router(menu.router)

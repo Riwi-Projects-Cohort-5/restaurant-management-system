@@ -43,7 +43,7 @@ La tabla users almacena la información relacionada con los usuarios del sistema
 La tabla customers almacena información básica de los clientes del restaurante. Su propósito principal es servir como referencia para reservas y operaciones de negocio que puedan requerir identificación de clientes en el futuro. Aunque el modelo actual está orientado principalmente a la operación interna del restaurante, esta tabla permite mantener un registro ordenado de los clientes relevantes.
 
 ### 5.3 tables
-La tabla tables representa las mesas del restaurante. Contiene información como número de mesa, capacidad, ubicación, estado y observaciones. Esta tabla permite determinar de forma clara si una mesa está disponible, ocupada, reservada o en mantenimiento.
+La tabla tables representa las mesas del restaurante. Contiene información como número de mesa, capacidad, estado y la ubicación asociada mediante una clave foránea. La columna `location_id` es nullable y referencia la tabla `locations` con comportamiento `ON DELETE SET NULL`, lo que significa que si se elimina una ubicación, las mesas asociadas simplemente pierden su referencia de ubicación sin generar errores de integridad referencial. Esta tabla permite determinar de forma clara si una mesa está disponible, ocupada, reservada o en mantenimiento.
 
 ### 5.4 reservations
 La tabla reservations almacena las reservas realizadas por los clientes. Registra información como fecha, cliente asociado, mesa seleccionada y estado de la reserva. Su uso principal es planificar la ocupación del local y evitar conflictos de disponibilidad.
@@ -69,9 +69,20 @@ Estas tablas permiten controlar el inventario del restaurante. inventory_items c
 ### 5.11 kitchen_status
 La tabla kitchen_status permite monitorear el estado de preparación de los pedidos desde la cocina. Registra información operativa como tiempos de inicio, fin y observaciones, lo que facilita la coordinación entre mesas, cocina y servicio.
 
+### 5.12 locations
+La tabla locations almacena las ubicaciones físicas del restaurante (por ejemplo: Terraza, Interior, Barra, VIP). Esta tabla fue creada como parte de la normalización del modelo de datos, reemplazando la columna `location` de tipo string que existía directamente en la tabla `tables`. Sus columnas son:
+
+- `id`: clave primaria UUID generada automáticamente.
+- `name`: nombre de la ubicación, de tipo String(100), único y no nulo.
+- `created_at`: fecha y hora de creación del registro.
+- `updated_at`: fecha y hora de la última actualización del registro.
+
+La relación entre `tables` y `locations` es de muchos a uno: cada mesa puede tener una ubicación asignada, y cada ubicación puede contener múltiples mesas.
+
 ## 6. Relaciones entre entidades
 El diseño relacional de la base de datos se apoya en el uso de claves foráneas para establecer conexiones entre tablas. Algunas de las relaciones principales son:
 
+- tables hace referencia a locations (location_id)
 - orders hace referencia a tables y users
 - reservations hace referencia a customers y tables
 - order_details hace referencia a orders y products

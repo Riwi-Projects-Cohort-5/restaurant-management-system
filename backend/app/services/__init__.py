@@ -2,6 +2,7 @@ from app.services.auth_service import AuthService
 from app.services.category_service import CategoryService
 from app.services.inventory_service import InventoryService
 from app.services.kitchen_service import KitchenService
+from app.services.location_service import LocationService
 from app.services.menu_item_service import MenuItemService
 from app.services.order_service import OrderService
 from app.services.payment_service import PaymentService
@@ -18,6 +19,7 @@ __all__ = [
     "AuthService",
     "CategoryService",
     "MenuItemService",
+    "LocationService",
     "TableService",
     "ReservationService",
     "OrderService",
