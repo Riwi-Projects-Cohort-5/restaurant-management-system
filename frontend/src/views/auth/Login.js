@@ -45,7 +45,7 @@ export function render(container) {
       <aside class="relative overflow-hidden
                     max-lg:absolute max-lg:inset-0 max-lg:z-0
                     max-md:hidden" aria-hidden="true">
-        <img src="/logos/sun-scene.svg" alt="" class="w-full h-full object-cover" draggable="false">
+        <img src="/logos/sun-scene.svg" alt="" class="absolute inset-0 w-full h-full object-cover object-bottom" draggable="false">
         <img src="/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
       </aside>
 
@@ -64,7 +64,7 @@ export function render(container) {
         </div>
 
         <form class="login-form flex flex-col gap-8 w-full max-w-[380px]
-                     md:max-lg:bg-brand-100/90 md:max-lg:backdrop-blur-md md:max-lg:rounded-xl md:max-lg:p-10 md:max-lg:max-w-[440px] md:max-lg:shadow-xl" id="loginForm" novalidate>
+                     md:max-lg:bg-brand-100 md:max-lg:backdrop-blur-md md:max-lg:rounded-xl md:max-lg:p-10 md:max-lg:max-w-[440px] md:max-lg:shadow-xl" id="loginForm" novalidate>
 
           <!-- Header -->
           <header class="flex flex-col items-center gap-5">
