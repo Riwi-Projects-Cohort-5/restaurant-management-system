@@ -26,7 +26,7 @@ echo ""
 echo "=== Starting frontend ==="
 cd "$ROOT_DIR/frontend"
 corepack enable
-pnpm install --frozen-lockfile
+pnpm install
 pnpm dev &
 FRONTEND_PID=$!
 

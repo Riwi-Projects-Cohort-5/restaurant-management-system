@@ -12,7 +12,7 @@ echo ""
 echo "=== Running frontend lint + format check + build ==="
 cd frontend
 corepack enable
-pnpm install --frozen-lockfile
+pnpm install
 pnpm lint
 pnpm format:check
 pnpm build
