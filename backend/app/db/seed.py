@@ -6,6 +6,7 @@ from app.core.security import get_password_hash
 from app.db.models.category import Category
 from app.db.models.customer import Customer
 from app.db.models.inventory_item import InventoryItem
+from app.db.models.location import Location
 from app.db.models.menu_item import MenuItem
 from app.db.models.supplier import Supplier
 from app.db.models.table import Table, TableStatus
@@ -61,11 +62,20 @@ def seed_database(db: Session) -> None:
     db.add_all(customers)
     db.commit()
 
+    locations = [
+        Location(id=uuid.uuid4(), name="Interior"),
+        Location(id=uuid.uuid4(), name="Terraza"),
+    ]
+    db.add_all(locations)
+    db.commit()
+
+    loc_map = {loc.name: loc.id for loc in db.query(Location).all()}
+
     tables = [
-        Table(id=uuid.uuid4(), number=1, capacity=2, status=TableStatus.AVAILABLE, location="Interior"),
-        Table(id=uuid.uuid4(), number=2, capacity=4, status=TableStatus.AVAILABLE, location="Interior"),
-        Table(id=uuid.uuid4(), number=3, capacity=6, status=TableStatus.AVAILABLE, location="Terraza"),
-        Table(id=uuid.uuid4(), number=4, capacity=8, status=TableStatus.AVAILABLE, location="Terraza"),
+        Table(id=uuid.uuid4(), number=1, capacity=2, status=TableStatus.AVAILABLE, location_id=loc_map["Interior"]),
+        Table(id=uuid.uuid4(), number=2, capacity=4, status=TableStatus.AVAILABLE, location_id=loc_map["Interior"]),
+        Table(id=uuid.uuid4(), number=3, capacity=6, status=TableStatus.AVAILABLE, location_id=loc_map["Terraza"]),
+        Table(id=uuid.uuid4(), number=4, capacity=8, status=TableStatus.AVAILABLE, location_id=loc_map["Terraza"]),
     ]
     db.add_all(tables)
     db.commit()

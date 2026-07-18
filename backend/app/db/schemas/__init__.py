@@ -7,6 +7,7 @@ from app.db.schemas.inventory import (
     InventoryMovementOut,
 )
 from app.db.schemas.kitchen import KitchenOrderOut, KitchenOrderUpdate
+from app.db.schemas.location import LocationCreate, LocationOut, LocationUpdate
 from app.db.schemas.menu_item import MenuItemCreate, MenuItemOut, MenuItemUpdate
 from app.db.schemas.order import (
     OrderCreate,
@@ -41,6 +42,9 @@ __all__ = [
     "InventoryMovementOut",
     "KitchenOrderOut",
     "KitchenOrderUpdate",
+    "LocationCreate",
+    "LocationOut",
+    "LocationUpdate",
     "MenuItemCreate",
     "MenuItemOut",
     "MenuItemUpdate",

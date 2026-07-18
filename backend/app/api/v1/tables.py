@@ -69,7 +69,7 @@ def crear_mesa(
     return service.create(
         number=data.number,
         capacity=data.capacity,
-        location=data.location
+        location_id=data.location_id,
     )
 
 

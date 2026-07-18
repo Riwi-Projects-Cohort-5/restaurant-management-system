@@ -1,6 +1,7 @@
 from app.repositories.category_repository import CategoryRepository
 from app.repositories.inventory_repository import InventoryRepository
 from app.repositories.kitchen_repository import KitchenRepository
+from app.repositories.location_repository import LocationRepository
 from app.repositories.menu_item_repository import MenuItemRepository
 from app.repositories.order_repository import OrderRepository
 from app.repositories.payment_repository import PaymentRepository
@@ -16,6 +17,7 @@ __all__ = [
     "UserRepository",
     "CategoryRepository",
     "MenuItemRepository",
+    "LocationRepository",
     "TableRepository",
     "ReservationRepository",
     "OrderRepository",

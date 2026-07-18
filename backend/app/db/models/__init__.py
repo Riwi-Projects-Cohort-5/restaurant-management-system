@@ -3,6 +3,7 @@ from app.db.models.customer import Customer
 from app.db.models.inventory_item import InventoryItem
 from app.db.models.inventory_movement import InventoryMovement
 from app.db.models.kitchen_order import KitchenOrder
+from app.db.models.location import Location
 from app.db.models.menu_item import MenuItem
 from app.db.models.order import Order
 from app.db.models.order_item import OrderItem
@@ -20,6 +21,7 @@ __all__ = [
     "Customer",
     "MenuItem",
     "Category",
+    "Location",
     "Table",
     "Reservation",
     "Order",

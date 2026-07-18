@@ -4,17 +4,19 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from app.db.schemas.location import LocationOut
+
 
 class TableCreate(BaseModel):
     number: int
     capacity: int
-    location: Optional[str] = None
+    location_id: Optional[UUID] = None
 
 
 class TableUpdate(BaseModel):
     capacity: Optional[int] = None
     status: Optional[str] = None
-    location: Optional[str] = None
+    location_id: Optional[UUID] = None
 
 
 class TableOut(BaseModel):
@@ -22,7 +24,8 @@ class TableOut(BaseModel):
     number: int
     capacity: int
     status: str
-    location: Optional[str]
+    location_id: Optional[UUID]
+    location_ref: Optional[LocationOut] = None
     created_at: datetime
     updated_at: datetime
 
