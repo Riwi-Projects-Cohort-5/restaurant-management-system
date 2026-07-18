@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -24,10 +24,12 @@ class LocationService:
         location = Location(name=name)
         return self.repo.create(location)
 
-    def update(self, location_id: UUID, data: dict) -> Optional[Location]:
+    def update(self, location_id: UUID, data: dict) -> Union[Location, str, None]:
         location = self.repo.get_by_id(location_id)
         if not location:
             return None
+        if "name" in data and self.repo.name_exists_for_other(data["name"], location_id):
+            return "conflict"
         for key, value in data.items():
             if value is not None and hasattr(location, key):
                 setattr(location, key, value)

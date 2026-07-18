@@ -133,6 +133,41 @@ class TestUpdateLocation:
         )
         assert response.status_code == 404
 
+    def test_update_location_duplicate_name(self, db_session):
+        user = _create_test_user(db_session)
+        headers = _auth_header(user.id)
+
+        loc1 = Location(name="Barra")
+        loc2 = Location(name="Terraza")
+        db_session.add_all([loc1, loc2])
+        db_session.commit()
+        db_session.refresh(loc1)
+        db_session.refresh(loc2)
+
+        response = client.put(
+            f"/api/v1/api/v1/locations/{loc2.id}",
+            json={"name": "Barra"},
+            headers=headers,
+        )
+        assert response.status_code == 409
+
+    def test_update_location_same_name_no_conflict(self, db_session):
+        user = _create_test_user(db_session)
+        headers = _auth_header(user.id)
+
+        loc = Location(name="Terraza")
+        db_session.add(loc)
+        db_session.commit()
+        db_session.refresh(loc)
+
+        response = client.put(
+            f"/api/v1/api/v1/locations/{loc.id}",
+            json={"name": "Terraza"},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        assert response.json()["name"] == "Terraza"
+
 
 class TestDeleteLocation:
     def test_delete_location(self, db_session):

@@ -16,6 +16,9 @@ class LocationRepository:
     def get_by_name(self, name: str) -> Optional[Location]:
         return self.db.query(Location).filter(Location.name == name).first()
 
+    def name_exists_for_other(self, name: str, exclude_id: UUID) -> bool:
+        return self.db.query(Location).filter(Location.name == name, Location.id != exclude_id).first() is not None
+
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Location]:
         return self.db.query(Location).offset(skip).limit(limit).all()
 

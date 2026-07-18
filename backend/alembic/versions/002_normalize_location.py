@@ -40,7 +40,8 @@ def upgrade() -> None:
         location_id_map[name] = row[0]
 
     op.add_column("tables", sa.Column("location_id", postgresql.UUID(as_uuid=True), nullable=True))
-    op.create_foreign_key("fk_tables_location_id", "tables", "locations", ["location_id"], ["id"])
+    op.create_foreign_key("fk_tables_location_id", "tables", "locations", ["location_id"], ["id"], ondelete="SET NULL")
+    op.create_index("ix_tables_location_id", "tables", ["location_id"])
 
     for name, loc_id in location_id_map.items():
         connection.execute(
@@ -64,6 +65,7 @@ def downgrade() -> None:
             {"name": location_name, "table_id": table_id},
         )
 
+    op.drop_index("ix_tables_location_id", "tables")
     op.drop_constraint("fk_tables_location_id", "tables", type_="foreignkey")
     op.drop_column("tables", "location_id")
     op.drop_table("locations")

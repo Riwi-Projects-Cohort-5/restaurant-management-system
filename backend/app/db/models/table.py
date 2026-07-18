@@ -28,6 +28,6 @@ class Table(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
-    location_ref = relationship("Location", back_populates="tables")
+    location_ref = relationship("Location", back_populates="tables", foreign_keys=[location_id])
     reservations = relationship("Reservation", back_populates="table")
     orders = relationship("Order", back_populates="table")

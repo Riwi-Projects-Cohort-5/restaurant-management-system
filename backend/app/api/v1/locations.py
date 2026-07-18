@@ -59,6 +59,11 @@ def actualizar_ubicacion(
 ):
     service = LocationService(db)
     updated = service.update(location_id, data.model_dump(exclude_none=True))
+    if updated == "conflict":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Ya existe una ubicación con el nombre '{data.name}'",
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

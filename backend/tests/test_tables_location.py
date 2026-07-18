@@ -141,3 +141,40 @@ class TestTableWithLocation:
         assert len(without_loc) == 1
         assert with_loc[0]["location_ref"]["name"] == "Barra"
         assert without_loc[0]["location_ref"] is None
+
+    def test_delete_location_sets_tables_null(self, db_session):
+        user = _create_test_user(db_session)
+        headers = _auth_header(user.id)
+
+        loc = Location(name="Temporal")
+        db_session.add(loc)
+        db_session.commit()
+        db_session.refresh(loc)
+
+        table = Table(number=50, capacity=4, location_id=loc.id, status=TableStatus.AVAILABLE)
+        db_session.add(table)
+        db_session.commit()
+        db_session.refresh(table)
+
+        response = client.delete(f"/api/v1/api/v1/locations/{loc.id}", headers=headers)
+        assert response.status_code == 204
+
+        db_session.refresh(table)
+        assert table.location_id is None
+
+    def test_location_ref_resolves_correctly(self, db_session):
+        loc = Location(name="VIP")
+        db_session.add(loc)
+        db_session.commit()
+        db_session.refresh(loc)
+
+        table = Table(number=60, capacity=8, location_id=loc.id, status=TableStatus.AVAILABLE)
+        db_session.add(table)
+        db_session.commit()
+        db_session.refresh(table)
+
+        response = client.get(f"/api/v1/api/v1/tables/{table.id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["location_id"] == str(loc.id)
+        assert data["location_ref"]["name"] == "VIP"
