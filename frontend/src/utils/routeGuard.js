@@ -16,6 +16,9 @@ const ROLE_ACCESS = {
   "/payments": [ROLES.ADMIN, ROLES.CASHIER],
   "/reservations": [ROLES.ADMIN],
   "/reservation-status": [ROLES.CLIENT],
+  "/inventory": [ROLES.ADMIN],
+  "/reports": [ROLES.ADMIN],
+  "/settings": [ROLES.ADMIN],
   "/menu": ["*"],
   "/": ["*"],
 };

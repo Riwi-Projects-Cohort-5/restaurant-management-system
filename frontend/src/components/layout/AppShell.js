@@ -150,6 +150,9 @@ var AppShell = {
       "/reservations": "Reservations",
       "/payments": "Payments",
       "/menu": "Menu Management",
+      "/inventory": "Inventory",
+      "/reports": "Reports",
+      "/settings": "Settings",
       "/admin": "Admin",
       "/orders": "POS / Orders",
     };
