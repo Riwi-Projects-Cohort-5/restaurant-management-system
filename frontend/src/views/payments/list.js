@@ -10,6 +10,7 @@ import { allOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import InputField from "../../components/forms/InputField.js";
 
 initMockPayments();
 
@@ -478,18 +479,9 @@ function renderNewPayment(el) {
   html += "</select>";
   html += "</div>";
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Amount *</label>';
-  html +=
-    '<input type="number" id="new-payment-amount" step="0.01" min="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({ id: "new-payment-amount", label: "Amount *", type: "number", placeholder: "0.00", step: "0.01", min: "0.01" });
 
-  html += "<div>";
-  html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Reference Number (Optional)</label>';
-  html +=
-    '<input type="text" id="new-payment-reference" placeholder="e.g. TXN-123456" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({ id: "new-payment-reference", label: "Reference Number (Optional)", placeholder: "e.g. TXN-123456" });
 
   html += "</div></div></div>";
 

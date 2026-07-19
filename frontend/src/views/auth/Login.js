@@ -205,8 +205,7 @@ export function init() {
       if (!password) return;
 
       if (signInBtn) {
-        signInBtn.disabled = true;
-        signInBtn.textContent = "Signing in...";
+        signInBtn._setLoading(true);
       }
 
       const username = email.split("@")[0];
@@ -217,8 +216,7 @@ export function init() {
         window.location.hash = "#" + getHomeRoute(result.user.role);
       } else {
         if (signInBtn) {
-          signInBtn.disabled = false;
-          signInBtn.textContent = "Sign In";
+          signInBtn._setLoading(false);
         }
         toast.error("Login Failed", result.error || "Invalid credentials");
       }

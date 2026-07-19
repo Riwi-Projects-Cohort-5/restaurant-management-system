@@ -1,4 +1,5 @@
 import { tables, areas, allOrders } from "../../store/posData.js";
+import InputField from "../../components/forms/InputField.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -650,8 +651,7 @@ function renderManageAreas(el) {
     html += '<option value="' + a.id + '">' + a.name + "</option>";
   });
   html += "</select></label>";
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Seats<input type="number" id="new-table-seats" min="1" max="20" value="4" class="w-full border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({ id: "new-table-seats", label: "Seats", type: "number", value: "4", min: "1", max: "20" });
   html +=
     '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Add Table</button>';
   html += "</div></div>";
@@ -660,8 +660,7 @@ function renderManageAreas(el) {
   html +=
     '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Add New Area</span></div>';
   html += '<div class="flex flex-col gap-3 p-4">';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Area Name<input type="text" id="new-area-name" placeholder="e.g. Rooftop" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({ id: "new-area-name", label: "Area Name", placeholder: "e.g. Rooftop" });
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-new-area-icon-picker" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
     (editingAreaIcon || "home") +
@@ -764,10 +763,7 @@ function renderInlineAreaForm(areaId, mode) {
 
   let html =
     '<div class="flex gap-3 items-end bg-white border border-brand-300 rounded-xl p-4 shadow-sm mb-4">';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Name<input type="text" id="inline-area-name" value="' +
-    area.name +
-    '" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({ id: "inline-area-name", label: "Name", value: area.name });
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-inline-icon-picker" data-area-id="' +
     areaId +

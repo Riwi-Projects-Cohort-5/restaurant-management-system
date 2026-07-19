@@ -11,6 +11,8 @@ import {
 } from "../../services/mockInventory.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import InputField from "../../components/forms/InputField.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 
 initMockInventory();
 
@@ -437,10 +439,8 @@ function renderMovementForm(el, itemId, type) {
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-2 gap-4 max-w-md">';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Quantity<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Reason<input type="text" id="movement-reason" placeholder="e.g. Supplier delivery" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+  html += InputField({ id: "movement-qty", label: "Quantity", type: "number", placeholder: "0.0", min: "0.1", step: "0.1" });
+  html += InputField({ id: "movement-reason", label: "Reason", placeholder: "e.g. Supplier delivery" });
   html += "</div>";
   html += '<div class="flex gap-3 mt-4">';
   html +=
@@ -489,13 +489,7 @@ function renderForm(el, itemId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Name *</label>';
-  html +=
-    '<input type="text" id="inv-name" value="' +
-    (item ? item.name : "") +
-    '" placeholder="e.g. Extra Virgin Olive Oil" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
+  html += InputField({ id: "inv-name", label: "Name *", value: item ? item.name : "", placeholder: "e.g. Extra Virgin Olive Oil" });
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unit *</label>';
@@ -517,28 +511,11 @@ function renderForm(el, itemId) {
   html += "</select></div>";
 
   html += '<div class="grid grid-cols-2 gap-4">';
-  html +=
-    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Quantity *</label>';
-  html +=
-    '<input type="number" id="inv-quantity" step="0.1" min="0" value="' +
-    (item ? item.quantity : "0") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
-
-  html +=
-    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Minimum Stock *</label>';
-  html +=
-    '<input type="number" id="inv-min-stock" step="0.1" min="0" value="' +
-    (item ? item.min_stock : "0") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
+  html += InputField({ id: "inv-quantity", label: "Quantity *", type: "number", value: item ? item.quantity : "0", step: "0.1", min: "0" });
+  html += InputField({ id: "inv-min-stock", label: "Minimum Stock *", type: "number", value: item ? item.min_stock : "0", step: "0.1", min: "0" });
   html += "</div>";
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="inv-active" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (!item || item.is_active ? "checked" : "") +
-    " />";
-  html += '<label for="inv-active" class="text-sm font-semibold text-secondary-700">Active</label>';
-  html += "</div>";
+  html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || !!item.is_active });
 
   html += "</div></div></div>";
 

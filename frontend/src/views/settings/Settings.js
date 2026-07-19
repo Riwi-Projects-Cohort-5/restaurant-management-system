@@ -1,6 +1,7 @@
 import * as settingsStore from "../../store/settings.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import InputField from "../../components/forms/InputField.js";
 
 function render(el) {
   const settings = settingsStore.getSettings();
@@ -21,39 +22,12 @@ function render(el) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4">';
 
-  html += "<div>";
-  html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Restaurant Name</label>';
-  html +=
-    '<input type="text" id="settings-name" value="' +
-    (settings.restaurant_name || "") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
-
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Address</label>';
-  html +=
-    '<input type="text" id="settings-address" value="' +
-    (settings.address || "") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
+  html += InputField({ id: "settings-name", label: "Restaurant Name", value: settings.restaurant_name || "" });
+  html += InputField({ id: "settings-address", label: "Address", value: settings.address || "" });
 
   html += '<div class="grid grid-cols-2 gap-4">';
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Phone</label>';
-  html +=
-    '<input type="tel" id="settings-phone" value="' +
-    (settings.phone || "") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
-
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Email</label>';
-  html +=
-    '<input type="email" id="settings-email" value="' +
-    (settings.email || "") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
+  html += InputField({ id: "settings-phone", label: "Phone", type: "tel", value: settings.phone || "" });
+  html += InputField({ id: "settings-email", label: "Email", type: "email", value: settings.email || "" });
   html += "</div>";
 
   html += "</div></div></div>";
@@ -66,22 +40,8 @@ function render(el) {
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-3 gap-4">';
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Tax Rate (%)</label>';
-  html +=
-    '<input type="number" id="settings-tax" step="0.1" min="0" max="100" value="' +
-    (settings.tax_rate || 0) +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
-
-  html += "<div>";
-  html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Currency Symbol</label>';
-  html +=
-    '<input type="text" id="settings-currency-symbol" value="' +
-    (settings.currency_symbol || "$") +
-    '" maxlength="3" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
-  html += "</div>";
+  html += InputField({ id: "settings-tax", label: "Tax Rate (%)", type: "number", value: settings.tax_rate || 0, step: "0.1", min: "0", max: "100" });
+  html += InputField({ id: "settings-currency-symbol", label: "Currency Symbol", value: settings.currency_symbol || "$", maxlength: "3" });
 
   html += "<div>";
   html +=

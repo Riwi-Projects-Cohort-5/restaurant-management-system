@@ -3,6 +3,8 @@ import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import InputField from "../../components/forms/InputField.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 
 initMockCategories();
@@ -336,13 +338,7 @@ function renderForm(el, productId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Name *</label>';
-  html +=
-    '<input type="text" id="product-name" value="' +
-    (product ? product.name : "") +
-    '" placeholder="e.g. Grilled Chicken" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({ id: "product-name", label: "Name *", value: product ? product.name : "", placeholder: "e.g. Grilled Chicken" });
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Category *</label>';
@@ -370,30 +366,11 @@ function renderForm(el, productId) {
     "</textarea>";
   html += "</div>";
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Price *</label>';
-  html +=
-    '<input type="number" id="product-price" step="0.01" min="0.01" value="' +
-    (product ? product.price : "") +
-    '" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({ id: "product-price", label: "Price *", type: "number", value: product ? product.price : "", placeholder: "0.00", step: "0.01", min: "0.01" });
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Image URL</label>';
-  html +=
-    '<input type="text" id="product-image-url" value="' +
-    (product ? product.image_url || "" : "") +
-    '" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({ id: "product-image-url", label: "Image URL", value: product ? product.image_url || "" : "", placeholder: "https://example.com/image.jpg" });
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="product-available" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (product && product.available ? "checked" : "checked") +
-    " />";
-  html +=
-    '<label for="product-available" class="text-sm font-semibold text-secondary-700">Available</label>';
-  html += "</div>";
+  html += CheckboxField({ id: "product-available", label: "Available", checked: product ? !!product.available : true });
 
   html += "</div></div></div>";
 
