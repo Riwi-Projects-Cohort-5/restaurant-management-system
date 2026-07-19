@@ -11,6 +11,9 @@ import Register from "./views/auth/register.js";
 import Reservations from "./views/reservations/list.js";
 import Payments from "./views/payments/list.js";
 import Menu from "./views/menu/list.js";
+import Inventory from "./views/inventory/Inventory.js";
+import Reports from "./views/reports/Reports.js";
+import Settings from "./views/settings/Settings.js";
 import { initMockUsers } from "./services/mockUsers.js";
 
 initMockUsers();
@@ -31,6 +34,9 @@ const routes = {
   "/reservations": { view: Reservations, shell: true, auth: true },
   "/payments": { view: Payments, shell: true, auth: true },
   "/menu": { view: Menu, shell: true, auth: true },
+  "/inventory": { view: Inventory, shell: true, auth: true },
+  "/reports": { view: Reports, shell: true, auth: true },
+  "/settings": { view: Settings, shell: true, auth: true },
   "/admin": { view: PosView, shell: true, auth: true },
   "/orders": { view: PosView, shell: true, auth: true },
 };
