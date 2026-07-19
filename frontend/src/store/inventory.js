@@ -1,7 +1,7 @@
 import { createStore } from "./index.js";
 import * as inventoryService from "../services/mockInventory.js";
 
-var inventoryStore = createStore({
+const inventoryStore = createStore({
   items: [],
 });
 

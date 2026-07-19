@@ -3,24 +3,24 @@ import * as reportService from "../services/mockReports.js";
 
 reportService.initMockReports();
 
-var reportsStore = createStore({
+const reportsStore = createStore({
   sales: null,
   topProducts: [],
   dailySales: [],
 });
 
 export function loadSalesReport(startDate, endDate) {
-  var sales = reportService.getSalesReport(startDate, endDate);
+  const sales = reportService.getSalesReport(startDate, endDate);
   reportsStore.setState({ sales: sales });
 }
 
 export function loadTopProducts(startDate, endDate, limit) {
-  var products = reportService.getTopProducts(startDate, endDate, limit);
+  const products = reportService.getTopProducts(startDate, endDate, limit);
   reportsStore.setState({ topProducts: products });
 }
 
 export function loadDailySales() {
-  var daily = reportService.getDailySales();
+  const daily = reportService.getDailySales();
   reportsStore.setState({ dailySales: daily });
 }
 

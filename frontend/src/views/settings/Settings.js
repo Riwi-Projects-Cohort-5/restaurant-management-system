@@ -1,9 +1,11 @@
 import * as settingsStore from "../../store/settings.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
 
 function render(el) {
-  var settings = settingsStore.getSettings();
+  const settings = settingsStore.getSettings();
 
-  var html = '<div class="space-y-5 max-w-2xl">';
+  let html = '<div class="space-y-5 max-w-2xl">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Settings</h2>';
@@ -86,7 +88,7 @@ function render(el) {
     '<label class="block text-sm font-semibold text-secondary-600 mb-1">Currency Code</label>';
   html +=
     '<select id="settings-currency-code" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all">';
-  var codes = ["USD", "EUR", "GBP", "MXN", "CAD", "JPY"];
+  const codes = ["USD", "EUR", "GBP", "MXN", "CAD", "JPY"];
   codes.forEach(function (code) {
     html +=
       '<option value="' +
@@ -114,13 +116,13 @@ function render(el) {
   window.createIcons();
 
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.getAttribute("data-action");
+    const action = btn.getAttribute("data-action");
 
     if (action === "save-settings") {
-      var data = {
+      const data = {
         restaurant_name: (document.getElementById("settings-name") || {}).value || "",
         address: (document.getElementById("settings-address") || {}).value || "",
         phone: (document.getElementById("settings-phone") || {}).value || "",
@@ -130,17 +132,27 @@ function render(el) {
         currency_code: (document.getElementById("settings-currency-code") || {}).value || "USD",
       };
       settingsStore.updateSettings(data);
+      toast.success("Saved", "Settings updated successfully");
       render(el);
     } else if (action === "reset-settings") {
-      if (confirm("Reset all settings to defaults?")) {
-        settingsStore.resetSettings();
-        render(el);
-      }
+      confirmModal
+        .show({
+          title: "Reset Settings",
+          message: "Reset all settings to defaults? This action cannot be undone.",
+          confirmText: "Reset",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            settingsStore.resetSettings();
+            toast.success("Reset", "Settings restored to defaults");
+            render(el);
+          }
+        });
     }
   });
 }
 
-var SettingsView = {
+const SettingsView = {
   render: render,
   init: function () {},
   destroy: function () {},

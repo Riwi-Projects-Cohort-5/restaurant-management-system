@@ -1,19 +1,19 @@
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/mockReports.js";
 
-var startDate = "";
-var endDate = "";
-var chartInstance = null;
+let startDate = "";
+let endDate = "";
+let chartInstance = null;
 
 function getDefaultDates() {
-  var now = new Date("2026-07-15T20:00:00Z");
-  var end = now.toISOString().split("T")[0];
-  var start = new Date(now);
+  const now = new Date("2026-07-15T20:00:00Z");
+  const end = now.toISOString().split("T")[0];
+  const start = new Date(now);
   start.setDate(start.getDate() - 6);
   return { start: start.toISOString().split("T")[0], end: end };
 }
 
 function renderBarChart(data) {
-  var canvas = document.getElementById("reportsChart");
+  const canvas = document.getElementById("reportsChart");
   if (!canvas || !window.Chart) return;
 
   if (chartInstance) {
@@ -21,7 +21,7 @@ function renderBarChart(data) {
     chartInstance = null;
   }
 
-  var ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
   chartInstance = new Chart(ctx, {
     type: "bar",
     data: {
@@ -98,18 +98,18 @@ function renderBarChart(data) {
 }
 
 function render(el) {
-  var defaults = getDefaultDates();
+  const defaults = getDefaultDates();
   if (!startDate) startDate = defaults.start;
   if (!endDate) endDate = defaults.end;
 
-  var sales = getSalesReport(startDate, endDate);
-  var topProducts = getTopProducts(startDate, endDate, 5);
-  var dailySales = getDailySales();
+  const sales = getSalesReport(startDate, endDate);
+  const topProducts = getTopProducts(startDate, endDate, 5);
+  const dailySales = getDailySales();
 
-  var totalRev = parseFloat(sales.total_revenue) || 0;
-  var avgOrder = sales.total_orders > 0 ? totalRev / sales.total_orders : 0;
+  const totalRev = parseFloat(sales.total_revenue) || 0;
+  const avgOrder = sales.total_orders > 0 ? totalRev / sales.total_orders : 0;
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Reports</h2>';
@@ -186,8 +186,8 @@ function render(el) {
     html += "</tr></thead>";
     html += "<tbody>";
     topProducts.forEach(function (p, i) {
-      var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
-      var pct = totalRev > 0 ? ((p.total_revenue / totalRev) * 100).toFixed(1) : "0";
+      const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+      const pct = totalRev > 0 ? ((p.total_revenue / totalRev) * 100).toFixed(1) : "0";
       html += '<tr class="' + zebra + ' border-b border-brand-100">';
       html +=
         '<td class="px-5 py-3.5"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold">' +
@@ -214,20 +214,20 @@ function render(el) {
   renderBarChart(dailySales);
 
   el.addEventListener("click", function handler(e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
     if (btn.getAttribute("data-action") === "generate-report") {
-      var s = (document.getElementById("report-start") || {}).value;
-      var en = (document.getElementById("report-end") || {}).value;
+      const s = (document.getElementById("report-start") || {}).value;
+      const en = (document.getElementById("report-end") || {}).value;
       if (s) startDate = s;
       if (en) endDate = en;
       render(el);
     }
   });
 
-  var startInput = el.querySelector("#report-start");
-  var endInput = el.querySelector("#report-end");
+  const startInput = el.querySelector("#report-start");
+  const endInput = el.querySelector("#report-end");
   if (startInput) {
     startInput.addEventListener("change", function (e) {
       startDate = e.target.value;
@@ -261,7 +261,7 @@ function renderStatCard(label, value, icon, iconBg) {
   );
 }
 
-var ReportsView = {
+const ReportsView = {
   render: render,
   init: function () {},
   destroy: function () {

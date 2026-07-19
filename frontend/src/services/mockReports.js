@@ -5,20 +5,20 @@ export function initMockReports() {
 }
 
 export function getSalesReport(startDate, endDate) {
-  var start = new Date(startDate);
-  var end = new Date(endDate);
+  const start = new Date(startDate);
+  const end = new Date(endDate);
   end.setHours(23, 59, 59, 999);
 
-  var filteredOrders = allOrders.filter(function (o) {
-    var orderDate = new Date("2026-07-15T20:00:00Z");
+  const filteredOrders = allOrders.filter(function (_o) {
+    const orderDate = new Date("2026-07-15T20:00:00Z");
     return orderDate >= start && orderDate <= end;
   });
 
-  var totalRevenue = filteredOrders.reduce(function (sum, o) {
+  const totalRevenue = filteredOrders.reduce(function (sum, o) {
     return sum + (o.status !== "cancelled" ? o.total : 0);
   }, 0);
 
-  var totalOrders = filteredOrders.filter(function (o) {
+  const totalOrders = filteredOrders.filter(function (o) {
     return o.status !== "cancelled";
   }).length;
 
@@ -31,8 +31,8 @@ export function getSalesReport(startDate, endDate) {
 }
 
 export function getTopProducts(startDate, endDate, limit) {
-  var productMap = {};
-  var items = allOrders.filter(function (o) {
+  const productMap = {};
+  const items = allOrders.filter(function (o) {
     return o.status !== "cancelled";
   });
 
@@ -50,7 +50,7 @@ export function getTopProducts(startDate, endDate, limit) {
     });
   });
 
-  var products = Object.values(productMap).sort(function (a, b) {
+  let products = Object.values(productMap).sort(function (a, b) {
     return b.total_revenue - a.total_revenue;
   });
 
@@ -65,18 +65,18 @@ export function getTopProducts(startDate, endDate, limit) {
 }
 
 export function getDailySales() {
-  var days = [];
-  var now = new Date("2026-07-15T20:00:00Z");
+  const days = [];
+  const now = new Date("2026-07-15T20:00:00Z");
 
-  for (var i = 6; i >= 0; i--) {
-    var d = new Date(now);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
     d.setDate(d.getDate() - i);
-    var label = d.toLocaleDateString("en-US", { weekday: "short" });
+    const label = d.toLocaleDateString("en-US", { weekday: "short" });
 
-    var dayRevenue = 0;
+    let dayRevenue = 0;
     allOrders.forEach(function (o) {
       if (o.status !== "cancelled") {
-        var variance = Math.sin(i * 1.3 + 2) * 0.3 + 1;
+        const variance = Math.sin(i * 1.3 + 2) * 0.3 + 1;
         dayRevenue += o.total * (variance / 3);
       }
     });

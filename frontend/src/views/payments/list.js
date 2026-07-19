@@ -8,6 +8,8 @@ import {
 } from "../../services/mockPayments.js";
 import { allOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
 
 initMockPayments();
 
@@ -592,11 +594,19 @@ function setupListEvents(el) {
     } else if (action === "delete-payment") {
       e.stopPropagation();
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(deleteId);
-        paymentsStore.refreshPayments();
-        renderList(el);
-      }
+      confirmModal
+        .show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment? This action cannot be undone.",
+          confirmText: "Delete",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            paymentService.deletePayment(deleteId);
+            paymentsStore.refreshPayments();
+            renderList(el);
+          }
+        });
     } else if (action === "clear-search") {
       searchQuery = "";
       dateFilter = "";
@@ -644,13 +654,21 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "delete-payment") {
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(deleteId);
-        paymentsStore.refreshPayments();
-        subView = "list";
-        selectedId = null;
-        renderList(el);
-      }
+      confirmModal
+        .show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment? This action cannot be undone.",
+          confirmText: "Delete",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            paymentService.deletePayment(deleteId);
+            paymentsStore.refreshPayments();
+            subView = "list";
+            selectedId = null;
+            renderList(el);
+          }
+        });
     }
   });
 }
@@ -677,15 +695,15 @@ function setupNewPaymentEvents(el) {
       const reference = referenceInput.value.trim();
 
       if (!orderId) {
-        alert("Please select an order");
+        toast.warning("Validation", "Please select an order");
         return;
       }
       if (!method) {
-        alert("Please select a payment method");
+        toast.warning("Validation", "Please select a payment method");
         return;
       }
       if (!amount || amount <= 0) {
-        alert("Please enter a valid amount");
+        toast.warning("Validation", "Please enter a valid amount");
         return;
       }
 

@@ -2,6 +2,8 @@ import * as menuStore from "../../store/menu.js";
 import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
 
 initMockCategories();
 initMockProducts();
@@ -487,13 +489,21 @@ function setupDetailEvents(el) {
       menuStore.refreshProducts();
       renderDetail(el, selectedId);
     } else if (action === "delete-product") {
-      if (confirm("Are you sure you want to delete this product?")) {
-        menuService.deleteProduct(selectedId);
-        menuStore.refreshProducts();
-        subView = "list";
-        selectedId = null;
-        renderList(el);
-      }
+      confirmModal
+        .show({
+          title: "Delete Product",
+          message: "Are you sure you want to delete this product? This action cannot be undone.",
+          confirmText: "Delete",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            menuService.deleteProduct(selectedId);
+            menuStore.refreshProducts();
+            subView = "list";
+            selectedId = null;
+            renderList(el);
+          }
+        });
     }
   });
 }
@@ -526,15 +536,15 @@ function setupFormEvents(el) {
       const available = availableInput.checked;
 
       if (!name) {
-        alert("Please enter a product name");
+        toast.warning("Validation", "Please enter a product name");
         return;
       }
       if (!categoryId) {
-        alert("Please select a category");
+        toast.warning("Validation", "Please select a category");
         return;
       }
       if (!price || price <= 0) {
-        alert("Please enter a valid price");
+        toast.warning("Validation", "Please enter a valid price");
         return;
       }
 

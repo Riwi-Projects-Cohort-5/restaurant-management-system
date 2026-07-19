@@ -1,5 +1,6 @@
 import * as authStore from "../../store/auth.js";
 import { ROLES, ROLE_LABELS } from "../../services/mockUsers.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 export function renderRegister(container) {
   const user = authStore.currentUser();
@@ -31,12 +32,6 @@ export function renderRegister(container) {
           </p>
         </div>
         <form id="register-form" class="mt-8 space-y-6">
-          <div id="register-error" class="hidden rounded-md bg-red-50 p-4">
-            <p class="text-sm text-red-700"></p>
-          </div>
-          <div id="register-success" class="hidden rounded-md bg-green-50 p-4">
-            <p class="text-sm text-green-700"></p>
-          </div>
           <div class="rounded-md shadow-sm space-y-4">
             <div>
               <label for="new-username" class="block text-sm font-medium text-gray-700">
@@ -123,16 +118,9 @@ export function renderRegister(container) {
   renderUserList(container);
 
   const form = container.querySelector("#register-form");
-  const errorBox = container.querySelector("#register-error");
-  const errorText = errorBox.querySelector("p");
-  const successBox = container.querySelector("#register-success");
-  const successText = successBox.querySelector("p");
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-
-    errorBox.classList.add("hidden");
-    successBox.classList.add("hidden");
 
     const username = form.username.value.trim();
     const email = form.email.value.trim();
@@ -140,27 +128,26 @@ export function renderRegister(container) {
     const role = form.role.value;
 
     if (!username || !email || !password || !role) {
-      errorText.textContent = "All fields are required.";
-      errorBox.classList.remove("hidden");
+      toast.error("Validation", "All fields are required.");
       return;
     }
 
     if (password.length < 6) {
-      errorText.textContent = "Password must be at least 6 characters.";
-      errorBox.classList.remove("hidden");
+      toast.error("Validation", "Password must be at least 6 characters.");
       return;
     }
 
     const result = authStore.addUser({ username, email, password, role });
 
     if (result.success) {
-      successText.textContent = `User "${result.user.username}" (${ROLE_LABELS[result.user.role]}) created successfully.`;
-      successBox.classList.remove("hidden");
+      toast.success(
+        "User Created",
+        `User "${result.user.username}" (${ROLE_LABELS[result.user.role]}) created successfully.`
+      );
       form.reset();
       renderUserList(container);
     } else {
-      errorText.textContent = result.error;
-      errorBox.classList.remove("hidden");
+      toast.error("Error", result.error);
     }
   });
 }

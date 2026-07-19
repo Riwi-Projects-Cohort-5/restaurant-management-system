@@ -29,6 +29,7 @@
 import { createIcons, Eye, EyeOff } from "lucide";
 import * as authStore from "../../store/auth.js";
 import { getHomeRoute } from "../../utils/routeGuard.js";
+import { toast } from "../../components/ui/ToastManager.js";
 import "../../components/forms/InputField.js";
 import "../../components/forms/CheckboxField.js";
 import "../../components/forms/SubmitButton.js";
@@ -79,9 +80,6 @@ export function render(container) {
           </header>
 
           <!-- Body -->
-          <div id="login-error" class="hidden rounded-md bg-error-50 border border-error-200 p-3">
-            <p class="text-sm text-error-700"></p>
-          </div>
           <div class="flex flex-col gap-6" id="formBody"></div>
 
           <!-- Footer -->
@@ -182,8 +180,6 @@ export function init() {
   });
 
   const form = document.getElementById("loginForm");
-  const errorBox = document.getElementById("login-error");
-  const errorText = errorBox ? errorBox.querySelector("p") : null;
 
   if (form) {
     form.addEventListener("submit", function (e) {
@@ -217,14 +213,14 @@ export function init() {
       const result = authStore.login(username, password);
 
       if (result.success) {
+        toast.success("Welcome back!", "Redirecting...");
         window.location.hash = "#" + getHomeRoute(result.user.role);
       } else {
         if (signInBtn) {
           signInBtn.disabled = false;
           signInBtn.textContent = "Sign In";
         }
-        if (errorText) errorText.textContent = result.error || "Invalid credentials";
-        if (errorBox) errorBox.classList.remove("hidden");
+        toast.error("Login Failed", result.error || "Invalid credentials");
       }
     });
   }
