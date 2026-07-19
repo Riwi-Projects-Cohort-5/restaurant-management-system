@@ -1,20 +1,20 @@
-var mockPayments = [];
+let mockPayments = [];
 
-export var STATUS_LABELS = {
+export const STATUS_LABELS = {
   pending: "Pending",
   completed: "Completed",
   refunded: "Refunded",
   failed: "Failed",
 };
 
-export var STATUS_COLORS = {
+export const STATUS_COLORS = {
   pending: { bg: "bg-info-100", text: "text-info-700", dot: "bg-info-500" },
   completed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
   refunded: { bg: "bg-accent-100", text: "text-accent-700", dot: "bg-accent-500" },
   failed: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },
 };
 
-export var PAYMENT_METHODS = [
+export const PAYMENT_METHODS = [
   { id: "cash", name: "Cash", icon: "banknote" },
   { id: "credit_card", name: "Credit Card", icon: "credit-card" },
   { id: "debit_card", name: "Debit Card", icon: "credit-card" },
@@ -240,7 +240,7 @@ export function addMockPayment(payment) {
 }
 
 export function updateMockPayment(id, updates) {
-  var idx = mockPayments.findIndex(function (p) {
+  const idx = mockPayments.findIndex(function (p) {
     return p.id === id;
   });
   if (idx !== -1) {
@@ -251,7 +251,7 @@ export function updateMockPayment(id, updates) {
 }
 
 export function deleteMockPayment(id) {
-  var idx = mockPayments.findIndex(function (p) {
+  const idx = mockPayments.findIndex(function (p) {
     return p.id === id;
   });
   if (idx !== -1) {

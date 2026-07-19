@@ -1,6 +1,6 @@
 import { createIcons, icons } from "lucide";
 import * as authStore from "./store/auth.js";
-import { getHomeRoute, isRouteAllowed } from "./utils/routeGuard.js";
+import { getHomeRoute } from "./utils/routeGuard.js";
 import AppShell from "./components/layout/AppShell.js";
 import Dashboard from "./views/dashboard/Dashboard.js";
 import PosView from "./views/orders/PosView.js";
@@ -19,9 +19,9 @@ window.createIcons = function () {
   createIcons({ icons });
 };
 
-var currentView = null;
+let currentView = null;
 
-var routes = {
+const routes = {
   "/login": { view: Login, shell: false, auth: false },
   "/register": { view: Register, shell: false, auth: false },
   "/dashboard": { view: Dashboard, shell: true, auth: true },
@@ -48,8 +48,8 @@ function destroyView() {
 
 function renderView() {
   try {
-    var path = getRoute();
-    var user = authStore.currentUser();
+    const path = getRoute();
+    const user = authStore.currentUser();
 
     if (path !== "/login" && path !== "/register") {
       if (!user) {
@@ -60,16 +60,16 @@ function renderView() {
 
     if (path === "/login" || path === "/register") {
       if (user) {
-        var home = getHomeRoute(user.role);
+        const home = getHomeRoute(user.role);
         window.location.hash = "#" + home;
         return;
       }
     }
 
-    var route = routes[path];
+    const route = routes[path];
     if (!route) {
       if (user) {
-        var defaultRoute = getHomeRoute(user.role);
+        const defaultRoute = getHomeRoute(user.role);
         window.location.hash = "#" + defaultRoute;
       } else {
         window.location.hash = "#/login";
@@ -84,15 +84,15 @@ function renderView() {
 
     if (route.shell) {
       window.currentRole = user ? user.role : "admin";
-      var roleLabels = {
+      const roleLabels = {
         admin: "Administrator",
         waiter: "Waiter",
         chef: "Chef",
         cashier: "Cashier",
         client: "Client",
       };
-      var username = user ? user.displayName || user.username || "Admin" : "Admin";
-      var initials = username
+      const username = user ? user.displayName || user.username || "Admin" : "Admin";
+      const initials = username
         .split(" ")
         .map(function (w) {
           return w[0];
@@ -100,7 +100,7 @@ function renderView() {
         .join("")
         .toUpperCase()
         .slice(0, 2);
-      var roleText = roleLabels[user ? user.role : "admin"] || "Administrator";
+      const roleText = roleLabels[user ? user.role : "admin"] || "Administrator";
       window.userData = {
         name: username,
         initials: initials,
@@ -108,7 +108,7 @@ function renderView() {
       };
       AppShell.render(document.getElementById("app"));
       AppShell.updateTopbarTitle(path);
-      var logoutBtn = document.getElementById("appShellLogout");
+      const logoutBtn = document.getElementById("appShellLogout");
       if (logoutBtn) {
         logoutBtn.onclick = function () {
           authStore.logout();
@@ -117,7 +117,7 @@ function renderView() {
       }
     }
 
-    var container = route.shell
+    const container = route.shell
       ? document.getElementById("main-content")
       : document.getElementById("app");
     if (!container) return;
@@ -125,7 +125,7 @@ function renderView() {
     destroyView();
 
     container.innerHTML = "";
-    var viewEl = document.createElement("div");
+    const viewEl = document.createElement("div");
     viewEl.id = "current-view";
     container.appendChild(viewEl);
 
@@ -139,7 +139,7 @@ function renderView() {
     }
   } catch (err) {
     console.error("[app] renderView failed", err);
-    var errorEl = document.getElementById("app");
+    const errorEl = document.getElementById("app");
     if (errorEl) {
       errorEl.innerHTML = '<pre style="color:red;padding:1rem;">' + err.stack + "</pre>";
     }

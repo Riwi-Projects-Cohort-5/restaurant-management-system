@@ -1,14 +1,14 @@
 function InputField(opts) {
-  var id = opts.id;
-  var label = opts.label || "";
-  var type = opts.type || "text";
-  var placeholder = opts.placeholder || "";
-  var error = opts.error || "";
-  var required = opts.required;
-  var autocomplete = opts.autocomplete || "";
-  var errorId = id + "Error";
+  const id = opts.id;
+  const label = opts.label || "";
+  const type = opts.type || "text";
+  const placeholder = opts.placeholder || "";
+  const error = opts.error || "";
+  const required = opts.required;
+  const autocomplete = opts.autocomplete || "";
+  const errorId = id + "Error";
 
-  var html = '<div class="flex flex-col gap-1">';
+  let html = '<div class="flex flex-col gap-1">';
   html +=
     '<label class="text-sm font-medium leading-loose text-neutral-900" for="' +
     id +
@@ -53,8 +53,8 @@ function InputField(opts) {
 }
 
 function initInputField(id) {
-  var input = document.getElementById(id);
-  var errorEl = document.getElementById(id + "Error");
+  const input = document.getElementById(id);
+  const errorEl = document.getElementById(id + "Error");
   if (!input) return;
 
   input.addEventListener("input", function () {

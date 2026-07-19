@@ -1,9 +1,9 @@
-var mockProducts = [];
+let mockProducts = [];
 
 export function initMockProducts() {
   if (mockProducts.length > 0) return mockProducts;
 
-  var now = new Date().toISOString();
+  const now = new Date().toISOString();
 
   mockProducts = [
     {
@@ -244,11 +244,11 @@ export function getProductById(id) {
 }
 
 export function addMockProduct(product) {
-  var maxId = mockProducts.reduce(function (max, p) {
+  const maxId = mockProducts.reduce(function (max, p) {
     return Math.max(max, p.id);
   }, 0);
   product.id = maxId + 1;
-  var now = new Date().toISOString();
+  const now = new Date().toISOString();
   product.created_at = now;
   product.updated_at = now;
   mockProducts.push(product);
@@ -256,7 +256,7 @@ export function addMockProduct(product) {
 }
 
 export function updateMockProduct(id, updates) {
-  var idx = mockProducts.findIndex(function (p) {
+  const idx = mockProducts.findIndex(function (p) {
     return p.id === id;
   });
   if (idx !== -1) {
@@ -267,7 +267,7 @@ export function updateMockProduct(id, updates) {
 }
 
 export function deleteMockProduct(id) {
-  var idx = mockProducts.findIndex(function (p) {
+  const idx = mockProducts.findIndex(function (p) {
     return p.id === id;
   });
   if (idx !== -1) {

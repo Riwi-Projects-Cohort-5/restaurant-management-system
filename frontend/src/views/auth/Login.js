@@ -181,23 +181,23 @@ export function init() {
     },
   });
 
-  var form = document.getElementById("loginForm");
-  var errorBox = document.getElementById("login-error");
-  var errorText = errorBox ? errorBox.querySelector("p") : null;
+  const form = document.getElementById("loginForm");
+  const errorBox = document.getElementById("login-error");
+  const errorText = errorBox ? errorBox.querySelector("p") : null;
 
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      var emailInput = document.getElementById("email");
-      var passwordInput = document.getElementById("password");
-      var signInBtn = document.getElementById("signInBtn");
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const signInBtn = document.getElementById("signInBtn");
 
-      var email = emailInput ? emailInput.value.trim() : "";
-      var password = passwordInput ? passwordInput.value : "";
+      const email = emailInput ? emailInput.value.trim() : "";
+      const password = passwordInput ? passwordInput.value : "";
 
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        var emailErr = document.getElementById("emailError");
+        const emailErr = document.getElementById("emailError");
         if (emailInput) emailInput.classList.add("error");
         if (emailErr) {
           emailErr.classList.remove("hidden");
@@ -213,8 +213,8 @@ export function init() {
         signInBtn.textContent = "Signing in...";
       }
 
-      var username = email.split("@")[0];
-      var result = authStore.login(username, password);
+      const username = email.split("@")[0];
+      const result = authStore.login(username, password);
 
       if (result.success) {
         window.location.hash = "#" + getHomeRoute(result.user.role);

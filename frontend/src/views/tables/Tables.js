@@ -1,14 +1,14 @@
 import { tables, areas, allOrders } from "../../store/posData.js";
 
-var subView = "main";
-var currentAreaFilter = "all";
-var selectedTableId = null;
-var expandedAreaId = null;
-var editingAreaId = null;
-var editingAreaIcon = null;
-var openPickerAreaId = null;
+let subView = "main";
+let currentAreaFilter = "all";
+let selectedTableId = null;
+let expandedAreaId = null;
+let editingAreaId = null;
+let editingAreaIcon = null;
+let openPickerAreaId = null;
 
-var ICON_LIST = [
+const ICON_LIST = [
   "home",
   "sun",
   "waves",
@@ -22,14 +22,14 @@ var ICON_LIST = [
 ];
 
 function getAreaName(areaId) {
-  var a = areas.find(function (x) {
+  const a = areas.find(function (x) {
     return x.id === areaId;
   });
   return a ? a.name : "";
 }
 
 function getAreaIcon(areaId) {
-  var a = areas.find(function (x) {
+  const a = areas.find(function (x) {
     return x.id === areaId;
   });
   return a ? a.icon : "home";
@@ -44,7 +44,7 @@ function getActiveOrderForTable(tableId) {
 /* ── Render Main ── */
 
 function renderMain(el) {
-  var html = '<div class="space-y-6">';
+  let html = '<div class="space-y-6">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<h2 class="text-xl font-semibold text-brand-900 font-display">Table Management</h2>';
@@ -56,7 +56,7 @@ function renderMain(el) {
   html += renderAreaFilters();
 
   html += '<div class="flex gap-3 text-xs text-brand-600">';
-  var availCount = 0,
+  let availCount = 0,
     occupiedCount = 0,
     reservedCount = 0;
   tables.forEach(function (t) {
@@ -79,13 +79,13 @@ function renderMain(el) {
   html += "</div>";
 
   if (selectedTableId) {
-    var st = tables.find(function (t) {
+    const st = tables.find(function (t) {
       return t.id === selectedTableId;
     });
     if (st) html += renderTableDetailCard(st);
   }
 
-  var areasToShow =
+  const areasToShow =
     currentAreaFilter === "all"
       ? areas
       : areas.filter(function (a) {
@@ -101,14 +101,14 @@ function renderMain(el) {
 }
 
 function renderAreaFilters() {
-  var counts = { all: tables.length };
+  const counts = { all: tables.length };
   areas.forEach(function (a) {
     counts[a.id] = tables.filter(function (t) {
       return t.area === a.id;
     }).length;
   });
 
-  var html = '<div class="flex flex-wrap gap-2 mb-4">';
+  let html = '<div class="flex flex-wrap gap-2 mb-4">';
   html +=
     '<button data-area-filter="all" class="px-4 py-2 rounded-full text-sm font-semibold border cursor-pointer transition-colors ' +
     (currentAreaFilter === "all"
@@ -121,7 +121,7 @@ function renderAreaFilters() {
     "</span></span></button>";
 
   areas.forEach(function (area) {
-    var isActive = currentAreaFilter === String(area.id);
+    const isActive = currentAreaFilter === String(area.id);
     html += '<span class="inline-flex items-center gap-0">';
     html +=
       '<button data-area-filter="' +
@@ -157,12 +157,12 @@ function renderAreaFilters() {
 }
 
 function renderAreaSection(area) {
-  var areaTables = tables.filter(function (t) {
+  const areaTables = tables.filter(function (t) {
     return t.area === area.id;
   });
-  var isExpanded = expandedAreaId === area.id;
+  const isExpanded = expandedAreaId === area.id;
 
-  var html = '<div class="bg-white border border-brand-200 rounded-xl mb-5 overflow-hidden">';
+  let html = '<div class="bg-white border border-brand-200 rounded-xl mb-5 overflow-hidden">';
   html +=
     '<div class="flex items-center justify-between px-5 py-4 bg-brand-50 border-b border-brand-200 cursor-pointer transition-colors hover:bg-brand-100" data-action="toggle-area" data-area-id="' +
     area.id +
@@ -204,14 +204,14 @@ function renderAreaSection(area) {
 }
 
 function renderTableShape(table) {
-  var statusStyles = {
+  const statusStyles = {
     available: "border-success-300 bg-success-50 text-success-700",
     occupied: "border-brand-300 bg-brand-50 text-brand-700",
     reserved: "border-accent-300 bg-accent-50 text-accent-700",
   };
-  var baseClasses =
+  const baseClasses =
     "aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-100 relative hover:scale-[1.03] hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)]";
-  var html =
+  let html =
     '<div data-table-id="' +
     table.id +
     '" class="' +
@@ -235,10 +235,10 @@ function renderTableShape(table) {
 /* ── Table Detail Card (inline overlay in main view) ── */
 
 function renderTableDetailCard(t) {
-  var order = getActiveOrderForTable(t.id);
-  var badgeHtml = renderBadge(t.status);
+  const order = getActiveOrderForTable(t.id);
+  const badgeHtml = renderBadge(t.status);
 
-  var html =
+  let html =
     '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
   html +=
     '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
@@ -325,9 +325,9 @@ function renderTableDetailCard(t) {
 }
 
 function renderBadge(status) {
-  var cls = "bg-secondary-100 text-secondary-700";
-  var dotCls = "bg-secondary-500";
-  var label = status;
+  let cls = "bg-secondary-100 text-secondary-700";
+  let dotCls = "bg-secondary-500";
+  let label = status;
   if (status === "available") {
     cls = "bg-success-100 text-success-700";
     dotCls = "bg-success-500";
@@ -355,7 +355,7 @@ function renderBadge(status) {
 /* ── Table Detail Sub-view ── */
 
 function renderDetail(el) {
-  var t = tables.find(function (x) {
+  const t = tables.find(function (x) {
     return x.id === selectedTableId;
   });
   if (!t) {
@@ -365,9 +365,9 @@ function renderDetail(el) {
     return;
   }
 
-  var order = getActiveOrderForTable(t.id);
+  const order = getActiveOrderForTable(t.id);
 
-  var html = "";
+  let html = "";
 
   html += '<div class="flex items-center justify-between mb-5">';
   html += '<div class="flex items-center gap-3">';
@@ -378,7 +378,7 @@ function renderDetail(el) {
   html += renderBadge(t.status);
   html += "</div>";
 
-  var gridCols = t.timer ? "grid-cols-5" : "grid-cols-4";
+  const gridCols = t.timer ? "grid-cols-5" : "grid-cols-4";
   html += '<div class="grid ' + gridCols + ' gap-4 mb-5">';
   html += renderInfoCard(
     "Table",
@@ -474,7 +474,7 @@ function renderDetail(el) {
     html += "</div>";
   }
 
-  var actions = "";
+  let actions = "";
   if (t.status === "occupied" && order) {
     actions =
       '<button data-action="view-order" data-order-id="' +
@@ -515,7 +515,7 @@ function renderInfoCard(label, valueHtml) {
 /* ── Manage Areas Sub-view ── */
 
 function renderManageAreas(el) {
-  var html = "";
+  let html = "";
 
   html += '<div class="flex items-center justify-between mb-5">';
   html += '<div class="flex items-center gap-3">';
@@ -529,12 +529,12 @@ function renderManageAreas(el) {
   html += '<div class="flex-1 min-w-0">';
 
   areas.forEach(function (area) {
-    var areaTables = tables.filter(function (t) {
+    const areaTables = tables.filter(function (t) {
       return t.area === area.id;
     });
-    var isExpanded = expandedAreaId === area.id;
-    var isEditing = editingAreaId === area.id;
-    var icon = editingAreaIcon || area.icon || "home";
+    const isExpanded = expandedAreaId === area.id;
+    const isEditing = editingAreaId === area.id;
+    const icon = editingAreaIcon || area.icon || "home";
 
     html += '<div class="relative mb-4">';
     html += '<div class="bg-white border border-brand-200 rounded-xl">';
@@ -676,17 +676,17 @@ function renderManageAreas(el) {
   el.innerHTML = html;
   window.createIcons();
   if (editingAreaId !== null) {
-    var input = document.getElementById("area-name-input");
+    const input = document.getElementById("area-name-input");
     if (input) {
       input.focus();
       input.select();
     }
   }
   if (openPickerAreaId !== null) {
-    var pickerWrapper = document.querySelector(
+    const pickerWrapper = document.querySelector(
       '[data-action="change-area-icon"][data-area-id="' + openPickerAreaId + '"]'
     );
-    var pickerArea = areas.find(function (a) {
+    const pickerArea = areas.find(function (a) {
       return a.id === openPickerAreaId;
     });
     if (pickerWrapper && pickerArea) {
@@ -707,8 +707,8 @@ function getTableStatusClasses(status) {
 function renderIconPickerPopup(targetEl, iconName, context, areaId) {
   if (!targetEl || !iconName) return;
 
-  var rect = targetEl.getBoundingClientRect();
-  var popup = document.createElement("div");
+  const rect = targetEl.getBoundingClientRect();
+  const popup = document.createElement("div");
   popup.className =
     "fixed z-100 bg-white border border-brand-200 rounded-lg p-3 shadow-[0_10px_25px_rgba(0,0,0,0.15)] grid grid-cols-5 gap-2";
   popup.style.top = rect.bottom + 4 + "px";
@@ -747,14 +747,14 @@ function renderIconPickerPopup(targetEl, iconName, context, areaId) {
 /* ── Inline Area Form ── */
 
 function renderInlineAreaForm(areaId, mode) {
-  var form = document.getElementById("inline-area-form");
+  const form = document.getElementById("inline-area-form");
   if (!form) return;
   if (!areaId) {
     form.innerHTML = "";
     return;
   }
 
-  var area = areas.find(function (a) {
+  const area = areas.find(function (a) {
     return a.id === areaId;
   });
   if (!area) {
@@ -762,7 +762,7 @@ function renderInlineAreaForm(areaId, mode) {
     return;
   }
 
-  var html =
+  let html =
     '<div class="flex gap-3 items-end bg-white border border-brand-300 rounded-xl p-4 shadow-sm mb-4">';
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Name<input type="text" id="inline-area-name" value="' +
@@ -785,21 +785,21 @@ function renderInlineAreaForm(areaId, mode) {
   html += "</div>";
   form.innerHTML = html;
   window.createIcons();
-  var nameInput = document.getElementById("inline-area-name");
+  const nameInput = document.getElementById("inline-area-name");
   if (nameInput) nameInput.focus();
 }
 
 /* ── Event Handling ── */
 
-var eventsAttached = false;
+let eventsAttached = false;
 
 function setupEvents(el) {
   if (eventsAttached) return;
   eventsAttached = true;
   el.addEventListener("click", function (e) {
-    var target = e.target;
+    const target = e.target;
 
-    var areaFilter = target.closest("[data-area-filter]");
+    const areaFilter = target.closest("[data-area-filter]");
     if (areaFilter) {
       e.stopPropagation();
       currentAreaFilter = areaFilter.getAttribute("data-area-filter");
@@ -810,10 +810,10 @@ function setupEvents(el) {
       return;
     }
 
-    var tableEl = target.closest("[data-table-id]");
+    const tableEl = target.closest("[data-table-id]");
     if (tableEl && !target.closest('[class*="px-5 pb-5"]')) {
       e.stopPropagation();
-      var tid = parseInt(tableEl.getAttribute("data-table-id"));
+      const tid = parseInt(tableEl.getAttribute("data-table-id"));
       selectedTableId = tid;
       expandedAreaId = null;
       subView = "main";
@@ -821,7 +821,7 @@ function setupEvents(el) {
       return;
     }
 
-    var closeDetail = target.closest('[data-action="close-detail"]');
+    const closeDetail = target.closest('[data-action="close-detail"]');
     if (closeDetail) {
       e.stopPropagation();
       selectedTableId = null;
@@ -829,7 +829,7 @@ function setupEvents(el) {
       return;
     }
 
-    var backBtn = target.closest('[data-action="back"]');
+    const backBtn = target.closest('[data-action="back"]');
     if (backBtn) {
       e.stopPropagation();
       subView = "main";
@@ -845,33 +845,33 @@ function setupEvents(el) {
       return;
     }
 
-    var toggleArea = target.closest('[data-action="toggle-area"]');
+    const toggleArea = target.closest('[data-action="toggle-area"]');
     if (toggleArea) {
       e.stopPropagation();
-      var aid = parseInt(toggleArea.getAttribute("data-area-id"));
+      const aid = parseInt(toggleArea.getAttribute("data-area-id"));
       expandedAreaId = expandedAreaId === aid ? null : aid;
       renderMain(el);
       return;
     }
 
-    var editInline = target.closest('[data-action="edit-area-inline"]');
+    const editInline = target.closest('[data-action="edit-area-inline"]');
     if (editInline) {
       e.stopPropagation();
-      var eaid = parseInt(editInline.getAttribute("data-area-id"));
+      const eaid = parseInt(editInline.getAttribute("data-area-id"));
       renderInlineAreaForm(eaid, "edit");
       return;
     }
 
-    var saveInline = target.closest('[data-action="save-inline-area"]');
+    const saveInline = target.closest('[data-action="save-inline-area"]');
     if (saveInline) {
       e.stopPropagation();
-      var said = parseInt(saveInline.getAttribute("data-area-id"));
-      var sa = areas.find(function (a) {
+      const said = parseInt(saveInline.getAttribute("data-area-id"));
+      const sa = areas.find(function (a) {
         return a.id === said;
       });
-      var nameInp = document.getElementById("inline-area-name");
+      const nameInp = document.getElementById("inline-area-name");
       if (sa && nameInp) {
-        var newName = nameInp.value.trim();
+        const newName = nameInp.value.trim();
         if (newName) {
           sa.name = newName;
         }
@@ -881,22 +881,22 @@ function setupEvents(el) {
       return;
     }
 
-    var cancelInline = target.closest('[data-action="cancel-inline-area"]');
+    const cancelInline = target.closest('[data-action="cancel-inline-area"]');
     if (cancelInline) {
       e.stopPropagation();
       renderInlineAreaForm(null);
       return;
     }
 
-    var deleteAreaBtn = target.closest('[data-action="delete-area"]');
+    const deleteAreaBtn = target.closest('[data-action="delete-area"]');
     if (deleteAreaBtn) {
       e.stopPropagation();
-      var daid = parseInt(deleteAreaBtn.getAttribute("data-area-id"));
-      var daTables = tables.filter(function (t) {
+      const daid = parseInt(deleteAreaBtn.getAttribute("data-area-id"));
+      const daTables = tables.filter(function (t) {
         return t.area === daid;
       });
       if (daTables.length > 0) return;
-      var daidx = areas.findIndex(function (a) {
+      const daidx = areas.findIndex(function (a) {
         return a.id === daid;
       });
       if (daidx > -1) {
@@ -914,11 +914,11 @@ function setupEvents(el) {
       return;
     }
 
-    var deleteTable = target.closest('[data-action="delete-table"]');
+    const deleteTable = target.closest('[data-action="delete-table"]');
     if (deleteTable) {
       e.stopPropagation();
-      var dtid = parseInt(deleteTable.getAttribute("data-table-id"));
-      var dtidx = tables.findIndex(function (t) {
+      const dtid = parseInt(deleteTable.getAttribute("data-table-id"));
+      const dtidx = tables.findIndex(function (t) {
         return t.id === dtid;
       });
       if (dtidx > -1) {
@@ -928,7 +928,7 @@ function setupEvents(el) {
       return;
     }
 
-    var manageAreas = target.closest('[data-action="manage-areas"]');
+    const manageAreas = target.closest('[data-action="manage-areas"]');
     if (manageAreas) {
       e.stopPropagation();
       subView = "manage-areas";
@@ -943,18 +943,17 @@ function setupEvents(el) {
       return;
     }
 
-    var viewOrder = target.closest('[data-action="view-order"]');
+    const viewOrder = target.closest('[data-action="view-order"]');
     if (viewOrder) {
       e.stopPropagation();
-      var oid = parseInt(viewOrder.getAttribute("data-order-id"));
       document.querySelector('[data-view="pos"]');
       return;
     }
 
-    var renameArea = target.closest('[data-action="rename-area"]');
+    const renameArea = target.closest('[data-action="rename-area"]');
     if (renameArea) {
       e.stopPropagation();
-      var raid = parseInt(renameArea.getAttribute("data-area-id"));
+      const raid = parseInt(renameArea.getAttribute("data-area-id"));
       editingAreaId = raid;
       openPickerAreaId = null;
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
@@ -964,11 +963,11 @@ function setupEvents(el) {
       return;
     }
 
-    var changeIcon = target.closest('[data-action="change-area-icon"]');
+    const changeIcon = target.closest('[data-action="change-area-icon"]');
     if (changeIcon) {
       e.stopPropagation();
-      var ciid = parseInt(changeIcon.getAttribute("data-area-id"));
-      var cia = areas.find(function (a) {
+      const ciid = parseInt(changeIcon.getAttribute("data-area-id"));
+      const cia = areas.find(function (a) {
         return a.id === ciid;
       });
       if (openPickerAreaId === ciid) {
@@ -987,16 +986,16 @@ function setupEvents(el) {
       return;
     }
 
-    var saveAreaName = target.closest('[data-action="save-area-name"]');
+    const saveAreaName = target.closest('[data-action="save-area-name"]');
     if (saveAreaName) {
       e.stopPropagation();
-      var said2 = parseInt(saveAreaName.getAttribute("data-area-id"));
-      var sa2 = areas.find(function (a) {
+      const said2 = parseInt(saveAreaName.getAttribute("data-area-id"));
+      const sa2 = areas.find(function (a) {
         return a.id === said2;
       });
-      var inp = document.getElementById("area-name-input");
+      const inp = document.getElementById("area-name-input");
       if (sa2 && inp) {
-        var n = inp.value.trim();
+        const n = inp.value.trim();
         if (n) sa2.name = n;
       }
       editingAreaId = null;
@@ -1004,7 +1003,7 @@ function setupEvents(el) {
       return;
     }
 
-    var toggleManageArea = target.closest('[data-action="toggle-manage-area"]');
+    const toggleManageArea = target.closest('[data-action="toggle-manage-area"]');
     if (toggleManageArea) {
       if (
         target.id === "area-name-input" ||
@@ -1014,7 +1013,7 @@ function setupEvents(el) {
         return;
       }
       e.stopPropagation();
-      var maid = parseInt(toggleManageArea.getAttribute("data-area-id"));
+      const maid = parseInt(toggleManageArea.getAttribute("data-area-id"));
       expandedAreaId = expandedAreaId === maid ? null : maid;
       editingAreaId = null;
       editingAreaIcon = null;
@@ -1026,11 +1025,11 @@ function setupEvents(el) {
       return;
     }
 
-    var openInlineIconPicker = target.closest('[data-action="open-inline-icon-picker"]');
+    const openInlineIconPicker = target.closest('[data-action="open-inline-icon-picker"]');
     if (openInlineIconPicker) {
       e.stopPropagation();
-      var iiaid = parseInt(openInlineIconPicker.getAttribute("data-area-id"));
-      var iia = areas.find(function (a) {
+      const iiaid = parseInt(openInlineIconPicker.getAttribute("data-area-id"));
+      const iia = areas.find(function (a) {
         return a.id === iiaid;
       });
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
@@ -1040,7 +1039,7 @@ function setupEvents(el) {
       return;
     }
 
-    var openNewAreaIconPicker = target.closest('[data-action="open-new-area-icon-picker"]');
+    const openNewAreaIconPicker = target.closest('[data-action="open-new-area-icon-picker"]');
     if (openNewAreaIconPicker) {
       e.stopPropagation();
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
@@ -1050,12 +1049,12 @@ function setupEvents(el) {
       return;
     }
 
-    var iconPick = target.closest("[data-icon-pick]");
+    const iconPick = target.closest("[data-icon-pick]");
     if (iconPick) {
       e.stopPropagation();
-      var iconName = iconPick.getAttribute("data-icon-pick");
-      var pickerContext = iconPick.getAttribute("data-picker-context");
-      var ipaid = parseInt(iconPick.getAttribute("data-area-id"));
+      const iconName = iconPick.getAttribute("data-icon-pick");
+      const pickerContext = iconPick.getAttribute("data-picker-context");
+      const ipaid = parseInt(iconPick.getAttribute("data-area-id"));
 
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
@@ -1063,14 +1062,14 @@ function setupEvents(el) {
       openPickerAreaId = null;
 
       if (pickerContext === "area" && ipaid) {
-        var ipa = areas.find(function (a) {
+        const ipa = areas.find(function (a) {
           return a.id === ipaid;
         });
         if (ipa) ipa.icon = iconName;
         editingAreaIcon = iconName;
         renderManageAreas(el);
       } else if (pickerContext === "inline" && ipaid) {
-        var ipa2 = areas.find(function (a) {
+        const ipa2 = areas.find(function (a) {
           return a.id === ipaid;
         });
         if (ipa2) ipa2.icon = iconName;
@@ -1082,11 +1081,11 @@ function setupEvents(el) {
       return;
     }
 
-    var addTableBtn = target.closest('[data-action="add-table-to-area"]');
+    const addTableBtn = target.closest('[data-action="add-table-to-area"]');
     if (addTableBtn) {
       e.stopPropagation();
-      var ataid = parseInt(addTableBtn.getAttribute("data-area-id"));
-      var maxTableId = tables.reduce(function (m, t) {
+      const ataid = parseInt(addTableBtn.getAttribute("data-area-id"));
+      const maxTableId = tables.reduce(function (m, t) {
         return Math.max(m, t.id);
       }, 0);
       tables.push({
@@ -1101,14 +1100,14 @@ function setupEvents(el) {
       return;
     }
 
-    var createTable = target.closest('[data-action="create-table"]');
+    const createTable = target.closest('[data-action="create-table"]');
     if (createTable) {
       e.stopPropagation();
-      var areaSelect = document.getElementById("new-table-area");
-      var seatsInput = document.getElementById("new-table-seats");
-      var newAreaId = parseInt(areaSelect.value);
-      var newSeats = parseInt(seatsInput.value) || 4;
-      var maxId = tables.reduce(function (m, t) {
+      const areaSelect = document.getElementById("new-table-area");
+      const seatsInput = document.getElementById("new-table-seats");
+      const newAreaId = parseInt(areaSelect.value);
+      const newSeats = parseInt(seatsInput.value) || 4;
+      const maxId = tables.reduce(function (m, t) {
         return Math.max(m, t.id);
       }, 0);
       tables.push({
@@ -1123,16 +1122,16 @@ function setupEvents(el) {
       return;
     }
 
-    var saveNewArea = target.closest('[data-action="save-new-area"]');
+    const saveNewArea = target.closest('[data-action="save-new-area"]');
     if (saveNewArea) {
       e.stopPropagation();
-      var nameEl = document.getElementById("new-area-name");
-      var name = nameEl ? nameEl.value.trim() : "";
+      const nameEl = document.getElementById("new-area-name");
+      const name = nameEl ? nameEl.value.trim() : "";
       if (!name) {
         if (nameEl) nameEl.focus();
         return;
       }
-      var maxAreaId = areas.reduce(function (m, a) {
+      const maxAreaId = areas.reduce(function (m, a) {
         return Math.max(m, a.id);
       }, 0);
       areas.push({ id: maxAreaId + 1, name: name, icon: editingAreaIcon || "home" });
@@ -1143,11 +1142,11 @@ function setupEvents(el) {
   });
 
   el.addEventListener("change", function (e) {
-    var target = e.target;
+    const target = e.target;
     if (target.matches('[data-action="reassign-table"]')) {
-      var tid = parseInt(target.getAttribute("data-table-id"));
-      var newAreaId = parseInt(target.value);
-      var table = tables.find(function (t) {
+      const tid = parseInt(target.getAttribute("data-table-id"));
+      const newAreaId = parseInt(target.value);
+      const table = tables.find(function (t) {
         return t.id === tid;
       });
       if (table) {
@@ -1159,7 +1158,7 @@ function setupEvents(el) {
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && e.target.id === "area-name-input") {
-      var saveBtn = el.querySelector('[data-action="save-area-name"]');
+      const saveBtn = el.querySelector('[data-action="save-area-name"]');
       if (saveBtn) saveBtn.click();
     }
     if (e.key === "Escape") {
@@ -1175,7 +1174,7 @@ function setupEvents(el) {
 
 /* ── Export ── */
 
-var TablesView = {
+const TablesView = {
   render: function (el) {
     setupEvents(el);
     if (subView === "detail") {

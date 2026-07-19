@@ -6,14 +6,14 @@ import { currentUser } from "../../store/auth.js";
 initMockCategories();
 initMockProducts();
 
-var subView = "list";
-var selectedId = null;
-var activeCategoryFilter = "";
-var activeAvailableFilter = "";
-var searchQuery = "";
+let subView = "list";
+let selectedId = null;
+let activeCategoryFilter = "";
+let activeAvailableFilter = "";
+let searchQuery = "";
 
 function getCategoryEmoji(categoryId) {
-  var emojis = {
+  const emojis = {
     1: "🍟",
     2: "🍽️",
     3: "🦐",
@@ -34,7 +34,7 @@ function availabilityBadge(available) {
 }
 
 function formatDate(dateStr) {
-  var date = new Date(dateStr);
+  const date = new Date(dateStr);
   return (
     date.toLocaleDateString() +
     " " +
@@ -43,8 +43,8 @@ function formatDate(dateStr) {
 }
 
 function getFiltered() {
-  var all = menuStore.getState().products;
-  var filtered = all;
+  const all = menuStore.getState().products;
+  let filtered = all;
 
   if (activeCategoryFilter) {
     filtered = filtered.filter(function (p) {
@@ -53,14 +53,14 @@ function getFiltered() {
   }
 
   if (activeAvailableFilter !== "") {
-    var isAvailable = activeAvailableFilter === "available";
+    const isAvailable = activeAvailableFilter === "available";
     filtered = filtered.filter(function (p) {
       return p.available === isAvailable;
     });
   }
 
   if (searchQuery) {
-    var q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     filtered = filtered.filter(function (p) {
       return (
         p.name.toLowerCase().includes(q) ||
@@ -73,10 +73,10 @@ function getFiltered() {
 }
 
 function renderList(el) {
-  var products = getFiltered();
-  var categories = menuService.getAllCategories();
+  const products = getFiltered();
+  const categories = menuService.getAllCategories();
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Menu Management</h2>';
@@ -152,9 +152,9 @@ function renderList(el) {
     html += "</div>";
   } else {
     products.forEach(function (product) {
-      var category = menuService.getCategoryById(product.category_id);
-      var categoryName = category ? category.name : "Unknown";
-      var emoji = product.image_url || getCategoryEmoji(product.category_id);
+      const category = menuService.getCategoryById(product.category_id);
+      const categoryName = category ? category.name : "Unknown";
+      const emoji = product.image_url || getCategoryEmoji(product.category_id);
 
       html +=
         '<div class="bg-white border border-brand-300 rounded-xl p-4 flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)] transition-all">';
@@ -204,18 +204,18 @@ function renderList(el) {
 }
 
 function renderDetail(el, productId) {
-  var product = menuService.getProductById(productId);
+  const product = menuService.getProductById(productId);
   if (!product) {
     renderList(el);
     return;
   }
 
-  var category = menuService.getCategoryById(product.category_id);
-  var categoryName = category ? category.name : "Unknown";
-  var emoji = product.image_url || getCategoryEmoji(product.category_id);
-  var canDelete = currentUser && currentUser.role === "admin";
+  const category = menuService.getCategoryById(product.category_id);
+  const categoryName = category ? category.name : "Unknown";
+  const emoji = product.image_url || getCategoryEmoji(product.category_id);
+  const canDelete = currentUser && currentUser.role === "admin";
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -311,11 +311,11 @@ function renderDetail(el, productId) {
 }
 
 function renderForm(el, productId) {
-  var isEdit = !!productId;
-  var product = isEdit ? menuService.getProductById(productId) : null;
-  var categories = menuService.getAllCategories();
+  const isEdit = !!productId;
+  const product = isEdit ? menuService.getProductById(productId) : null;
+  const categories = menuService.getAllCategories();
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -415,10 +415,10 @@ function renderForm(el, productId) {
 
 function setupListEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "create-product") {
       subView = "create";
@@ -443,7 +443,7 @@ function setupListEvents(el) {
     }
   });
 
-  var searchInput = el.querySelector("#menu-search");
+  const searchInput = el.querySelector("#menu-search");
   if (searchInput) {
     searchInput.addEventListener("input", function (e) {
       searchQuery = e.target.value;
@@ -451,7 +451,7 @@ function setupListEvents(el) {
     });
   }
 
-  var categoryFilter = el.querySelector("#menu-category-filter");
+  const categoryFilter = el.querySelector("#menu-category-filter");
   if (categoryFilter) {
     categoryFilter.addEventListener("change", function (e) {
       activeCategoryFilter = e.target.value;
@@ -459,7 +459,7 @@ function setupListEvents(el) {
     });
   }
 
-  var availableFilter = el.querySelector("#menu-available-filter");
+  const availableFilter = el.querySelector("#menu-available-filter");
   if (availableFilter) {
     availableFilter.addEventListener("change", function (e) {
       activeAvailableFilter = e.target.value;
@@ -470,10 +470,10 @@ function setupListEvents(el) {
 
 function setupDetailEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "back-to-list") {
       subView = "list";
@@ -500,30 +500,30 @@ function setupDetailEvents(el) {
 
 function setupFormEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "back-to-list") {
       subView = "list";
       selectedId = null;
       renderList(el);
     } else if (action === "save-product") {
-      var productId = btn.dataset.productId ? parseInt(btn.dataset.productId) : null;
-      var nameInput = el.querySelector("#product-name");
-      var categorySelect = el.querySelector("#product-category");
-      var descInput = el.querySelector("#product-description");
-      var priceInput = el.querySelector("#product-price");
-      var imageInput = el.querySelector("#product-image-url");
-      var availableInput = el.querySelector("#product-available");
+      const productId = btn.dataset.productId ? parseInt(btn.dataset.productId) : null;
+      const nameInput = el.querySelector("#product-name");
+      const categorySelect = el.querySelector("#product-category");
+      const descInput = el.querySelector("#product-description");
+      const priceInput = el.querySelector("#product-price");
+      const imageInput = el.querySelector("#product-image-url");
+      const availableInput = el.querySelector("#product-available");
 
-      var name = nameInput.value.trim();
-      var categoryId = parseInt(categorySelect.value);
-      var description = descInput.value.trim();
-      var price = parseFloat(priceInput.value);
-      var imageUrl = imageInput.value.trim() || null;
-      var available = availableInput.checked;
+      const name = nameInput.value.trim();
+      const categoryId = parseInt(categorySelect.value);
+      const description = descInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const imageUrl = imageInput.value.trim() || null;
+      const available = availableInput.checked;
 
       if (!name) {
         alert("Please enter a product name");
@@ -538,7 +538,7 @@ function setupFormEvents(el) {
         return;
       }
 
-      var data = {
+      const data = {
         category_id: categoryId,
         name: name,
         description: description,

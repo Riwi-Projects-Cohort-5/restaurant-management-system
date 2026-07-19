@@ -1,15 +1,14 @@
 import WelcomeBanner from "../../components/ui/WelcomeBanner.js";
 import StatCard from "../../components/ui/StatCard.js";
 import SalesChart from "../../components/dashboard/SalesChart.js";
-import TableStatusCard from "../../components/dashboard/TableStatusCard.js";
 import { allOrders } from "../../store/posData.js";
 
-var Dashboard = {
+const Dashboard = {
   render: function (el) {
-    var user = window.userData || { name: "Admin", initials: "MC" };
-    var recentOrders = allOrders.slice(0, 5);
+    const user = window.userData || { name: "Admin", initials: "MC" };
+    const recentOrders = allOrders.slice(0, 5);
 
-    var statusMap = {
+    const statusMap = {
       draft:
         '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span> Draft</span>',
       completed:
@@ -25,7 +24,7 @@ var Dashboard = {
         '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-error-100 text-error-700"><span class="w-1.5 h-1.5 rounded-full bg-error-500"></span> Cancelled</span>',
     };
 
-    var html = '<div class="space-y-0">';
+    let html = '<div class="space-y-0">';
 
     html += WelcomeBanner({ user: user, time: "morning" });
 
@@ -113,7 +112,7 @@ var Dashboard = {
     html += "</tr></thead>";
     html += "<tbody>";
     recentOrders.forEach(function (o, i) {
-      var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+      const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
       html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + "</td>";
       html += '<td class="px-4 py-3">Table ' + o.table + "</td>";

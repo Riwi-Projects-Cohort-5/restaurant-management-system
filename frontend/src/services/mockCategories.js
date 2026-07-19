@@ -1,4 +1,4 @@
-var mockCategories = [];
+let mockCategories = [];
 
 export function initMockCategories() {
   if (mockCategories.length > 0) return mockCategories;
@@ -30,7 +30,7 @@ export function getCategoryById(id) {
 }
 
 export function addMockCategory(category) {
-  var maxId = mockCategories.reduce(function (max, c) {
+  const maxId = mockCategories.reduce(function (max, c) {
     return Math.max(max, c.id);
   }, 0);
   category.id = maxId + 1;

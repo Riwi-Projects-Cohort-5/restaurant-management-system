@@ -1,13 +1,13 @@
-var LIFECYCLE = ["draft", "new", "preparing", "ready", "served", "completed"];
+const LIFECYCLE = ["draft", "new", "preparing", "ready", "served", "completed"];
 
 function StatusStepper(opts) {
   opts = opts || {};
-  var current = opts.status || "new";
-  var cancelled = opts.cancelled || false;
+  const current = opts.status || "new";
+  const cancelled = opts.cancelled || false;
 
-  var ci = LIFECYCLE.indexOf(current);
+  const ci = LIFECYCLE.indexOf(current);
 
-  var html = '<div class="flex items-center w-full">';
+  let html = '<div class="flex items-center w-full">';
 
   if (cancelled) {
     html += '<div class="w-full text-center py-3">';
@@ -21,11 +21,11 @@ function StatusStepper(opts) {
   }
 
   LIFECYCLE.forEach(function (step, i) {
-    var isDone = i < ci;
-    var isCurrent = i === ci;
-    var isConnector = i < LIFECYCLE.length - 1;
+    const isDone = i < ci;
+    const isCurrent = i === ci;
+    const isConnector = i < LIFECYCLE.length - 1;
 
-    var dotClass = isDone
+    const dotClass = isDone
       ? "bg-success-500 text-white"
       : isCurrent
         ? "bg-primary-600 text-white ring-4 ring-primary-200"

@@ -1,6 +1,6 @@
 import AppShell from "./AppShell.js";
 
-var Sidebar = {
+const Sidebar = {
   render: function (el) {
     AppShell.render(el);
   },

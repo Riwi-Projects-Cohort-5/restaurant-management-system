@@ -1,9 +1,9 @@
 function CheckboxField(opts) {
-  var id = opts.id;
-  var label = opts.label || "";
-  var checked = opts.checked || false;
+  const id = opts.id;
+  const label = opts.label || "";
+  const checked = opts.checked || false;
 
-  var html = '<label class="flex items-center gap-2 cursor-pointer" for="' + id + '">';
+  let html = '<label class="flex items-center gap-2 cursor-pointer" for="' + id + '">';
   html +=
     '<input type="checkbox" id="' +
     id +
@@ -27,7 +27,7 @@ function CheckboxField(opts) {
   return html;
 }
 
-function initCheckboxField(id) {
+function initCheckboxField(_id) {
   // Tailwind peer-checked handles the visual state
 }
 
