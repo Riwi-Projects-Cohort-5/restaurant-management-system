@@ -1,15 +1,15 @@
-import { menuItems, allOrders, recalcOrder } from "../../store/posData.js";
+import { allOrders, recalcOrder } from "../../store/posData.js";
 
-var cartItems = [];
+let cartItems = [];
 
 function CartPanel() {
-  var subtotal = cartItems.reduce(function (s, i) {
+  const subtotal = cartItems.reduce(function (s, i) {
     return s + i.price * i.qty;
   }, 0);
-  var tax = Math.round(subtotal * 0.1 * 100) / 100;
-  var total = Math.round((subtotal + tax) * 100) / 100;
+  const tax = Math.round(subtotal * 0.1 * 100) / 100;
+  const total = Math.round((subtotal + tax) * 100) / 100;
 
-  var html =
+  let html =
     '<div class="pos-cart bg-white border border-brand-300 rounded-xl shadow-sm p-5 h-full flex flex-col">';
   html += '<div class="flex items-center justify-between mb-4">';
   html += '<h3 class="text-base font-semibold text-primary-700 font-display">Current Order</h3>';
@@ -82,10 +82,10 @@ function CartPanel() {
 
 function setupCartEvents() {
   document.addEventListener("click", function (e) {
-    var qtyBtn = e.target.closest("[data-qty]");
+    const qtyBtn = e.target.closest("[data-qty]");
     if (qtyBtn) {
-      var idx = parseInt(qtyBtn.getAttribute("data-idx"));
-      var delta = parseInt(qtyBtn.getAttribute("data-qty"));
+      const idx = parseInt(qtyBtn.getAttribute("data-idx"));
+      const delta = parseInt(qtyBtn.getAttribute("data-qty"));
       if (cartItems[idx]) {
         cartItems[idx].qty = Math.max(1, cartItems[idx].qty + delta);
         refreshCart();
@@ -93,9 +93,9 @@ function setupCartEvents() {
       return;
     }
 
-    var removeBtn = e.target.closest("[data-remove-idx]");
+    const removeBtn = e.target.closest("[data-remove-idx]");
     if (removeBtn) {
-      var ridx = parseInt(removeBtn.getAttribute("data-remove-idx"));
+      const ridx = parseInt(removeBtn.getAttribute("data-remove-idx"));
       cartItems.splice(ridx, 1);
       refreshCart();
       return;
@@ -103,8 +103,8 @@ function setupCartEvents() {
   });
 
   window.addEventListener("cart:add", function (e) {
-    var item = e.detail.item;
-    var existing = cartItems.find(function (c) {
+    const item = e.detail.item;
+    const existing = cartItems.find(function (c) {
       return c.id === item.id;
     });
     if (existing) {
@@ -124,10 +124,10 @@ function setupCartEvents() {
   document.addEventListener("click", function (e) {
     if (e.target.id === "cart-send-kitchen") {
       if (cartItems.length === 0) return;
-      var maxId = allOrders.reduce(function (m, o) {
+      const maxId = allOrders.reduce(function (m, o) {
         return Math.max(m, o.id);
       }, 1034);
-      var newOrder = {
+      const newOrder = {
         id: maxId + 1,
         table: Math.floor(Math.random() * 12) + 1,
         items: cartItems.map(function (c) {
@@ -150,10 +150,10 @@ function setupCartEvents() {
 
     if (e.target.id === "cart-save-draft") {
       if (cartItems.length === 0) return;
-      var maxId2 = allOrders.reduce(function (m, o) {
+      const maxId2 = allOrders.reduce(function (m, o) {
         return Math.max(m, o.id);
       }, 1034);
-      var draft = {
+      const draft = {
         id: maxId2 + 1,
         table: 0,
         items: cartItems.map(function (c) {
@@ -177,9 +177,9 @@ function setupCartEvents() {
 }
 
 function refreshCart() {
-  var container = document.querySelector(".pos-cart");
+  const container = document.querySelector(".pos-cart");
   if (!container) return;
-  var parent = container.parentElement;
+  const parent = container.parentElement;
   if (!parent) return;
   parent.innerHTML = CartPanel();
   window.createIcons();

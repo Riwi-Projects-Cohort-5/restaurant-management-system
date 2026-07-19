@@ -1,7 +1,7 @@
 function PasswordToggle(opts) {
-  var inputId = opts.inputId;
+  const inputId = opts.inputId;
 
-  var html =
+  let html =
     '<button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 ' +
     "flex items-center justify-center w-5 h-5 p-0 " +
     "bg-transparent border-none cursor-pointer text-neutral-400 " +
@@ -15,18 +15,18 @@ function PasswordToggle(opts) {
 }
 
 function initPasswordToggles() {
-  var toggles = document.querySelectorAll(".password-toggle");
+  const toggles = document.querySelectorAll(".password-toggle");
   toggles.forEach(function (toggle) {
-    var inputId = toggle.dataset.input;
-    var input = document.getElementById(inputId);
+    const inputId = toggle.dataset.input;
+    const input = document.getElementById(inputId);
     if (!input) return;
 
     toggle.addEventListener("click", function () {
-      var isPassword = input.type === "password";
+      const isPassword = input.type === "password";
       input.type = isPassword ? "text" : "password";
 
-      var eyeIcon = toggle.querySelector(".icon-eye");
-      var eyeOffIcon = toggle.querySelector(".icon-eye-off");
+      const eyeIcon = toggle.querySelector(".icon-eye");
+      const eyeOffIcon = toggle.querySelector(".icon-eye-off");
 
       if (eyeIcon && eyeOffIcon) {
         eyeIcon.style.display = isPassword ? "none" : "block";

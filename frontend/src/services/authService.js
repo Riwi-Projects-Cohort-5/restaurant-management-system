@@ -94,5 +94,5 @@ export function updateUserRole(userId, newRole) {
 }
 
 export function getAllUsersSafe() {
-  return getUsers().map(({ password, ...u }) => u);
+  return getUsers().map(({ password: _password, ...u }) => u);
 }

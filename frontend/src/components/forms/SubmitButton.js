@@ -1,9 +1,9 @@
 function SubmitButton(opts) {
-  var text = opts.text || "Submit";
-  var id = opts.id || "submitBtn";
-  var disabled = opts.disabled || false;
+  const text = opts.text || "Submit";
+  const id = opts.id || "submitBtn";
+  const disabled = opts.disabled || false;
 
-  var html =
+  const html =
     '<button type="submit" id="' +
     id +
     '" ' +
@@ -20,7 +20,7 @@ function SubmitButton(opts) {
   return html;
 }
 
-function initSubmitButton(id, options) {
+function initSubmitButton(_id, _options) {
   // Handled by the login form's own submit handler
 }
 

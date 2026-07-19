@@ -1,11 +1,11 @@
 function WelcomeBanner(opts) {
   opts = opts || {};
-  var user = opts.user || {};
-  var name = user.name || "Admin";
-  var initials = user.initials || "MC";
-  var time = opts.time || "morning";
+  const user = opts.user || {};
+  const name = user.name || "Admin";
+  const initials = user.initials || "MC";
+  const time = opts.time || "morning";
 
-  var html =
+  let html =
     '<div class="relative overflow-hidden rounded-2xl p-8 mb-6 flex items-center justify-between shadow-[0_8px_32px_rgba(114,49,23,0.25),0_2px_8px_rgba(0,0,0,0.1)]" style="background:linear-gradient(135deg, #E57722 0%, #B14616 40%, #4F473F 100%);">';
   html +=
     '<div class="absolute rounded-full pointer-events-none w-[450px] h-[450px]" style="top:-60%;right:-5%;background:radial-gradient(circle,rgba(251,191,36,0.25) 0%,transparent 70%);"></div>';

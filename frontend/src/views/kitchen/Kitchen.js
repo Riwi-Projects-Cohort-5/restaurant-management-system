@@ -1,12 +1,12 @@
-import { kitchenOrders, setKitchenOrders } from "../../store/posData.js";
+import { kitchenOrders } from "../../store/posData.js";
 
 function moveOrder(id, newStatus) {
-  var order = kitchenOrders.find(function (o) {
+  const order = kitchenOrders.find(function (o) {
     return o.id === id;
   });
   if (!order) return;
   if (newStatus === "served") {
-    var idx = kitchenOrders.indexOf(order);
+    const idx = kitchenOrders.indexOf(order);
     if (idx > -1) kitchenOrders.splice(idx, 1);
   } else {
     order.status = newStatus;
@@ -16,11 +16,11 @@ function moveOrder(id, newStatus) {
 }
 
 function renderColumn(col) {
-  var orders = kitchenOrders.filter(function (o) {
+  const orders = kitchenOrders.filter(function (o) {
     return o.status === col.key;
   });
 
-  var html = '<div class="flex flex-col rounded-xl overflow-hidden ' + col.colBg + '">';
+  let html = '<div class="flex flex-col rounded-xl overflow-hidden ' + col.colBg + '">';
   html += '<div class="flex items-center justify-between px-5 py-4">';
   html += '<span class="text-[15px] font-bold ' + col.headerColor + '">' + col.label + "</span>";
   html +=
@@ -47,17 +47,17 @@ function renderColumn(col) {
 }
 
 function renderCard(order, col) {
-  var actionLabel =
+  const actionLabel =
     col.key === "new" ? "Start Preparing" : col.key === "preparing" ? "Mark Ready" : "Served";
-  var actionBg =
+  const actionBg =
     col.key === "new"
       ? "bg-brand-600 hover:bg-brand-700"
       : col.key === "preparing"
         ? "bg-primary-600 hover:bg-primary-700"
         : "bg-brand-600 hover:bg-brand-700";
-  var isUrgent = order.time > 15;
+  const isUrgent = order.time > 15;
 
-  var html =
+  let html =
     '<div class="bg-white border border-brand-300 rounded-lg p-4 shadow-[0_2px_6px_rgba(114,49,23,0.08)]">';
 
   html += '<div class="flex items-center justify-between mb-3">';
@@ -105,9 +105,9 @@ function renderCard(order, col) {
   return html;
 }
 
-var KitchenView = {
+const KitchenView = {
   render: function (el) {
-    var cols = [
+    const cols = [
       {
         key: "new",
         label: "New Orders",
@@ -137,7 +137,7 @@ var KitchenView = {
       },
     ];
 
-    var html = '<div class="flex flex-col h-full">';
+    let html = '<div class="flex flex-col h-full">';
 
     html += '<div class="flex items-center justify-between mb-5">';
     html += '<h2 class="text-xl font-bold text-brand-900">Kitchen Orders</h2>';
@@ -154,10 +154,10 @@ var KitchenView = {
     el.innerHTML = html;
 
     el.addEventListener("click", function (e) {
-      var btn = e.target.closest('[data-kitchen-action="move"]');
+      const btn = e.target.closest('[data-kitchen-action="move"]');
       if (btn) {
-        var oid = parseInt(btn.getAttribute("data-order-id"));
-        var next = btn.getAttribute("data-next-status");
+        const oid = parseInt(btn.getAttribute("data-order-id"));
+        const next = btn.getAttribute("data-next-status");
         moveOrder(oid, next);
       }
     });
