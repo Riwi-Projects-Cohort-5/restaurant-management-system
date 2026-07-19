@@ -1,8 +1,8 @@
-var chartInstance = null;
+let chartInstance = null;
 
-var SalesChart = {
+const SalesChart = {
   renderLegend: function () {
-    var html = '<div class="flex gap-2 mb-4">';
+    let html = '<div class="flex gap-2 mb-4">';
     html +=
       '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> This Week</span>';
     html +=
@@ -12,10 +12,10 @@ var SalesChart = {
   },
 
   init: function () {
-    var canvas = document.getElementById("salesChart");
+    const canvas = document.getElementById("salesChart");
     if (!canvas || !window.Chart) return;
 
-    var ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
     chartInstance = new Chart(ctx, {
       type: "bar",
       data: {

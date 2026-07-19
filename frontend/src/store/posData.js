@@ -10,13 +10,14 @@ initMockProducts();
 
 export const menuItems = getAllProducts()
   .map(function (product) {
-    var category = getAllCategories().find(function (c) {
+    const category = getAllCategories().find(function (c) {
       return c.id === product.category_id;
     });
     return {
       id: product.id,
       name: product.name,
       price: product.price,
+      available: product.available,
       cat: category ? category.name : "Other",
       emoji: product.image_url || null,
     };
@@ -169,7 +170,7 @@ export const allOrders = [
   },
 ];
 
-export let kitchenOrders = [
+export const kitchenOrders = [
   {
     id: 1039,
     table: 8,
@@ -286,14 +287,14 @@ export function canTransition(role, from, to) {
   if (to === "cancelled") return role === "admin";
   if (role === "admin") return true;
   if (role === "waiter") {
-    var fi = LIFECYCLE.indexOf(from);
-    var ti = LIFECYCLE.indexOf(to);
+    const fi = LIFECYCLE.indexOf(from);
+    const ti = LIFECYCLE.indexOf(to);
     if (fi === -1 || ti === -1) return false;
     return ti === fi + 1;
   }
   if (role === "cook") {
-    var fi2 = LIFECYCLE.indexOf(from);
-    var ti2 = LIFECYCLE.indexOf(to);
+    const fi2 = LIFECYCLE.indexOf(from);
+    const ti2 = LIFECYCLE.indexOf(to);
     if (fi2 === -1 || ti2 === -1) return false;
     return ti2 === fi2 + 1 && fi2 >= 1 && ti2 <= 4;
   }
@@ -301,13 +302,13 @@ export function canTransition(role, from, to) {
 }
 
 export function recalcOrder(order) {
-  var subtotal = order.items.reduce(function (sum, i) {
+  const subtotal = order.items.reduce(function (sum, i) {
     return sum + (i.price || 0) * i.qty;
   }, 0);
   order.total = Math.round(subtotal * 1.1 * 100) / 100;
 }
 
-export var currentRole = "admin";
+export let currentRole = "admin";
 
 export function setCurrentRole(role) {
   currentRole = role;

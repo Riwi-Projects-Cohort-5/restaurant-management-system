@@ -1,12 +1,12 @@
 function TableStatusCard() {
-  var statusCounts = { available: 4, occupied: 6, reserved: 2 };
-  var total = 12;
+  const statusCounts = { available: 4, occupied: 6, reserved: 2 };
+  const total = 12;
 
-  var occupiedPct = ((statusCounts.occupied / total) * 100).toFixed(0);
-  var reservedPct = ((statusCounts.reserved / total) * 100).toFixed(0);
-  var availablePct = ((statusCounts.available / total) * 100).toFixed(0);
+  const occupiedPct = ((statusCounts.occupied / total) * 100).toFixed(0);
+  const reservedPct = ((statusCounts.reserved / total) * 100).toFixed(0);
+  const availablePct = ((statusCounts.available / total) * 100).toFixed(0);
 
-  var html = '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5 h-full">';
+  let html = '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5 h-full">';
   html +=
     '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
 

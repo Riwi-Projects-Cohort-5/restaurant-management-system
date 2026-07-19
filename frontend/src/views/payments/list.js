@@ -11,13 +11,13 @@ import { currentUser } from "../../store/auth.js";
 
 initMockPayments();
 
-var subView = "list";
-var selectedId = null;
-var activeFilter = "all";
-var searchQuery = "";
-var dateFilter = "";
+let subView = "list";
+let selectedId = null;
+let activeFilter = "all";
+let searchQuery = "";
+let dateFilter = "";
 
-var enabledMethods = {
+const enabledMethods = {
   cash: true,
   credit_card: true,
   debit_card: true,
@@ -25,8 +25,8 @@ var enabledMethods = {
 };
 
 function statusBadge(status) {
-  var colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
-  var label = STATUS_LABELS[status] || status;
+  const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+  const label = STATUS_LABELS[status] || status;
   return (
     '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ' +
     colors.bg +
@@ -42,8 +42,8 @@ function statusBadge(status) {
 }
 
 function getFiltered() {
-  var all = paymentsStore.getState().payments;
-  var filtered = all;
+  const all = paymentsStore.getState().payments;
+  let filtered = all;
 
   if (activeFilter !== "all") {
     filtered = filtered.filter(function (p) {
@@ -52,7 +52,7 @@ function getFiltered() {
   }
 
   if (searchQuery) {
-    var q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     filtered = filtered.filter(function (p) {
       return (
         p.id.toLowerCase().includes(q) ||
@@ -78,7 +78,7 @@ function getOrderById(orderId) {
 }
 
 function formatPaymentDate(dateStr) {
-  var date = new Date(dateStr);
+  const date = new Date(dateStr);
   return (
     date.toLocaleDateString() +
     " " +
@@ -87,30 +87,30 @@ function formatPaymentDate(dateStr) {
 }
 
 function getPaymentMethodName(methodId) {
-  var method = PAYMENT_METHODS.find(function (m) {
+  const method = PAYMENT_METHODS.find(function (m) {
     return m.id === methodId;
   });
   return method ? method.name : methodId;
 }
 
 function getPaymentMethodIcon(methodId) {
-  var method = PAYMENT_METHODS.find(function (m) {
+  const method = PAYMENT_METHODS.find(function (m) {
     return m.id === methodId;
   });
   return method ? method.icon : "credit-card";
 }
 
 function renderList(el) {
-  var payments = getFiltered();
-  var allPay = paymentsStore.getState().payments;
-  var counts = { all: allPay.length };
+  const payments = getFiltered();
+  const allPay = paymentsStore.getState().payments;
+  const counts = { all: allPay.length };
   ["pending", "completed", "refunded", "failed"].forEach(function (s) {
     counts[s] = allPay.filter(function (p) {
       return p.status === s;
     }).length;
   });
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Payments</h2>';
@@ -128,7 +128,7 @@ function renderList(el) {
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
-  var tabs = [
+  const tabs = [
     { key: "all", label: "All" },
     { key: "pending", label: "Pending" },
     { key: "completed", label: "Completed" },
@@ -136,7 +136,7 @@ function renderList(el) {
     { key: "failed", label: "Failed" },
   ];
   tabs.forEach(function (tab) {
-    var isActive = activeFilter === tab.key;
+    const isActive = activeFilter === tab.key;
     html +=
       '<button data-filter="' +
       tab.key +
@@ -179,7 +179,7 @@ function renderList(el) {
   html += '<div class="overflow-x-auto">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  var cols = [
+  const cols = [
     "Payment ID",
     "Order",
     "Table",
@@ -211,10 +211,10 @@ function renderList(el) {
     html += "</div></td></tr>";
   } else {
     payments.forEach(function (payment) {
-      var order = getOrderById(payment.order_id);
-      var table = order ? order.table : "—";
-      var canRefund = payment.status === "completed";
-      var canDelete = currentUser && currentUser.role === "admin";
+      const order = getOrderById(payment.order_id);
+      const table = order ? order.table : "—";
+      const canRefund = payment.status === "completed";
+      const canDelete = currentUser && currentUser.role === "admin";
 
       html +=
         '<tr class="border-b border-brand-100 hover:bg-brand-50 transition-colors cursor-pointer" data-action="view-detail" data-payment-id="' +
@@ -270,17 +270,17 @@ function renderList(el) {
 }
 
 function renderDetail(el, paymentId) {
-  var payment = paymentService.getPaymentById(paymentId);
+  const payment = paymentService.getPaymentById(paymentId);
   if (!payment) {
     renderList(el);
     return;
   }
 
-  var order = getOrderById(payment.order_id);
-  var canRefund = payment.status === "completed";
-  var canDelete = currentUser && currentUser.role === "admin";
+  const order = getOrderById(payment.order_id);
+  const canRefund = payment.status === "completed";
+  const canDelete = currentUser && currentUser.role === "admin";
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -421,11 +421,11 @@ function renderDetail(el, paymentId) {
 }
 
 function renderNewPayment(el) {
-  var unpaidOrders = allOrders.filter(function (o) {
+  const unpaidOrders = allOrders.filter(function (o) {
     return o.status === "served" || o.status === "completed";
   });
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -506,7 +506,7 @@ function renderNewPayment(el) {
 }
 
 function renderConfig(el) {
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -522,7 +522,7 @@ function renderConfig(el) {
   html += '<div class="divide-y divide-brand-100">';
 
   PAYMENT_METHODS.forEach(function (method) {
-    var isEnabled = enabledMethods[method.id];
+    const isEnabled = enabledMethods[method.id];
     html +=
       '<div class="px-5 py-4 flex items-center justify-between hover:bg-brand-50 transition-colors">';
     html += '<div class="flex items-center gap-3">';
@@ -560,9 +560,9 @@ function renderConfig(el) {
 
 function setupListEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) {
-      var filterBtn = e.target.closest("[data-filter]");
+      const filterBtn = e.target.closest("[data-filter]");
       if (filterBtn) {
         activeFilter = filterBtn.dataset.filter;
         renderList(el);
@@ -571,7 +571,7 @@ function setupListEvents(el) {
       return;
     }
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "new-payment") {
       subView = "new";
@@ -585,15 +585,15 @@ function setupListEvents(el) {
       renderDetail(el, selectedId);
     } else if (action === "refund-payment") {
       e.stopPropagation();
-      var id = btn.dataset.paymentId;
-      paymentService.refundPayment(id);
+      const refundId = btn.dataset.paymentId;
+      paymentService.refundPayment(refundId);
       paymentsStore.refreshPayments();
       renderList(el);
     } else if (action === "delete-payment") {
       e.stopPropagation();
-      var id = btn.dataset.paymentId;
+      const deleteId = btn.dataset.paymentId;
       if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(id);
+        paymentService.deletePayment(deleteId);
         paymentsStore.refreshPayments();
         renderList(el);
       }
@@ -609,7 +609,7 @@ function setupListEvents(el) {
     }
   });
 
-  var searchInput = el.querySelector("#pay-search");
+  const searchInput = el.querySelector("#pay-search");
   if (searchInput) {
     searchInput.addEventListener("input", function (e) {
       searchQuery = e.target.value;
@@ -617,7 +617,7 @@ function setupListEvents(el) {
     });
   }
 
-  var dateInput = el.querySelector("#pay-date-filter");
+  const dateInput = el.querySelector("#pay-date-filter");
   if (dateInput) {
     dateInput.addEventListener("change", function (e) {
       dateFilter = e.target.value;
@@ -628,24 +628,24 @@ function setupListEvents(el) {
 
 function setupDetailEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "back-to-list") {
       subView = "list";
       selectedId = null;
       renderList(el);
     } else if (action === "refund-payment") {
-      var id = btn.dataset.paymentId;
-      paymentService.refundPayment(id);
+      const refundId = btn.dataset.paymentId;
+      paymentService.refundPayment(refundId);
       paymentsStore.refreshPayments();
       renderList(el);
     } else if (action === "delete-payment") {
-      var id = btn.dataset.paymentId;
+      const deleteId = btn.dataset.paymentId;
       if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(id);
+        paymentService.deletePayment(deleteId);
         paymentsStore.refreshPayments();
         subView = "list";
         selectedId = null;
@@ -657,24 +657,24 @@ function setupDetailEvents(el) {
 
 function setupNewPaymentEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "back-to-list") {
       subView = "list";
       renderList(el);
     } else if (action === "submit-payment") {
-      var orderSelect = el.querySelector("#new-payment-order");
-      var methodSelect = el.querySelector("#new-payment-method");
-      var amountInput = el.querySelector("#new-payment-amount");
-      var referenceInput = el.querySelector("#new-payment-reference");
+      const orderSelect = el.querySelector("#new-payment-order");
+      const methodSelect = el.querySelector("#new-payment-method");
+      const amountInput = el.querySelector("#new-payment-amount");
+      const referenceInput = el.querySelector("#new-payment-reference");
 
-      var orderId = parseInt(orderSelect.value);
-      var method = methodSelect.value;
-      var amount = parseFloat(amountInput.value);
-      var reference = referenceInput.value.trim();
+      const orderId = parseInt(orderSelect.value);
+      const method = methodSelect.value;
+      const amount = parseFloat(amountInput.value);
+      const reference = referenceInput.value.trim();
 
       if (!orderId) {
         alert("Please select an order");
@@ -689,7 +689,7 @@ function setupNewPaymentEvents(el) {
         return;
       }
 
-      var user = currentUser || { username: "guest" };
+      const user = currentUser || { username: "guest" };
       paymentService.createPayment({
         order_id: orderId,
         cashier_id: user.username,
@@ -704,12 +704,12 @@ function setupNewPaymentEvents(el) {
     }
   });
 
-  var orderSelect = el.querySelector("#new-payment-order");
+  const orderSelect = el.querySelector("#new-payment-order");
   if (orderSelect) {
     orderSelect.addEventListener("change", function (e) {
-      var selectedOption = e.target.selectedOptions[0];
+      const selectedOption = e.target.selectedOptions[0];
       if (selectedOption && selectedOption.dataset.amount) {
-        var amountInput = el.querySelector("#new-payment-amount");
+        const amountInput = el.querySelector("#new-payment-amount");
         amountInput.value = parseFloat(selectedOption.dataset.amount).toFixed(2);
       }
     });
@@ -718,10 +718,10 @@ function setupNewPaymentEvents(el) {
 
 function setupConfigEvents(el) {
   el.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.dataset.action;
+    const action = btn.dataset.action;
 
     if (action === "back-to-list") {
       subView = "list";

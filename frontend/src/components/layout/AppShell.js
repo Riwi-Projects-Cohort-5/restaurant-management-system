@@ -1,8 +1,12 @@
-var AppShell = {
+const AppShell = {
   render: function (el) {
     if (el.querySelector("[data-app-shell]")) return;
 
-    var user = window.userData || { name: "Maria Castillo", initials: "MC", role: "Administrator" };
+    const user = window.userData || {
+      name: "Maria Castillo",
+      initials: "MC",
+      role: "Administrator",
+    };
 
     el.innerHTML =
       '<div data-app-shell class="grid h-screen overflow-hidden grid-cols-[var(--sidebar-width)_1fr] grid-rows-[var(--topbar-height)_1fr]">' +
@@ -15,10 +19,10 @@ var AppShell = {
       '<main id="main-content" class="p-6 overflow-auto bg-brand-100 col-start-2 row-start-2"></main>' +
       "</div>";
 
-    var header = el.querySelector("aside > header");
-    var nav = el.querySelector("aside > nav");
-    var footer = el.querySelector("aside > footer");
-    var topbar = el.querySelector("[data-app-shell] > header");
+    const header = el.querySelector("aside > header");
+    const nav = el.querySelector("aside > nav");
+    const footer = el.querySelector("aside > footer");
+    const topbar = el.querySelector("[data-app-shell] > header");
 
     AppShell.renderSidebarHeader(header);
     AppShell.renderSidebarNav(nav);
@@ -35,7 +39,7 @@ var AppShell = {
   },
 
   renderSidebarNav: function (el) {
-    var sections = [
+    const sections = [
       {
         label: "Main",
         items: [
@@ -61,24 +65,24 @@ var AppShell = {
       },
     ];
 
-    var currentPath = window.location.hash.slice(1) || "/dashboard";
+    const currentPath = window.location.hash.slice(1) || "/dashboard";
 
-    var html = "";
+    let html = "";
     sections.forEach(function (section) {
       html +=
         '<p class="text-[11px] font-bold uppercase mb-2 px-3 pt-4 tracking-[0.08em] text-white/50">' +
         section.label +
         "</p>";
       section.items.forEach(function (item) {
-        var isActive = currentPath === item.path;
-        var stateClasses = isActive
+        const isActive = currentPath === item.path;
+        const stateClasses = isActive
           ? "bg-white text-brand-700 font-semibold"
           : "bg-transparent text-white font-medium hover:bg-white/15 hover:text-white";
-        var iconClasses = isActive ? "opacity-100 text-brand-500" : "opacity-70";
-        var bar = isActive
+        const iconClasses = isActive ? "opacity-100 text-brand-500" : "opacity-70";
+        const bar = isActive
           ? '<span class="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-accent-400 rounded-r-full"></span>'
           : "";
-        var badge = item.badge
+        const badge = item.badge
           ? '<span class="ml-auto bg-accent-400 text-white text-[11px] font-bold px-[7px] py-0.5 rounded-full min-w-[20px] text-center">' +
             item.badge +
             "</span>"
@@ -121,7 +125,7 @@ var AppShell = {
   },
 
   renderTopbar: function (el) {
-    var title = AppShell.getRouteTitle(window.location.hash.slice(1));
+    const title = AppShell.getRouteTitle(window.location.hash.slice(1));
     el.innerHTML =
       '<h1 id="topbarTitle" class="text-[18px] font-bold text-brand-800 font-display tracking-tight">' +
       title +
@@ -142,7 +146,7 @@ var AppShell = {
   },
 
   getRouteTitle: function (path) {
-    var titles = {
+    const titles = {
       "/dashboard": "Dashboard",
       "/pos": "POS / Orders",
       "/kitchen": "Kitchen Dashboard",
@@ -157,11 +161,11 @@ var AppShell = {
   },
 
   updateTopbarTitle: function (path) {
-    var titleEl = document.getElementById("topbarTitle");
+    const titleEl = document.getElementById("topbarTitle");
     if (titleEl) {
       titleEl.textContent = AppShell.getRouteTitle(path);
     }
-    var nav = document.querySelector("[data-app-shell] aside > nav");
+    const nav = document.querySelector("[data-app-shell] aside > nav");
     if (nav) {
       AppShell.renderSidebarNav(nav);
     }

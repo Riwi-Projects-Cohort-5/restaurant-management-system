@@ -79,7 +79,8 @@ export function generateId() {
 }
 
 export function saveSession(user) {
-  const { password, ...safe } = user;
+  const safe = Object.assign({}, user);
+  delete safe.password;
   localStorage.setItem(SESSION_KEY, JSON.stringify(safe));
 }
 

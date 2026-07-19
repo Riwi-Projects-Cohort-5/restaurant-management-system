@@ -8,16 +8,16 @@ import {
 
 initMockReservations();
 
-var subView = "list";
-var selectedId = null;
-var activeFilter = "all";
-var searchQuery = "";
+let subView = "list";
+let selectedId = null;
+let activeFilter = "all";
+let searchQuery = "";
 
 function statusBadge(status, size) {
-  var colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
-  var label = STATUS_LABELS[status] || status;
-  var sizeClasses = size === "lg" ? "px-3 py-1 text-sm" : "px-2.5 py-0.5 text-xs";
-  var dotSize = size === "lg" ? "h-2 w-2" : "h-1.5 w-1.5";
+  const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
+  const label = STATUS_LABELS[status] || status;
+  const sizeClasses = size === "lg" ? "px-3 py-1 text-sm" : "px-2.5 py-0.5 text-xs";
+  const dotSize = size === "lg" ? "h-2 w-2" : "h-1.5 w-1.5";
   return (
     '<span class="inline-flex items-center gap-1.5 rounded-full font-semibold ' +
     sizeClasses +
@@ -37,8 +37,8 @@ function statusBadge(status, size) {
 }
 
 function getFiltered() {
-  var all = reservationStore.getState().reservations;
-  var filtered = all;
+  const all = reservationStore.getState().reservations;
+  let filtered = all;
 
   if (activeFilter !== "all") {
     filtered = filtered.filter(function (r) {
@@ -47,7 +47,7 @@ function getFiltered() {
   }
 
   if (searchQuery) {
-    var q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     filtered = filtered.filter(function (r) {
       return (
         r.code.toLowerCase().includes(q) ||
@@ -61,16 +61,16 @@ function getFiltered() {
 }
 
 function renderList(el) {
-  var reservations = getFiltered();
-  var allRes = reservationStore.getState().reservations;
-  var counts = { all: allRes.length };
+  const reservations = getFiltered();
+  const allRes = reservationStore.getState().reservations;
+  const counts = { all: allRes.length };
   ["pending", "confirmed", "cancelled", "completed"].forEach(function (s) {
     counts[s] = allRes.filter(function (r) {
       return r.status === s;
     }).length;
   });
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-primary-700 font-display">Reservations</h2>';
@@ -85,7 +85,7 @@ function renderList(el) {
   html += "</div>";
 
   html += '<div class="flex flex-wrap gap-2">';
-  var tabs = [
+  const tabs = [
     { key: "all", label: "All" },
     { key: "pending", label: "Pending" },
     { key: "confirmed", label: "Confirmed" },
@@ -93,7 +93,7 @@ function renderList(el) {
     { key: "completed", label: "Completed" },
   ];
   tabs.forEach(function (tab) {
-    var isActive = activeFilter === tab.key;
+    const isActive = activeFilter === tab.key;
     html +=
       '<button data-filter="' +
       tab.key +
@@ -134,7 +134,7 @@ function renderList(el) {
   html += '<div class="overflow-x-auto">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  var cols = ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions"];
+  const cols = ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions"];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -191,7 +191,7 @@ function renderList(el) {
   el.innerHTML = html;
   window.createIcons();
 
-  var searchInput = document.getElementById("res-search");
+  const searchInput = document.getElementById("res-search");
   if (searchInput) {
     searchInput.focus();
     if (searchQuery) searchInput.setSelectionRange(searchQuery.length, searchQuery.length);
@@ -199,7 +199,7 @@ function renderList(el) {
 }
 
 function renderDetail(el) {
-  var r = reservationStore.getState().reservations.find(function (x) {
+  const r = reservationStore.getState().reservations.find(function (x) {
     return x.id === selectedId;
   });
   if (!r) {
@@ -209,7 +209,7 @@ function renderDetail(el) {
     return;
   }
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
@@ -315,7 +315,7 @@ function renderInfoCard(label, valueHtml) {
 }
 
 function renderNewReservationForm(el) {
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center gap-3">';
   html +=
@@ -354,7 +354,7 @@ function renderNewReservationForm(el) {
   el.innerHTML = html;
   window.createIcons();
 
-  var nameInput = document.getElementById("res-guest-name");
+  const nameInput = document.getElementById("res-guest-name");
   if (nameInput) nameInput.focus();
 }
 
@@ -390,9 +390,9 @@ function handleAction(el, action, id) {
 
 function setupEvents(el) {
   el.addEventListener("click", function (e) {
-    var target = e.target;
+    const target = e.target;
 
-    var filterBtn = target.closest("[data-filter]");
+    const filterBtn = target.closest("[data-filter]");
     if (filterBtn) {
       e.stopPropagation();
       activeFilter = filterBtn.getAttribute("data-filter");
@@ -401,7 +401,7 @@ function setupEvents(el) {
       return;
     }
 
-    var clearSearch = target.closest('[data-action="clear-search"]');
+    const clearSearch = target.closest('[data-action="clear-search"]');
     if (clearSearch) {
       e.stopPropagation();
       searchQuery = "";
@@ -410,7 +410,7 @@ function setupEvents(el) {
       return;
     }
 
-    var newRes = target.closest('[data-action="new-reservation"]');
+    const newRes = target.closest('[data-action="new-reservation"]');
     if (newRes) {
       e.stopPropagation();
       subView = "new";
@@ -418,7 +418,7 @@ function setupEvents(el) {
       return;
     }
 
-    var viewDetail = target.closest('[data-action="view-detail"]');
+    const viewDetail = target.closest('[data-action="view-detail"]');
     if (viewDetail) {
       e.stopPropagation();
       selectedId = viewDetail.getAttribute("data-id");
@@ -427,7 +427,7 @@ function setupEvents(el) {
       return;
     }
 
-    var row = target.closest("[data-reservation-id]");
+    const row = target.closest("[data-reservation-id]");
     if (row && !target.closest("[data-action]")) {
       e.stopPropagation();
       selectedId = row.getAttribute("data-reservation-id");
@@ -436,7 +436,7 @@ function setupEvents(el) {
       return;
     }
 
-    var backBtn = target.closest('[data-action="back"]');
+    const backBtn = target.closest('[data-action="back"]');
     if (backBtn) {
       e.stopPropagation();
       subView = "list";
@@ -445,40 +445,40 @@ function setupEvents(el) {
       return;
     }
 
-    var confirmBtn = target.closest('[data-action="confirm"]');
+    const confirmBtn = target.closest('[data-action="confirm"]');
     if (confirmBtn) {
       e.stopPropagation();
       handleAction(el, "confirm", confirmBtn.getAttribute("data-id"));
       return;
     }
 
-    var completeBtn = target.closest('[data-action="complete"]');
+    const completeBtn = target.closest('[data-action="complete"]');
     if (completeBtn) {
       e.stopPropagation();
       handleAction(el, "complete", completeBtn.getAttribute("data-id"));
       return;
     }
 
-    var cancelBtn = target.closest('[data-action="cancel"]');
+    const cancelBtn = target.closest('[data-action="cancel"]');
     if (cancelBtn) {
       e.stopPropagation();
       handleAction(el, "cancel", cancelBtn.getAttribute("data-id"));
       return;
     }
 
-    var saveBtn = target.closest('[data-action="save-reservation"]');
+    const saveBtn = target.closest('[data-action="save-reservation"]');
     if (saveBtn) {
       e.stopPropagation();
-      var name = (document.getElementById("res-guest-name") || {}).value || "";
-      var phone = (document.getElementById("res-guest-phone") || {}).value || "";
-      var date = (document.getElementById("res-date") || {}).value || "";
-      var time = (document.getElementById("res-time") || {}).value || "";
-      var party = parseInt((document.getElementById("res-party-size") || {}).value) || 2;
-      var table = parseInt((document.getElementById("res-table-num") || {}).value) || null;
-      var notes = (document.getElementById("res-notes") || {}).value || "";
+      const name = (document.getElementById("res-guest-name") || {}).value || "";
+      const phone = (document.getElementById("res-guest-phone") || {}).value || "";
+      const date = (document.getElementById("res-date") || {}).value || "";
+      const time = (document.getElementById("res-time") || {}).value || "";
+      const party = parseInt((document.getElementById("res-party-size") || {}).value) || 2;
+      const table = parseInt((document.getElementById("res-table-num") || {}).value) || null;
+      const notes = (document.getElementById("res-notes") || {}).value || "";
 
       if (!name.trim() || !date || !time) {
-        var firstEmpty = !name.trim()
+        const firstEmpty = !name.trim()
           ? document.getElementById("res-guest-name")
           : !date
             ? document.getElementById("res-date")
@@ -519,7 +519,7 @@ function setupEvents(el) {
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && subView === "new") {
-      var saveBtn = el.querySelector('[data-action="save-reservation"]');
+      const saveBtn = el.querySelector('[data-action="save-reservation"]');
       if (saveBtn) saveBtn.click();
     }
     if (e.key === "Escape") {
@@ -530,7 +530,7 @@ function setupEvents(el) {
   });
 }
 
-var eventsAttached = false;
+let eventsAttached = false;
 
 export function renderReservations(container) {
   reservationStore.loadReservations();

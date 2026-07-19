@@ -7,13 +7,11 @@ import {
   currentRole,
 } from "../../store/posData.js";
 import CartPanel from "../../components/pos/CartPanel.js";
-import StatusStepper from "../../components/ui/StatusStepper.js";
 
-var subView = "orders";
-var activeFilter = "all";
-var selectedOrderId = null;
-var editingOrder = null;
-var editingItems = null;
+let subView = "orders";
+let activeFilter = "all";
+let selectedOrderId = null;
+let editingOrder = null;
 
 function getFilteredOrders() {
   if (activeFilter === "active")
@@ -28,7 +26,7 @@ function getFilteredOrders() {
 }
 
 function statusBadge(status) {
-  var map = {
+  const map = {
     draft: { bg: "bg-neutral-100", text: "text-neutral-600", dot: "bg-neutral-500" },
     completed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
     preparing: { bg: "bg-warning-100", text: "text-warning-700", dot: "bg-warning-500" },
@@ -37,7 +35,7 @@ function statusBadge(status) {
     new: { bg: "bg-info-100", text: "text-info-700", dot: "bg-info-500" },
     cancelled: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },
   };
-  var s = map[status] || map.draft;
+  const s = map[status] || map.draft;
   return (
     '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ' +
     s.bg +
@@ -51,10 +49,18 @@ function statusBadge(status) {
   );
 }
 
-function renderOrderList(container) {
-  var orders = getFilteredOrders();
+function resetContainerStyles(el) {
+  el.style.display = "";
+  el.style.flexDirection = "";
+  el.style.height = "";
+  el.style.overflow = "";
+}
 
-  var html = "";
+function renderOrderList(container) {
+  resetContainerStyles(container);
+  const orders = getFilteredOrders();
+
+  let html = "";
 
   html += '<div class="flex items-center justify-between mb-6">';
   html += '<h2 class="text-xl font-bold text-brand-900">Orders</h2>';
@@ -65,7 +71,7 @@ function renderOrderList(container) {
 
   html += '<div class="flex gap-2 mb-5">';
   ["all", "active", "closed"].forEach(function (f) {
-    var isActive = activeFilter === f;
+    const isActive = activeFilter === f;
     html +=
       '<button data-filter="' +
       f +
@@ -89,12 +95,12 @@ function renderOrderList(container) {
   html += '</tr></thead><tbody class="divide-y divide-brand-200">';
 
   orders.forEach(function (order, i) {
-    var bg = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
-    var st = statusBadge(order.status);
-    var canCancel = canTransition(currentRole, order.status, "cancelled");
-    var canDelete =
+    const bg = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+    const st = statusBadge(order.status);
+    const canCancel = canTransition(currentRole, order.status, "cancelled");
+    const canDelete =
       currentRole === "admin" && (order.status === "completed" || order.status === "cancelled");
-    var canDropDraft =
+    const canDropDraft =
       order.status === "draft" && (currentRole === "admin" || order.createdBy === currentRole);
     html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
     html += '<td class="px-4 py-3 font-semibold text-primary-700">#' + order.id + "</td>";
@@ -132,28 +138,8 @@ function renderOrderList(container) {
   setupOrderListEvents(container);
 }
 
-function renderMenuCard(item, action, actionAttr) {
-  var html =
-    '<div class="bg-white border border-brand-300 rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center" data-action="' +
-    action +
-    '" ' +
-    actionAttr +
-    '="' +
-    item.id +
-    '">';
-  html +=
-    '<div class="w-20 h-20 rounded-lg flex items-center justify-center text-3xl mb-3 bg-brand-50">' +
-    (item.emoji || "\uD83C\uDF7D\uFE0F") +
-    "</div>";
-  html += '<div class="text-sm font-semibold text-brand-900 mb-0.5">' + item.name + "</div>";
-  html += '<div class="text-[15px] font-bold text-brand-600">$' + item.price.toFixed(2) + "</div>";
-  html += '<div class="text-xs text-secondary-500 mt-1">' + item.cat + "</div>";
-  html += "</div>";
-  return html;
-}
-
 function renderNewOrder(container) {
-  var categories = [
+  const categories = [
     "All",
     "Main Course",
     "Pizza",
@@ -163,11 +149,11 @@ function renderNewOrder(container) {
     "Desserts",
     "Drinks",
   ];
-  var activeCat = "All";
+  const activeCat = "All";
 
-  var html = "";
+  let html = "";
 
-  html += '<div class="flex items-center justify-between mb-6">';
+  html += '<div class="flex items-center justify-between mb-6 shrink-0">';
   html +=
     '<button data-action="back-to-orders" class="inline-flex items-center justify-center gap-2 font-semibold bg-transparent text-brand-700 border border-transparent hover:bg-brand-100 h-8 px-3 text-[13px] rounded-md transition-all cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
   html += '<h2 class="text-xl font-bold text-brand-900">New Order</h2>';
@@ -177,10 +163,10 @@ function renderNewOrder(container) {
     '<button class="inline-flex items-center gap-2 h-8 px-3 rounded-md bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 text-sm font-semibold cursor-pointer"><i data-lucide="square" class="w-4 h-4"></i> Table 5 <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>';
   html += "</div></div>";
 
-  html += '<div class="flex gap-6">';
+  html += '<div class="flex gap-6 flex-1 min-h-0">';
 
-  html += '<div class="flex-1 min-w-0 space-y-4">';
-  html += '<div class="flex gap-2 flex-wrap">';
+  html += '<div class="flex-1 min-w-0 min-h-0 flex flex-col gap-4">';
+  html += '<div class="flex gap-2 flex-wrap shrink-0">';
   categories.forEach(function (cat) {
     html +=
       '<button data-cat="' +
@@ -195,7 +181,8 @@ function renderNewOrder(container) {
   });
   html += "</div>";
 
-  html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">';
+  html +=
+    '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto min-h-0">';
   menuItems.forEach(function (item) {
     html +=
       '<div data-action="add-to-cart" data-item-id="' +
@@ -213,16 +200,21 @@ function renderNewOrder(container) {
   });
   html += "</div></div>";
 
-  html += '<div class="w-[340px] shrink-0">';
+  html += '<div class="w-[340px] shrink-0 overflow-y-auto">';
   html += CartPanel();
   html += "</div></div>";
 
   container.innerHTML = html;
+  container.style.display = "flex";
+  container.style.flexDirection = "column";
+  container.style.height = "100%";
+  container.style.overflow = "hidden";
   setupNewOrderEvents(container);
 }
 
 function renderOrderDetail(container, orderId) {
-  var order = allOrders.find(function (o) {
+  resetContainerStyles(container);
+  const order = allOrders.find(function (o) {
     return o.id === orderId;
   });
   if (!order) {
@@ -231,36 +223,36 @@ function renderOrderDetail(container, orderId) {
     return;
   }
 
-  var isEditing = editingOrder && editingOrder.id === order.id;
-  var displayOrder = isEditing ? editingOrder : order;
-  var isCancelled = displayOrder.status === "cancelled";
-  var isDraft = displayOrder.status === "draft";
-  var isClosed = displayOrder.status === "completed" || displayOrder.status === "cancelled";
-  var isActive =
+  const isEditing = editingOrder && editingOrder.id === order.id;
+  const displayOrder = isEditing ? editingOrder : order;
+  const isCancelled = displayOrder.status === "cancelled";
+  const isDraft = displayOrder.status === "draft";
+  const isClosed = displayOrder.status === "completed" || displayOrder.status === "cancelled";
+  const isActive =
     ["draft", "new", "preparing", "ready", "served"].indexOf(displayOrder.status) !== -1;
-  var canEditItems =
+  const canEditItems =
     isDraft &&
     (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
     currentRole !== "cook";
-  var canDropDraft =
+  const canDropDraft =
     isDraft &&
     (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
     currentRole !== "cook";
-  var canCancelOrder = isActive && !isDraft && currentRole === "admin";
-  var canDelete = isClosed && currentRole === "admin";
-  var canEditNote = currentRole !== "cook";
+  const canCancelOrder = isActive && !isDraft && currentRole === "admin";
+  const canDelete = isClosed && currentRole === "admin";
+  const canEditNote = currentRole !== "cook";
 
-  var lifecycleIdx = LIFECYCLE.indexOf(displayOrder.status);
+  const lifecycleIdx = LIFECYCLE.indexOf(displayOrder.status);
 
-  var steps = LIFECYCLE.map(function (s, i) {
+  const steps = LIFECYCLE.map(function (s, i) {
     if (isCancelled) return { label: s, cls: "" };
-    var cls = "";
+    let cls = "";
     if (i < lifecycleIdx) cls = "done";
     else if (i === lifecycleIdx) cls = "current";
     return { label: s, cls: cls };
   });
 
-  var transitions = [];
+  const transitions = [];
   if (!isClosed && !isCancelled) {
     if (currentRole === "admin") {
       if (lifecycleIdx > 0 && !isDraft)
@@ -290,7 +282,7 @@ function renderOrderDetail(container, orderId) {
       }
     } else if (currentRole === "cook") {
       if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 4) {
-        var tLabels = { 1: "Start Preparing", 2: "Mark Ready", 3: "Served" };
+        const tLabels = { 1: "Start Preparing", 2: "Mark Ready", 3: "Served" };
         transitions.push({
           to: LIFECYCLE[lifecycleIdx + 1],
           label: tLabels[lifecycleIdx] || "Next \u2192",
@@ -300,7 +292,7 @@ function renderOrderDetail(container, orderId) {
     }
   }
 
-  var html = "";
+  let html = "";
 
   html += '<div class="flex items-center justify-between mb-6">';
   html +=
@@ -314,7 +306,7 @@ function renderOrderDetail(container, orderId) {
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-3 gap-4 mb-6">';
-  var summaryCells = [
+  const summaryCells = [
     { label: "Table", value: "Table " + displayOrder.table },
     { label: "Server", value: displayOrder.server || "\u2014" },
     { label: "Placed", value: displayOrder.placedAt || displayOrder.time },
@@ -342,13 +334,13 @@ function renderOrderDetail(container, orderId) {
     '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden mb-5">';
   html += '<div class="flex items-center gap-1 px-5 py-4 bg-white border-b border-brand-100">';
   steps.forEach(function (s, i) {
-    var dotBg =
+    const dotBg =
       s.cls === "done"
         ? "bg-primary-600 border-primary-600 text-white"
         : s.cls === "current"
           ? "bg-brand-500 border-brand-500 text-white shadow-[0_0_0_3px_var(--color-brand-100)]"
           : "bg-white border-brand-200 text-brand-400";
-    var labelColor =
+    const labelColor =
       s.cls === "done" || s.cls === "current" ? "text-brand-800" : "text-secondary-500";
     html += '<div class="flex items-center gap-2">';
     html +=
@@ -365,7 +357,7 @@ function renderOrderDetail(container, orderId) {
       "</span>";
     html += "</div>";
     if (i < steps.length - 1) {
-      var connBg = s.cls === "done" ? "bg-primary-500" : "bg-brand-200";
+      const connBg = s.cls === "done" ? "bg-primary-500" : "bg-brand-200";
       html += '<div class="flex-1 h-0.5 min-w-3 ' + connBg + '"></div>';
     }
   });
@@ -388,7 +380,7 @@ function renderOrderDetail(container, orderId) {
 
   if (isEditing) {
     displayOrder.items.forEach(function (item, idx) {
-      var sub = (item.price * item.qty).toFixed(2);
+      const sub = (item.price * item.qty).toFixed(2);
       html += '<div class="flex items-center gap-3 py-3 border-b border-brand-100">';
       html += '<span class="flex-1 text-sm font-medium text-neutral-700">' + item.name + "</span>";
       html +=
@@ -418,7 +410,7 @@ function renderOrderDetail(container, orderId) {
       html += "</div>";
     });
 
-    var editCats = [
+    const editCats = [
       "All",
       "Appetizers",
       "Main Course",
@@ -501,8 +493,8 @@ function renderOrderDetail(container, orderId) {
       html += "</tr>";
     });
     html += "</tbody></table>";
-    var sub = displayOrder.total / 1.1;
-    var tax = displayOrder.total - sub;
+    const sub = displayOrder.total / 1.1;
+    const tax = displayOrder.total - sub;
     html += '<div class="flex justify-end gap-6 mt-4 pt-4 border-t border-brand-200">';
     html += '<span class="text-[13px] text-secondary-600">Subtotal</span>';
     html += '<span class="font-semibold text-sm">$' + sub.toFixed(2) + "</span></div>";
@@ -543,7 +535,7 @@ function renderOrderDetail(container, orderId) {
   }
   html += "</div></div></div>";
 
-  var hasActions = transitions.length > 0 || canDropDraft || canCancelOrder || canDelete;
+  const hasActions = transitions.length > 0 || canDropDraft || canCancelOrder || canDelete;
   if (hasActions) {
     html += '<div class="flex gap-3 p-5 bg-brand-50 border-t border-brand-200">';
     if (canDropDraft)
@@ -589,7 +581,7 @@ function renderOrderDetail(container, orderId) {
 
 function setupOrderListEvents(container) {
   container.addEventListener("click", function (e) {
-    var filterBtn = e.target.closest("[data-filter]");
+    const filterBtn = e.target.closest("[data-filter]");
     if (filterBtn) {
       activeFilter = filterBtn.getAttribute("data-filter");
       renderOrderList(container);
@@ -597,7 +589,7 @@ function setupOrderListEvents(container) {
       return;
     }
 
-    var newBtn = e.target.closest('[data-action="new-order"]');
+    const newBtn = e.target.closest('[data-action="new-order"]');
     if (newBtn) {
       subView = "new";
       editingOrder = null;
@@ -606,9 +598,9 @@ function setupOrderListEvents(container) {
       return;
     }
 
-    var detailBtn = e.target.closest('[data-action="view-detail"]');
+    const detailBtn = e.target.closest('[data-action="view-detail"]');
     if (detailBtn) {
-      var id = parseInt(detailBtn.getAttribute("data-order-id"));
+      const id = parseInt(detailBtn.getAttribute("data-order-id"));
       selectedOrderId = id;
       subView = "detail";
       editingOrder = null;
@@ -617,10 +609,10 @@ function setupOrderListEvents(container) {
       return;
     }
 
-    var cancelBtn = e.target.closest('[data-action="cancel-order"]');
+    const cancelBtn = e.target.closest('[data-action="cancel-order"]');
     if (cancelBtn) {
-      var cid = parseInt(cancelBtn.getAttribute("data-order-id"));
-      var order = allOrders.find(function (o) {
+      const cid = parseInt(cancelBtn.getAttribute("data-order-id"));
+      const order = allOrders.find(function (o) {
         return o.id === cid;
       });
       if (order && canTransition(currentRole, order.status, "cancelled")) {
@@ -631,10 +623,10 @@ function setupOrderListEvents(container) {
       return;
     }
 
-    var delBtn = e.target.closest('[data-action="delete-order"]');
+    const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
-      var did = parseInt(delBtn.getAttribute("data-order-id"));
-      var idx = allOrders.findIndex(function (o) {
+      const did = parseInt(delBtn.getAttribute("data-order-id"));
+      const idx = allOrders.findIndex(function (o) {
         return o.id === did;
       });
       if (idx > -1 && currentRole === "admin") {
@@ -649,10 +641,10 @@ function setupOrderListEvents(container) {
 
 function setupNewOrderEvents(container) {
   container.addEventListener("click", function (e) {
-    var addBtn = e.target.closest('[data-action="add-to-cart"]');
+    const addBtn = e.target.closest('[data-action="add-to-cart"]');
     if (addBtn) {
-      var itemId = parseInt(addBtn.getAttribute("data-item-id"));
-      var item = menuItems.find(function (m) {
+      const itemId = parseInt(addBtn.getAttribute("data-item-id"));
+      const item = menuItems.find(function (m) {
         return m.id === itemId;
       });
       if (item) {
@@ -661,9 +653,9 @@ function setupNewOrderEvents(container) {
       return;
     }
 
-    var catBtn = e.target.closest("[data-cat]");
+    const catBtn = e.target.closest("[data-cat]");
     if (catBtn) {
-      var cat = catBtn.getAttribute("data-cat");
+      const cat = catBtn.getAttribute("data-cat");
       container.querySelectorAll("[data-cat]").forEach(function (b) {
         b.className =
           "px-4 py-1.5 rounded-full text-[13px] font-semibold border cursor-pointer transition-colors " +
@@ -671,11 +663,11 @@ function setupNewOrderEvents(container) {
             ? "bg-brand-500 text-white border-brand-500"
             : "bg-white text-brand-600 border-brand-300 hover:bg-brand-50");
       });
-      var grid = container.querySelector(".grid");
+      const grid = container.querySelector(".grid");
       if (grid) {
         grid.querySelectorAll('[data-action="add-to-cart"]').forEach(function (card) {
-          var catEls = card.querySelectorAll(".text-secondary-500");
-          var cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
+          const catEls = card.querySelectorAll(".text-secondary-500");
+          const cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
           if (cardCat) {
             card.style.display = cat === "All" || cardCat.textContent === cat ? "" : "none";
           }
@@ -684,7 +676,7 @@ function setupNewOrderEvents(container) {
       return;
     }
 
-    var backBtn = e.target.closest('[data-action="back-to-orders"]');
+    const backBtn = e.target.closest('[data-action="back-to-orders"]');
     if (backBtn) {
       subView = "orders";
       renderOrderList(container);
@@ -696,7 +688,7 @@ function setupNewOrderEvents(container) {
 
 function setupOrderDetailEvents(container, order) {
   container.addEventListener("click", function (e) {
-    var backBtn = e.target.closest('[data-action="back-to-orders"]');
+    const backBtn = e.target.closest('[data-action="back-to-orders"]');
     if (backBtn) {
       subView = "orders";
       editingOrder = null;
@@ -705,11 +697,11 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var transBtn = e.target.closest('[data-action="transition"]');
+    const transBtn = e.target.closest('[data-action="transition"]');
     if (transBtn) {
-      var target = transBtn.getAttribute("data-target");
-      var oid = parseInt(transBtn.getAttribute("data-order-id"));
-      var o = allOrders.find(function (ord) {
+      const target = transBtn.getAttribute("data-target");
+      const oid = parseInt(transBtn.getAttribute("data-order-id"));
+      const o = allOrders.find(function (ord) {
         return ord.id === oid;
       });
       if (o && canTransition(currentRole, o.status, target)) {
@@ -720,10 +712,10 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var cancelBtn = e.target.closest('[data-action="cancel-order"]');
+    const cancelBtn = e.target.closest('[data-action="cancel-order"]');
     if (cancelBtn) {
-      var cid = parseInt(cancelBtn.getAttribute("data-order-id"));
-      var co = allOrders.find(function (ord) {
+      const cid = parseInt(cancelBtn.getAttribute("data-order-id"));
+      const co = allOrders.find(function (ord) {
         return ord.id === cid;
       });
       if (co && canTransition(currentRole, co.status, "cancelled")) {
@@ -734,10 +726,10 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var dropBtn = e.target.closest('[data-action="drop-draft"]');
+    const dropBtn = e.target.closest('[data-action="drop-draft"]');
     if (dropBtn) {
-      var did = parseInt(dropBtn.getAttribute("data-order-id"));
-      var didx = allOrders.findIndex(function (o) {
+      const did = parseInt(dropBtn.getAttribute("data-order-id"));
+      const didx = allOrders.findIndex(function (o) {
         return o.id === did;
       });
       if (didx > -1) {
@@ -749,10 +741,10 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var delBtn = e.target.closest('[data-action="delete-order"]');
+    const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
-      var delId = parseInt(delBtn.getAttribute("data-order-id"));
-      var delIdx = allOrders.findIndex(function (o) {
+      const delId = parseInt(delBtn.getAttribute("data-order-id"));
+      const delIdx = allOrders.findIndex(function (o) {
         return o.id === delId;
       });
       if (delIdx > -1 && currentRole === "admin") {
@@ -764,10 +756,10 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var editBtn = e.target.closest('[data-action="start-edit"]');
+    const editBtn = e.target.closest('[data-action="start-edit"]');
     if (editBtn) {
-      var eid = parseInt(editBtn.getAttribute("data-order-id"));
-      var eo = allOrders.find(function (o) {
+      const eid = parseInt(editBtn.getAttribute("data-order-id"));
+      const eo = allOrders.find(function (o) {
         return o.id === eid;
       });
       if (eo) {
@@ -778,11 +770,11 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var saveBtn = e.target.closest('[data-action="save-edit"]');
+    const saveBtn = e.target.closest('[data-action="save-edit"]');
     if (saveBtn) {
       if (editingOrder) {
         recalcOrder(editingOrder);
-        var orig = allOrders.find(function (o) {
+        const orig = allOrders.find(function (o) {
           return o.id === editingOrder.id;
         });
         if (orig) Object.assign(orig, editingOrder);
@@ -793,7 +785,7 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var cancelEditBtn = e.target.closest('[data-action="cancel-edit"]');
+    const cancelEditBtn = e.target.closest('[data-action="cancel-edit"]');
     if (cancelEditBtn) {
       editingOrder = null;
       renderOrderDetail(container, order.id);
@@ -801,9 +793,9 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var removeItemBtn = e.target.closest('[data-action="remove-edit-item"]');
+    const removeItemBtn = e.target.closest('[data-action="remove-edit-item"]');
     if (removeItemBtn && editingOrder) {
-      var ridx = parseInt(removeItemBtn.getAttribute("data-idx"));
+      const ridx = parseInt(removeItemBtn.getAttribute("data-idx"));
       editingOrder.items.splice(ridx, 1);
       recalcOrder(editingOrder);
       renderOrderDetail(container, editingOrder.id);
@@ -811,11 +803,11 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var qtyBtn = e.target.closest('[data-action="edit-item-qty"]');
+    const qtyBtn = e.target.closest('[data-action="edit-item-qty"]');
     if (qtyBtn && editingOrder) {
-      var qidx = parseInt(qtyBtn.getAttribute("data-idx"));
-      var delta = parseInt(qtyBtn.getAttribute("data-delta"));
-      var item = editingOrder.items[qidx];
+      const qidx = parseInt(qtyBtn.getAttribute("data-idx"));
+      const delta = parseInt(qtyBtn.getAttribute("data-delta"));
+      const item = editingOrder.items[qidx];
       if (item) {
         item.qty += delta;
         if (item.qty <= 0) editingOrder.items.splice(qidx, 1);
@@ -826,14 +818,14 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var addEditBtn = e.target.closest('[data-action="add-to-edit-order"]');
+    const addEditBtn = e.target.closest('[data-action="add-to-edit-order"]');
     if (addEditBtn && editingOrder) {
-      var itemId = parseInt(addEditBtn.getAttribute("data-item-id"));
-      var menuItem = menuItems.find(function (m) {
+      const itemId = parseInt(addEditBtn.getAttribute("data-item-id"));
+      const menuItem = menuItems.find(function (m) {
         return m.id === itemId;
       });
       if (menuItem) {
-        var existing = editingOrder.items.find(function (it) {
+        const existing = editingOrder.items.find(function (it) {
           return it.id === menuItem.id;
         });
         if (existing) {
@@ -853,9 +845,9 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var detailCatBtn = e.target.closest("[data-detail-cat]");
+    const detailCatBtn = e.target.closest("[data-detail-cat]");
     if (detailCatBtn) {
-      var cat = detailCatBtn.getAttribute("data-detail-cat");
+      const cat = detailCatBtn.getAttribute("data-detail-cat");
       container.querySelectorAll("[data-detail-cat]").forEach(function (b) {
         b.className =
           "px-3 py-1 rounded-full text-xs font-semibold border cursor-pointer transition-colors " +
@@ -863,11 +855,11 @@ function setupOrderDetailEvents(container, order) {
             ? "bg-brand-500 text-white border-brand-500"
             : "bg-white text-brand-600 border-brand-300 hover:bg-brand-50");
       });
-      var grid = container.querySelector("#detailMenuGrid");
+      const grid = container.querySelector("#detailMenuGrid");
       if (grid) {
         grid.querySelectorAll('[data-action="add-to-edit-order"]').forEach(function (card) {
-          var catEls = card.querySelectorAll(".text-secondary-500");
-          var cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
+          const catEls = card.querySelectorAll(".text-secondary-500");
+          const cardCat = catEls.length > 0 ? catEls[catEls.length - 1] : null;
           if (cardCat) {
             card.style.display = cat === "All" || cardCat.textContent === cat ? "" : "none";
           }
@@ -876,14 +868,14 @@ function setupOrderDetailEvents(container, order) {
       return;
     }
 
-    var saveNoteBtn = e.target.closest('[data-action="save-note"]');
+    const saveNoteBtn = e.target.closest('[data-action="save-note"]');
     if (saveNoteBtn) {
-      var noteId = parseInt(saveNoteBtn.getAttribute("data-order-id"));
-      var noteOrder = allOrders.find(function (o) {
+      const noteId = parseInt(saveNoteBtn.getAttribute("data-order-id"));
+      const noteOrder = allOrders.find(function (o) {
         return o.id === noteId;
       });
       if (noteOrder) {
-        var noteInput = document.getElementById("detailNoteInput");
+        const noteInput = document.getElementById("detailNoteInput");
         noteOrder.note = noteInput ? noteInput.value : null;
         renderOrderDetail(container, noteId);
         window.createIcons();
@@ -893,7 +885,7 @@ function setupOrderDetailEvents(container, order) {
   });
 }
 
-var PosView = {
+const PosView = {
   render: function (el) {
     if (subView === "new") {
       renderNewOrder(el);
