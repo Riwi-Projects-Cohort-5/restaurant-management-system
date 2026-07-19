@@ -2,7 +2,11 @@ const AppShell = {
   render: function (el) {
     if (el.querySelector("[data-app-shell]")) return;
 
-    const user = window.userData || { name: "Maria Castillo", initials: "MC", role: "Administrator" };
+    const user = window.userData || {
+      name: "Maria Castillo",
+      initials: "MC",
+      role: "Administrator",
+    };
 
     el.innerHTML =
       '<div data-app-shell class="grid h-screen overflow-hidden grid-cols-[var(--sidebar-width)_1fr] grid-rows-[var(--topbar-height)_1fr]">' +
