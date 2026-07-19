@@ -25,18 +25,24 @@ function renderBarChart(data) {
   chartInstance = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: data.map(function (d) { return d.label; }),
+      labels: data.map(function (d) {
+        return d.label;
+      }),
       datasets: [
         {
           label: "Revenue",
-          data: data.map(function (d) { return d.revenue; }),
+          data: data.map(function (d) {
+            return d.revenue;
+          }),
           backgroundColor: "#E57722",
           borderRadius: 6,
           barPercentage: 0.6,
         },
         {
           label: "Orders",
-          data: data.map(function (d) { return d.orders * 50; }),
+          data: data.map(function (d) {
+            return d.orders * 50;
+          }),
           backgroundColor: "#F2BA7A",
           borderRadius: 6,
           barPercentage: 0.6,
@@ -59,7 +65,10 @@ function renderBarChart(data) {
           callbacks: {
             label: function (ctx) {
               if (ctx.datasetIndex === 0) {
-                return "Revenue: $" + ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                return (
+                  "Revenue: $" +
+                  ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })
+                );
               }
               return "Orders: " + Math.round(ctx.parsed.y / 50);
             },
@@ -112,23 +121,49 @@ function render(el) {
   html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Date Range</h3>';
   html += "</div>";
   html += '<div class="px-5 py-4 flex items-end gap-4">';
-  html += '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Start Date<input type="date" id="report-start" value="' + startDate + '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
-  html += '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">End Date<input type="date" id="report-end" value="' + endDate + '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
-  html += '<button data-action="generate-report" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Generate</button>';
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Start Date<input type="date" id="report-start" value="' +
+    startDate +
+    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">End Date<input type="date" id="report-end" value="' +
+    endDate +
+    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+  html +=
+    '<button data-action="generate-report" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Generate</button>';
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-1 md:grid-cols-3 gap-5">';
-  html += renderStatCard("Total Revenue", "$" + totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), "dollar-sign", "bg-brand-100 text-brand-700");
-  html += renderStatCard("Total Orders", String(sales.total_orders), "shopping-bag", "bg-primary-100 text-primary-700");
-  html += renderStatCard("Avg. Order Value", "$" + avgOrder.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), "receipt", "bg-success-100 text-success-700");
+  html += renderStatCard(
+    "Total Revenue",
+    "$" +
+      totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    "dollar-sign",
+    "bg-brand-100 text-brand-700"
+  );
+  html += renderStatCard(
+    "Total Orders",
+    String(sales.total_orders),
+    "shopping-bag",
+    "bg-primary-100 text-primary-700"
+  );
+  html += renderStatCard(
+    "Avg. Order Value",
+    "$" +
+      avgOrder.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    "receipt",
+    "bg-success-100 text-success-700"
+  );
   html += "</div>";
 
   html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
   html += '<div class="flex items-center justify-between mb-4">';
   html += '<h3 class="text-base font-semibold text-primary-700 font-display">Daily Revenue</h3>';
   html += '<div class="flex gap-2">';
-  html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Revenue</span>';
-  html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-[#F2BA7A]"></span> Orders (scaled)</span>';
+  html +=
+    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Revenue</span>';
+  html +=
+    '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-[#F2BA7A]"></span> Orders (scaled)</span>';
   html += "</div></div>";
   html += '<div class="relative h-[240px]"><canvas id="reportsChart"></canvas></div>';
   html += "</div>";
@@ -139,22 +174,31 @@ function render(el) {
   html += "</div>";
 
   if (topProducts.length === 0) {
-    html += '<div class="px-5 py-8 text-center text-sm text-secondary-400">No product data available for this period</div>';
+    html +=
+      '<div class="px-5 py-8 text-center text-sm text-secondary-400">No product data available for this period</div>';
   } else {
     html += '<div class="overflow-x-auto">';
     html += '<table class="w-full text-sm text-left">';
-    html += '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
-    html += '<th class="px-5 py-3">Rank</th><th class="px-5 py-3">Product</th><th class="px-5 py-3 text-center">Quantity Sold</th><th class="px-5 py-3 text-right">Revenue</th><th class="px-5 py-3 text-right">% of Total</th>';
+    html +=
+      '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
+    html +=
+      '<th class="px-5 py-3">Rank</th><th class="px-5 py-3">Product</th><th class="px-5 py-3 text-center">Quantity Sold</th><th class="px-5 py-3 text-right">Revenue</th><th class="px-5 py-3 text-right">% of Total</th>';
     html += "</tr></thead>";
     html += "<tbody>";
     topProducts.forEach(function (p, i) {
       var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       var pct = totalRev > 0 ? ((p.total_revenue / totalRev) * 100).toFixed(1) : "0";
       html += '<tr class="' + zebra + ' border-b border-brand-100">';
-      html += '<td class="px-5 py-3.5"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold">' + (i + 1) + "</span></td>";
+      html +=
+        '<td class="px-5 py-3.5"><span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-brand-100 text-brand-700 text-xs font-bold">' +
+        (i + 1) +
+        "</span></td>";
       html += '<td class="px-5 py-3.5 font-semibold text-brand-800">' + p.menu_item_name + "</td>";
       html += '<td class="px-5 py-3.5 text-center text-neutral-600">' + p.total_quantity + "</td>";
-      html += '<td class="px-5 py-3.5 text-right font-semibold text-brand-800">$' + p.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2 }) + "</td>";
+      html +=
+        '<td class="px-5 py-3.5 text-right font-semibold text-brand-800">$' +
+        p.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2 }) +
+        "</td>";
       html += '<td class="px-5 py-3.5 text-right text-secondary-500">' + pct + "%</td>";
       html += "</tr>";
     });
@@ -200,11 +244,19 @@ function renderStatCard(label, value, icon, iconBg) {
   return (
     '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">' +
     '<div class="flex items-center gap-3">' +
-    '<div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ' + iconBg + '">' +
-    '<i data-lucide="' + icon + '" class="w-5 h-5"></i>' +
+    '<div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ' +
+    iconBg +
+    '">' +
+    '<i data-lucide="' +
+    icon +
+    '" class="w-5 h-5"></i>' +
     "</div>" +
-    '<div><p class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider">' + label + "</p>" +
-    '<p class="text-xl font-bold text-brand-900">' + value + "</p></div>" +
+    '<div><p class="text-[11px] font-bold text-secondary-500 uppercase tracking-wider">' +
+    label +
+    "</p>" +
+    '<p class="text-xl font-bold text-brand-900">' +
+    value +
+    "</p></div>" +
     "</div></div>"
   );
 }
