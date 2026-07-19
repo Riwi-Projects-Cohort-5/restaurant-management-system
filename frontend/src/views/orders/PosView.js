@@ -181,12 +181,8 @@ function renderNewOrder(container) {
   });
   html += "</div>";
 
-<<<<<<< HEAD
-  html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto min-h-0">';
-=======
   html +=
     '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto min-h-0">';
->>>>>>> 7456fa4 (fix: resolve all ESLint warnings (no-var, no-unused-vars) and fix POS menu grid bug)
   menuItems.forEach(function (item) {
     html +=
       '<div data-action="add-to-cart" data-item-id="' +
