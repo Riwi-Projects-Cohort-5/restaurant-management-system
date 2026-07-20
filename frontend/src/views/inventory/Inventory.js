@@ -13,7 +13,7 @@ import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import InputField from "../../components/forms/InputField.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
-import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockInventory();
 
@@ -720,11 +720,11 @@ const InventoryView = {
     inventoryStore.loadItems();
 
     if (subView === "detail" && selectedId) {
-      renderDetail(el, selectedId);
+      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 400);
     } else if (subView === "create") {
-      renderForm(el, null);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 400);
     } else if (subView === "edit" && selectedId) {
-      renderForm(el, selectedId);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 400);
     } else {
       subView = "list";
       renderList(el);

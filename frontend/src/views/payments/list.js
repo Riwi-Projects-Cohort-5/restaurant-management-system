@@ -11,7 +11,7 @@ import { currentUser } from "../../store/auth.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import InputField from "../../components/forms/InputField.js";
-import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockPayments();
 
@@ -751,11 +751,11 @@ export function renderPayments(el) {
   paymentsStore.loadPayments();
 
   if (subView === "detail" && selectedId) {
-    renderDetail(el, selectedId);
+    renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 400);
   } else if (subView === "new") {
-    renderNewPayment(el);
+    renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 400);
   } else if (subView === "config") {
-    renderConfig(el);
+    renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 400);
   } else {
     subView = "list";
     renderList(el);

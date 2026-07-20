@@ -5,7 +5,7 @@ import {
   STATUS_COLORS,
   initMockReservations,
 } from "../../services/mockReservations.js";
-import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockReservations();
 
@@ -542,9 +542,9 @@ export function renderReservations(container) {
   }
 
   if (subView === "detail") {
-    renderDetail(container);
+    renderWithSkeleton(container, Skeletons.reservationDetail(), function () { renderDetail(container); }, 400);
   } else if (subView === "new") {
-    renderNewReservationForm(container);
+    renderWithSkeleton(container, Skeletons.newReservation(), function () { renderNewReservationForm(container); }, 400);
   } else {
     renderList(container);
   }

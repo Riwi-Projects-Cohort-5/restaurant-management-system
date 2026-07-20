@@ -6,7 +6,7 @@ import { toast } from "../../components/ui/ToastManager.js";
 import InputField from "../../components/forms/InputField.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
-import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockCategories();
 initMockProducts();
@@ -554,11 +554,11 @@ export function renderMenu(el) {
   menuStore.loadCategories();
 
   if (subView === "detail" && selectedId) {
-    renderDetail(el, selectedId);
+    renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 400);
   } else if (subView === "create") {
-    renderForm(el, null);
+    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 400);
   } else if (subView === "edit" && selectedId) {
-    renderForm(el, selectedId);
+    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
   } else {
     subView = "list";
     renderList(el);

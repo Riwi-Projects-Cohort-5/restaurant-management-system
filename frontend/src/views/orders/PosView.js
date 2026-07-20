@@ -7,7 +7,7 @@ import {
   currentRole,
 } from "../../store/posData.js";
 import CartPanel from "../../components/pos/CartPanel.js";
-import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -889,9 +889,9 @@ function setupOrderDetailEvents(container, order) {
 const PosView = {
   render: function (el) {
     if (subView === "new") {
-      renderNewOrder(el);
+      renderWithSkeleton(el, Skeletons.newOrder(), function () { renderNewOrder(el); }, 400);
     } else if (subView === "detail" && selectedOrderId) {
-      renderOrderDetail(el, selectedOrderId);
+      renderWithSkeleton(el, Skeletons.orderDetail(), function () { renderOrderDetail(el, selectedOrderId); }, 400);
     } else {
       subView = "orders";
       renderOrderList(el);
