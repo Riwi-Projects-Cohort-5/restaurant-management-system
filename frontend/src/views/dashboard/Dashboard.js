@@ -141,4 +141,4 @@ const Dashboard = {
   },
 };
 
-export default withLoading(Dashboard, Skeletons.dashboard(), 5000);
+export default withLoading(Dashboard, Skeletons.dashboard(), 1000);

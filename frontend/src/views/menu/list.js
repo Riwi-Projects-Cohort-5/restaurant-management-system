@@ -403,15 +403,15 @@ function setupListEvents(el) {
     if (action === "create-product") {
       subView = "create";
       selectedId = null;
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 4000);
+      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 400);
     } else if (action === "view-detail") {
       selectedId = parseInt(btn.dataset.productId);
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 4000);
+      renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 400);
     } else if (action === "edit-product") {
       selectedId = parseInt(btn.dataset.productId);
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 4000);
+      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -461,7 +461,7 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "edit-product") {
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 4000);
+      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
     } else if (action === "toggle-availability") {
       menuService.toggleProductAvailability(selectedId);
       menuStore.refreshProducts();
@@ -554,15 +554,15 @@ export function renderMenu(el) {
   menuStore.loadCategories();
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 4000);
+    renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 400);
   } else if (subView === "create") {
-    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 4000);
+    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 400);
   } else if (subView === "edit" && selectedId) {
-    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 4000);
+    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading({ render: renderMenu, init: function () {}, destroy: function () {} }, Skeletons.menuCards(8), 5000);
+export default withLoading({ render: renderMenu, init: function () {}, destroy: function () {} }, Skeletons.menuCards(8), 800);

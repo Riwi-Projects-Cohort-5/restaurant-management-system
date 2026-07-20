@@ -415,7 +415,7 @@ function setupEvents(el) {
     if (newRes) {
       e.stopPropagation();
       subView = "new";
-      renderWithSkeleton(el, Skeletons.newReservation(), function () { renderNewReservationForm(el); }, 4000);
+      renderWithSkeleton(el, Skeletons.newReservation(), function () { renderNewReservationForm(el); }, 400);
       return;
     }
 
@@ -424,7 +424,7 @@ function setupEvents(el) {
       e.stopPropagation();
       selectedId = viewDetail.getAttribute("data-id");
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.reservationDetail(), function () { renderDetail(el); }, 4000);
+      renderWithSkeleton(el, Skeletons.reservationDetail(), function () { renderDetail(el); }, 400);
       return;
     }
 
@@ -433,7 +433,7 @@ function setupEvents(el) {
       e.stopPropagation();
       selectedId = row.getAttribute("data-reservation-id");
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.reservationDetail(), function () { renderDetail(el); }, 4000);
+      renderWithSkeleton(el, Skeletons.reservationDetail(), function () { renderDetail(el); }, 400);
       return;
     }
 
@@ -489,7 +489,7 @@ function setupEvents(el) {
           firstEmpty.focus();
           setTimeout(function () {
             firstEmpty.classList.remove("border-error-400");
-          }, 4000);
+          }, 400);
         }
         return;
       }
@@ -542,12 +542,12 @@ export function renderReservations(container) {
   }
 
   if (subView === "detail") {
-    renderWithSkeleton(container, Skeletons.reservationDetail(), function () { renderDetail(container); }, 4000);
+    renderWithSkeleton(container, Skeletons.reservationDetail(), function () { renderDetail(container); }, 400);
   } else if (subView === "new") {
-    renderWithSkeleton(container, Skeletons.newReservation(), function () { renderNewReservationForm(container); }, 4000);
+    renderWithSkeleton(container, Skeletons.newReservation(), function () { renderNewReservationForm(container); }, 400);
   } else {
     renderList(container);
   }
 }
 
-export default withLoading({ render: renderReservations, init: function () {}, destroy: function () {} }, Skeletons.reservationsTable(), 5000);
+export default withLoading({ render: renderReservations, init: function () {}, destroy: function () {} }, Skeletons.reservationsTable(), 800);
