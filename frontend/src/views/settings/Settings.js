@@ -119,4 +119,4 @@ const SettingsView = {
   destroy: function () {},
 };
 
-export default withLoading(SettingsView, Skeletons.settings(), 600);
+export default withLoading(SettingsView, Skeletons.settings(), 5000);

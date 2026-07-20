@@ -673,7 +673,7 @@ function setupEvents(el) {
       subView = "detail";
       renderWithSkeleton(el, Skeletons.tablesDetail(), function () {
         renderDetail(el, selectedTableId);
-      }, 400);
+      }, 4000);
       return;
     }
 
@@ -787,7 +787,7 @@ function setupEvents(el) {
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
       });
-      renderManageAreas(el);
+      renderWithSkeleton(el, Skeletons.tablesManageAreas(), function () { renderManageAreas(el); }, 4000);
       return;
     }
 
@@ -1026,9 +1026,9 @@ const TablesView = {
   render: function (el) {
     setupEvents(el);
     if (subView === "detail" && selectedTableId) {
-      renderWithSkeleton(el, Skeletons.tablesDetail(), function () { renderDetail(el, selectedTableId); }, 400);
+      renderWithSkeleton(el, Skeletons.tablesDetail(), function () { renderDetail(el, selectedTableId); }, 4000);
     } else if (subView === "manage-areas") {
-      renderWithSkeleton(el, Skeletons.tablesManageAreas(), function () { renderManageAreas(el); }, 400);
+      renderWithSkeleton(el, Skeletons.tablesManageAreas(), function () { renderManageAreas(el); }, 4000);
     } else {
       renderMain(el);
     }
@@ -1047,4 +1047,4 @@ const TablesView = {
   },
 };
 
-export default withLoading(TablesView, Skeletons.tables(), 800);
+export default withLoading(TablesView, Skeletons.tables(), 5000);

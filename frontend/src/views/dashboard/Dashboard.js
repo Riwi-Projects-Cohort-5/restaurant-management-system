@@ -98,7 +98,7 @@ const Dashboard = {
 
     html += "</div>";
 
-    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden p-0">';
     html += '<div class="flex items-center justify-between px-5 pt-5 pb-4">';
     html += '<h3 class="text-base font-semibold text-primary-700 font-display">Recent Orders</h3>';
     html +=
@@ -141,4 +141,4 @@ const Dashboard = {
   },
 };
 
-export default withLoading(Dashboard, Skeletons.dashboard(), 1000);
+export default withLoading(Dashboard, Skeletons.dashboard(), 5000);

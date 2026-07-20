@@ -273,4 +273,4 @@ const ReportsView = {
   },
 };
 
-export default withLoading(ReportsView, Skeletons.reports(), 1000);
+export default withLoading(ReportsView, Skeletons.reports(), 5000);

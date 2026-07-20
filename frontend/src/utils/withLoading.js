@@ -248,7 +248,7 @@ function _keyValueRow(labelW, valueW) {
     '<span class="font-semibold text-secondary-500 w-28">' +
     Skeleton({ variant: "text", width: labelW || "55px" }) +
     "</span>" +
-    '<span class="text-neutral-700">' +
+    '<span class="text-brand-700">' +
     Skeleton({ variant: "text", width: valueW || "100px" }) +
     "</span></div>"
   );
@@ -280,17 +280,41 @@ const Skeletons = {
       statusBody += "</div>";
     }
     statusBody += Skeleton({ variant: "rect", width: "100%", height: 8, class: "rounded-full mt-2" });
+    statusBody += "</div>";
     html += _sectionCard("90px", statusBody);
     html += "</div>";
-    const ordersTable = _dataTable({ columns: [
-      { width: "60%" }, { width: "50%" }, { width: "40%" }, { width: "30%" },
-      { width: "40%" }, { width: "60px", type: "badge" }, { width: "35%" },
-    ], rows: 5, padding: "px-4 py-3" });
-    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
+    // Recent Orders (a medida, igual que la vista real).
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden p-0">';
     html += '<div class="flex items-center justify-between px-5 pt-5 pb-4">';
     html += Skeleton({ variant: "text", width: "110px" });
     html += _badge("70px");
     html += "</div>";
+    let ordersTable = '<div class="overflow-x-auto"><table class="w-full table-fixed text-sm text-left">';
+    ordersTable += '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
+    ["14%", "14%", "18%", "14%", "14%", "16%", "10%"].forEach(function (w) {
+      ordersTable += '<th class="px-4 py-3" style="width:' + w + '">' + Skeleton({ variant: "text", width: "100%" }) + "</th>";
+    });
+    ordersTable += "</tr></thead><tbody>";
+    for (let r = 0; r < 5; r++) {
+      const zebra = r % 2 !== 0 ? " bg-brand-50/50" : "";
+      ordersTable += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
+      // Order
+      ordersTable += '<td class="px-4 py-3 font-semibold text-brand-800">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Table
+      ordersTable += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Server
+      ordersTable += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Items
+      ordersTable += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Total
+      ordersTable += '<td class="px-4 py-3 font-semibold text-brand-800">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Status badge
+      ordersTable += '<td class="px-4 py-3">' + _badge("70px") + "</td>";
+      // Time
+      ordersTable += '<td class="px-4 py-3 text-brand-600">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      ordersTable += "</tr>";
+    }
+    ordersTable += "</tbody></table></div>";
     html += ordersTable + "</div>";
     html += "</div>";
     return html;
@@ -299,12 +323,23 @@ const Skeletons = {
   menuCards(count) {
     count = count || 8;
     let html = '<div class="space-y-5">';
-    html += _pageHeader({ backWidth: null, titleWidth: "160px", rightButtons: ["120px"] });
-    html += '<div class="flex flex-wrap gap-3 items-center">';
-    html += _searchBar();
-    html += Skeleton({ variant: "rect", width: "150px", height: 36, class: "rounded-lg" });
-    html += Skeleton({ variant: "rect", width: "130px", height: 36, class: "rounded-lg" });
+    // Header: título + subtítulo a la izquierda; Add Product a la derecha.
+    html += '<div class="flex items-center justify-between">';
+    html += '<div><div class="h-7 rounded bg-brand-200 animate-pulse" style="width:120px"></div>';
+    html += '<div class="mt-1 h-4 rounded bg-brand-200 animate-pulse" style="width:90px"></div></div>';
+    html += Skeleton({ variant: "rect", width: "120px", height: 38, class: "rounded-lg bg-brand-200" });
     html += "</div>";
+    // Fila de filtros: search + 2 selects + clear filters (igual que la real).
+    html += '<div class="flex flex-wrap gap-3 items-center">';
+    html += '<div class="flex items-center gap-2 border border-brand-200 rounded-lg px-3 py-2 bg-white">';
+    html += Skeleton({ variant: "circle", size: 16, class: "text-brand-400 shrink-0" });
+    html += Skeleton({ variant: "text", width: "60%" });
+    html += "</div>";
+    html += Skeleton({ variant: "rect", width: "150px", height: 38, class: "rounded-lg" });
+    html += Skeleton({ variant: "rect", width: "130px", height: 38, class: "rounded-lg" });
+    html += Skeleton({ variant: "text", width: "90px" });
+    html += "</div>";
+    // Grid de cards.
     html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">';
     for (let i = 0; i < count; i++) {
       html +=
@@ -315,8 +350,8 @@ const Skeletons = {
         Skeleton({ variant: "text", width: "45%" }) +
         _badge("72px") +
         '<div class="flex gap-2 w-full">' +
-        Skeleton({ variant: "rect", width: "100%", height: 32, class: "rounded-lg" }) +
-        Skeleton({ variant: "rect", width: "100%", height: 32, class: "rounded-lg" }) +
+        Skeleton({ variant: "rect", width: "100%", height: 32, class: "rounded-md" }) +
+        Skeleton({ variant: "rect", width: "100%", height: 32, class: "rounded-md" }) +
         "</div></div>";
     }
     html += "</div></div>";
@@ -331,7 +366,7 @@ const Skeletons = {
     html += '<div class="mt-1 h-4 rounded bg-brand-200 animate-pulse" style="width:80px"></div></div>';
     html += '<div class="flex gap-2">';
     html += Skeleton({ variant: "rect", width: "110px", height: 32, class: "rounded-lg" });
-    html += Skeleton({ variant: "rect", width: "100px", height: 38, class: "rounded-lg bg-primary-200" });
+    html += Skeleton({ variant: "rect", width: "100px", height: 38, class: "rounded-lg bg-brand-200" });
     html += "</div></div>";
     // Tabs con contadores (All / In Stock / Low Stock / Inactive).
     html += '<div class="flex flex-wrap gap-2">';
@@ -362,14 +397,14 @@ const Skeletons = {
       // Item
       table += '<td class="px-5 py-3.5"><div class="h-4 rounded bg-brand-200 animate-pulse" style="width:70%"></div></td>';
       // Unit
-      table += '<td class="px-5 py-3.5 text-sm text-neutral-600">' + Skeleton({ variant: "text", width: "40px" }) + "</td>";
+      table += '<td class="px-5 py-3.5 text-sm text-brand-600">' + Skeleton({ variant: "text", width: "40px" }) + "</td>";
       // Stock Level: barra fina h-2 + número a la derecha (min-w-[160px]).
       table += '<td class="px-5 py-3.5 min-w-[160px]"><div class="flex items-center gap-2">' +
-        '<div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">' +
-        '<div class="bg-success-500 h-full rounded-full animate-pulse" style="width:100%"></div></div>' +
+        '<div class="flex-1 h-2 rounded-full bg-brand-100 overflow-hidden">' +
+        '<div class="bg-brand-300 h-full rounded-full animate-pulse" style="width:100%"></div></div>' +
         '<span class="h-3 rounded bg-brand-200 animate-pulse min-w-[40px] text-right" style="width:40px"></span></div></td>';
       // Min Stock (centrado, "N kg")
-      table += '<td class="px-5 py-3.5 text-sm text-neutral-600 text-center">' + Skeleton({ variant: "text", width: "48px" }) + "</td>";
+      table += '<td class="px-5 py-3.5 text-sm text-brand-600 text-center">' + Skeleton({ variant: "text", width: "48px" }) + "</td>";
       // Status badge
       table += '<td class="px-5 py-3.5">' + _badge("72px") + "</td>";
       // Updated
@@ -387,32 +422,118 @@ const Skeletons = {
 
   ordersTable() {
     let html = '<div class="space-y-5">';
-    html += _pageHeader({ backWidth: null, titleWidth: "80px", rightButtons: ["110px"] });
-    html += _tabRow(["50px", "60px", "55px"]);
-    const table = _dataTable({ columns: [
-      { width: "50%" }, { width: "45%" }, { width: "40%" }, { width: "30%" },
-      { width: "40%" }, { width: "60px", type: "badge" }, { width: "30%" }, { width: "50px", type: "actions" },
-    ], rows: 6, padding: "px-4 py-3" });
-    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden">' + table + "</div>";
+    // Header: título a la izquierda; New Order a la derecha.
+    html += '<div class="flex items-center justify-between mb-6">';
+    html += '<div class="h-7 rounded bg-brand-200 animate-pulse" style="width:80px"></div>';
+    html += Skeleton({ variant: "rect", width: "110px", height: 40, class: "rounded-md bg-brand-200" });
+    html += "</div>";
+    // 3 tabs simples (All / Active / Closed) sin contadores.
+    html += '<div class="flex gap-2 mb-5">';
+    ["50px", "60px", "55px"].forEach(function (w) {
+      html += '<div class="px-4 py-1.5 rounded-full border border-brand-200 bg-white">' +
+        Skeleton({ variant: "text", width: w }) + "</div>";
+    });
+    html += "</div>";
+    // Tabla directa (8 columnas).
+    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm overflow-hidden"><div class="overflow-x-auto"><table class="w-full table-fixed text-sm text-left">';
+    html += '<thead><tr class="text-xs font-bold uppercase tracking-wider text-brand-700 bg-brand-50 border-b-2 border-brand-300">';
+    ["12%", "12%", "16%", "12%", "12%", "14%", "12%", "10%"].forEach(function (w) {
+      html += '<th class="px-4 py-3" style="width:' + w + '">' + Skeleton({ variant: "text", width: "100%" }) + "</th>";
+    });
+    html += "</tr></thead><tbody>";
+    for (let r = 0; r < 6; r++) {
+      const zebra = r % 2 !== 0 ? " bg-brand-50/50" : "";
+      html += '<tr class="' + zebra + ' border-b border-brand-100 hover:bg-brand-50 transition-colors">';
+      // Order
+      html += '<td class="px-4 py-3 font-semibold text-brand-700">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Table
+      html += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Server
+      html += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Items
+      html += '<td class="px-4 py-3">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Total
+      html += '<td class="px-4 py-3 font-semibold text-brand-700">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Status badge
+      html += '<td class="px-4 py-3">' + _badge("60px") + "</td>";
+      // Time
+      html += '<td class="px-4 py-3 text-brand-600">' + Skeleton({ variant: "text", width: "100%" }) + "</td>";
+      // Actions: 1-2 iconos w-7 h-7 en gap-2.
+      html += '<td class="px-4 py-3"><div class="flex items-center gap-2">' +
+        Skeleton({ variant: "rect", width: 28, height: 28, class: "rounded-md" }) +
+        Skeleton({ variant: "rect", width: 28, height: 28, class: "rounded-md" }) + "</div></td>";
+      html += "</tr>";
+    }
+    html += "</tbody></table></div></div>";
     html += "</div>";
     return html;
   },
 
   paymentsTable() {
     let html = '<div class="space-y-5">';
-    html += _pageHeader({ backWidth: null, titleWidth: "90px", rightButtons: ["110px", "90px"] });
-    html += _tabRow(["60px", "75px", "85px", "75px", "55px"]);
-    let searchHeader = '<div class="flex items-center gap-3">';
-    searchHeader += '<div class="flex-1">' + _searchBar() + "</div>";
-    searchHeader += Skeleton({ variant: "rect", width: "140px", height: 36, class: "rounded-lg" });
-    searchHeader += "</div>";
-    const table = _dataTable({ columns: [
-      { width: "55%" }, { width: "35%" }, { width: "40%" }, { width: "45%" },
-      { width: "45%" }, { width: "50%", type: "circle-text" }, { width: "65px", type: "badge" },
-      { width: "55%" }, { width: "60px", type: "actions" },
-    ], rows: 6 });
-    html += _sectionCard(searchHeader, table, { headerRight: null });
+    // Header: título + subtítulo a la izquierda; New Payment + Methods a la derecha.
+    html += '<div class="flex items-center justify-between">';
+    html += '<div><div class="h-7 rounded bg-brand-200 animate-pulse" style="width:100px"></div>';
+    html += '<div class="mt-1 h-4 rounded bg-brand-200 animate-pulse" style="width:90px"></div></div>';
+    html += '<div class="flex gap-2">';
+    html += Skeleton({ variant: "rect", width: "120px", height: 38, class: "rounded-lg bg-brand-200" });
+    html += Skeleton({ variant: "rect", width: "110px", height: 38, class: "rounded-lg" });
+    html += "</div></div>";
+    // Tabs con contadores (All / Pending / Completed / Refunded / Failed).
+    html += '<div class="flex flex-wrap gap-2">';
+    ["50px", "70px", "75px", "75px", "55px"].forEach(function (w) {
+      html += '<div class="flex items-center gap-1.5 px-4 py-2 rounded-full border border-brand-300 bg-white">' +
+        Skeleton({ variant: "text", width: w }) +
+        '<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-brand-200 animate-pulse"></span></div>';
+    });
     html += "</div>";
+    // Card con search + date dentro (igual que la real).
+    html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
+    html += '<div class="px-5 py-3 border-b border-brand-100">';
+    html += '<div class="flex items-center gap-3">';
+    html += '<div class="flex items-center gap-2 flex-1 border border-brand-200 rounded-lg px-3 py-2 bg-white">';
+    html += Skeleton({ variant: "circle", size: 16, class: "text-brand-400 shrink-0" });
+    html += Skeleton({ variant: "text", width: "60%" });
+    html += "</div>";
+    html += Skeleton({ variant: "rect", width: "160px", height: 38, class: "rounded-lg" });
+    html += "</div></div>";
+    // Tabla directa (9 columnas).
+    let table = '<div class="overflow-x-auto"><table class="w-full table-fixed">';
+    table += '<thead><tr class="border-b-2 border-brand-100">';
+    ["12%", "12%", "12%", "14%", "12%", "12%", "12%", "12%", "12%"].forEach(function (w) {
+      table += '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50" style="width:' + w + '">' +
+        Skeleton({ variant: "text", width: "100%" }) + "</th>";
+    });
+    table += "</tr></thead><tbody>";
+    for (let r = 0; r < 6; r++) {
+      const zebra = r % 2 !== 0 ? " bg-brand-50/50" : "";
+      table += '<tr class="border-b border-brand-100 hover:bg-brand-50 transition-colors' + zebra + '">';
+      // Payment ID
+      table += '<td class="px-5 py-3 font-semibold text-brand-700">' + Skeleton({ variant: "text", width: "70%" }) + "</td>";
+      // Order
+      table += '<td class="px-5 py-3">' + Skeleton({ variant: "text", width: "45%" }) + "</td>";
+      // Table
+      table += '<td class="px-5 py-3">' + Skeleton({ variant: "text", width: "40%" }) + "</td>";
+      // Cashier
+      table += '<td class="px-5 py-3">' + Skeleton({ variant: "text", width: "45%" }) + "</td>";
+      // Amount
+      table += '<td class="px-5 py-3 font-semibold text-brand-700">' + Skeleton({ variant: "text", width: "45%" }) + "</td>";
+      // Method (icono + texto)
+      table += '<td class="px-5 py-3"><div class="flex items-center gap-2">' +
+        Skeleton({ variant: "circle", size: 16 }) +
+        Skeleton({ variant: "text", width: "50px" }) + "</div></td>";
+      // Status badge
+      table += '<td class="px-5 py-3">' + _badge("65px") + "</td>";
+      // Date
+      table += '<td class="px-5 py-3 text-sm text-secondary-500">' + Skeleton({ variant: "text", width: "55%" }) + "</td>";
+      // Actions: 1-2 iconos w-7 h-7 en gap-2.
+      table += '<td class="px-5 py-3"><div class="flex items-center gap-2">' +
+        Skeleton({ variant: "rect", width: 28, height: 28, class: "rounded-md" }) +
+        Skeleton({ variant: "rect", width: 28, height: 28, class: "rounded-md" }) + "</div></td>";
+      table += "</tr>";
+    }
+    table += "</tbody></table></div>";
+    html += table + "</div></div>";
     return html;
   },
 
@@ -456,7 +577,10 @@ const Skeletons = {
 
   reports() {
     let html = '<div class="space-y-5 max-w-2xl" style="max-width:100%">';
-    html += '<div>' + _pageHeader({ backWidth: null, titleWidth: "100px", noBetween: true }) + "</div>";
+    html += '<div class="flex items-center justify-between">';
+    html += '<div><div class="h-7 rounded bg-brand-200 animate-pulse" style="width:100px"></div>';
+    html += '<div class="mt-1 h-4 rounded bg-brand-200 animate-pulse" style="width:180px"></div></div>';
+    html += "</div>";
     let dateFields = '<div class="flex items-end gap-4">';
     dateFields += _inputField("60px") + _inputField("60px") + _btn("100px");
     dateFields += "</div>";
@@ -498,12 +622,12 @@ const Skeletons = {
     html += "</div>";
     html += '<div class="p-5"><div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-5">';
     const cardBorders = [
-      "border-success-300 bg-success-50",
+      "border-brand-200 bg-brand-50",
       "border-brand-300 bg-brand-50",
-      "border-accent-300 bg-accent-50",
-      "border-success-300 bg-success-50",
+      "border-brand-200 bg-brand-50",
+      "border-brand-200 bg-brand-50",
       "border-brand-300 bg-brand-50",
-      "border-accent-300 bg-accent-50",
+      "border-brand-200 bg-brand-50",
     ];
     for (let i = 0; i < 6; i++) {
       html += '<div class="aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 ' + cardBorders[i] + '">';
@@ -525,7 +649,7 @@ const Skeletons = {
     html += "</div>";
     // 3-col kanban
     html += '<div class="flex-1 grid grid-cols-3 gap-5 min-h-0">';
-    const colColors = ["bg-info-50", "bg-accent-50", "bg-success-50"];
+    const colColors = ["bg-brand-50", "bg-brand-50", "bg-brand-50"];
     for (let col = 0; col < 3; col++) {
       html += '<div class="flex flex-col rounded-xl overflow-hidden ' + colColors[col] + '">';
       // Column header
@@ -550,7 +674,10 @@ const Skeletons = {
 
   settings() {
     let html = '<div class="space-y-5 max-w-2xl">';
-    html += _pageHeader({ backWidth: null, titleWidth: "80px", noBetween: true });
+    html += '<div class="flex items-center justify-between">';
+    html += '<div><div class="h-7 rounded bg-brand-200 animate-pulse" style="width:80px"></div>';
+    html += '<div class="mt-1 h-4 rounded bg-brand-200 animate-pulse" style="width:200px"></div></div>';
+    html += "</div>";
     let fields1 = '<div class="space-y-4">';
     fields1 += _inputField("100px") + _inputField("60px");
     fields1 += '<div class="grid grid-cols-2 gap-4">' + _inputField("40px") + _inputField("35px") + "</div>";
@@ -666,18 +793,59 @@ const Skeletons = {
   },
 
   newOrder() {
-    let html = '<div class="space-y-5">';
-    html += _pageHeader({ titleWidth: "110px", rightButtons: ["120px"] });
-    html += _tabRow(["60px", "70px", "80px", "65px", "75px"]);
-    html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">';
+    let html = '<div class="flex flex-col h-full overflow-hidden">';
+    // Header: Back + "New Order" + ("Table:" label + selector)
+    html += '<div class="flex items-center justify-between mb-6 shrink-0">';
+    html += '<div class="flex items-center gap-3">' + _btn("80px") + Skeleton({ variant: "text", width: "110px" }) + "</div>";
+    html += '<div class="flex items-center gap-3">' + Skeleton({ variant: "text", width: "50px" }) + _btn("130px") + "</div>";
+    html += "</div>";
+    // Body 2 columnas
+    html += '<div class="flex gap-6 flex-1 min-h-0">';
+    // Left col: tabs + grid scrollable
+    html += '<div class="flex-1 min-w-0 min-h-0 flex flex-col gap-4">';
+html += '<div class="flex gap-2 flex-wrap shrink-0">';
+    ["50px", "110px", "60px", "65px", "70px", "95px", "80px", "65px"].forEach(function (w, i) {
+      const bg = i === 0 ? "bg-brand-300" : "bg-brand-200 border border-brand-300";
+      html += '<div class="px-4 py-1.5 rounded-full animate-pulse ' + bg + '" style="width:' + w + ';height:33px;" aria-hidden="true"></div>';
+    });
+    html += "</div>";
+    html += '<div class="grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))] overflow-y-auto min-h-0">';
     for (let i = 0; i < 8; i++) {
       html += '<div class="bg-white border border-brand-300 rounded-xl p-4 flex flex-col items-center text-center space-y-3">';
-      html += Skeleton({ variant: "rect", width: "80px", height: 80, class: "rounded-lg" });
+      html += Skeleton({ variant: "rect", width: 80, height: 80, class: "rounded-lg mb-1" });
       html += Skeleton({ variant: "text", width: "60%" });
       html += Skeleton({ variant: "text", width: "35%" });
       html += Skeleton({ variant: "text", width: "45%" });
       html += "</div>";
     }
+    html += "</div></div>";
+    // Right col: cart panel
+    let cart = '<div class="w-[340px] shrink-0 overflow-y-auto">';
+    cart += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5 flex flex-col">';
+    cart += '<div class="flex items-center justify-between mb-4">';
+    cart += Skeleton({ variant: "text", width: "130px" });
+    cart += Skeleton({ variant: "rect", width: 24, height: 24, class: "rounded-full" });
+    cart += "</div>";
+    cart += '<div class="space-y-3 min-h-[200px]">';
+    for (let i = 0; i < 3; i++) {
+      cart += '<div class="flex items-center gap-3 p-3 bg-brand-50 rounded-lg">';
+      cart += Skeleton({ variant: "rect", width: 28, height: 28, class: "rounded" });
+      cart += '<div class="flex-1 flex flex-col gap-1">' + Skeleton({ variant: "text", width: "70%" }) + Skeleton({ variant: "text", width: "40%" }) + "</div>";
+      cart += Skeleton({ variant: "rect", width: 56, height: 24, class: "rounded" });
+      cart += Skeleton({ variant: "text", width: "60px" });
+      cart += "</div>";
+    }
+    cart += "</div>";
+    cart += '<div class="border-t border-brand-200 pt-3 mt-3 space-y-2">';
+    cart += '<div class="flex justify-between">' + Skeleton({ variant: "text", width: "60px" }) + Skeleton({ variant: "text", width: "60px" }) + "</div>";
+    cart += '<div class="flex justify-between">' + Skeleton({ variant: "text", width: "60px" }) + Skeleton({ variant: "text", width: "60px" }) + "</div>";
+    cart += '<div class="flex justify-between">' + Skeleton({ variant: "text", width: "50px" }) + Skeleton({ variant: "text", width: "80px" }) + "</div>";
+    cart += "</div>";
+    cart += '<div class="flex gap-2 mt-4">';
+    cart += Skeleton({ variant: "rect", width: "100%", height: 40, class: "rounded-md flex-1" });
+    cart += Skeleton({ variant: "rect", width: "100%", height: 40, class: "rounded-md flex-1" });
+    cart += "</div></div></div>";
+    html += cart;
     html += "</div></div>";
     return html;
   },
@@ -768,20 +936,26 @@ const Skeletons = {
 
   tablesDetail() {
     let html = '<div class="space-y-5">';
-    html += _pageHeader({ titleWidth: "100px" });
-    html += _infoCardGrid([
-      { valueW: "40px", subW: "50px" },
-      { valueW: "40px", subW: "50px" },
-      { valueW: "40px", subW: "50px" },
-    ], "grid-cols-3");
-    let items = '<div class="grid grid-cols-3 gap-3">';
+    // Header: back + "Table X" + status badge
+    html += '<div class="flex items-center justify-between">';
+    html += '<div class="flex items-center gap-3">' + _btn("80px") + Skeleton({ variant: "text", width: "90px" }) + "</div>";
+    html += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-200 animate-pulse" style="width:60px;height:22px;" aria-hidden="true"></span>';
+    html += "</div>";
+    // Info grid: 3 cards bg-brand-50 rounded-lg p-3 con label + value
+    html += '<div class="grid grid-cols-3 gap-3">';
     for (let i = 0; i < 3; i++) {
-      items += '<div class="text-center">' +
-        Skeleton({ variant: "text", width: "50px" }) + Skeleton({ variant: "text", width: "60px" }) + "</div>";
+      html += '<div class="bg-brand-50 rounded-lg p-3 text-center flex flex-col items-center gap-1">';
+      html += Skeleton({ variant: "text", width: "50px" });
+      html += Skeleton({ variant: "text", width: "40px" });
+      html += "</div>";
     }
-    items += "</div>";
-    items += '<div class="flex gap-2 mt-4">' + _btn("100px") + _btn("100px") + "</div>";
-    html += _sectionCard("120px", items);
+    html += "</div>";
+    // Bloque central: icono circular + título + subtítulo + 2 botones centrados
+    html += '<div class="text-center py-10">';
+    html += '<div class="mb-2 flex justify-center">' + Skeleton({ variant: "text", width: "120px" }) + "</div>";
+    html += '<div class="mb-6 flex justify-center">' + Skeleton({ variant: "text", width: "140px" }) + "</div>";
+    html += '<div class="flex justify-center gap-3">' + _btn("110px") + _btn("90px") + "</div>";
+    html += "</div>";
     html += "</div>";
     return html;
   },

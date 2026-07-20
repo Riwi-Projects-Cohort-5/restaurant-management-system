@@ -570,14 +570,14 @@ function setupListEvents(el) {
 
     if (action === "new-payment") {
       subView = "new";
-      renderNewPayment(el);
+      renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 4000);
     } else if (action === "config-methods") {
       subView = "config";
-      renderConfig(el);
+      renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 4000);
     } else if (action === "view-detail") {
       selectedId = btn.dataset.paymentId;
       subView = "detail";
-      renderDetail(el, selectedId);
+      renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 4000);
     } else if (action === "refund-payment") {
       e.stopPropagation();
       const refundId = btn.dataset.paymentId;
@@ -751,15 +751,15 @@ export function renderPayments(el) {
   paymentsStore.loadPayments();
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 400);
+    renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 4000);
   } else if (subView === "new") {
-    renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 400);
+    renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 4000);
   } else if (subView === "config") {
-    renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 400);
+    renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 4000);
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading({ render: renderPayments, init: function () {}, destroy: function () {} }, Skeletons.paymentsTable(), 800);
+export default withLoading({ render: renderPayments, init: function () {}, destroy: function () {} }, Skeletons.paymentsTable(), 5000);

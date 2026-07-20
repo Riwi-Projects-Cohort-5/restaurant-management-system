@@ -168,4 +168,4 @@ const KitchenView = {
   destroy: function () {},
 };
 
-export default withLoading(KitchenView, Skeletons.kitchen(), 800);
+export default withLoading(KitchenView, Skeletons.kitchen(), 5000);

@@ -26,9 +26,12 @@ function Skeleton(opts = {}) {
   // text (default)
   const lines = opts.lines || 1;
   const w = opts.width || "100%";
+  if (lines === 1) {
+    return `<div class="h-4 rounded bg-brand-200 animate-pulse ${cls}" style="width:${w};" aria-hidden="true"></div>`;
+  }
   const items = [];
   for (let i = 0; i < lines; i++) {
-    const lineW = i === lines - 1 && lines > 1 ? "60%" : w;
+    const lineW = i === lines - 1 ? "60%" : w;
     items.push(
       `<div class="h-4 rounded bg-brand-200 animate-pulse ${cls}" style="width:${lineW};" aria-hidden="true"></div>`
     );

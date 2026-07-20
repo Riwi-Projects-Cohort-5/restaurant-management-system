@@ -594,8 +594,7 @@ function setupOrderListEvents(container) {
     if (newBtn) {
       subView = "new";
       editingOrder = null;
-      renderNewOrder(container);
-      window.createIcons();
+      renderWithSkeleton(container, Skeletons.newOrder(), function () { renderNewOrder(container); }, 4000);
       return;
     }
 
@@ -605,8 +604,7 @@ function setupOrderListEvents(container) {
       selectedOrderId = id;
       subView = "detail";
       editingOrder = null;
-      renderOrderDetail(container, id);
-      window.createIcons();
+      renderWithSkeleton(container, Skeletons.orderDetail(), function () { renderOrderDetail(container, id); }, 4000);
       return;
     }
 
@@ -889,9 +887,9 @@ function setupOrderDetailEvents(container, order) {
 const PosView = {
   render: function (el) {
     if (subView === "new") {
-      renderWithSkeleton(el, Skeletons.newOrder(), function () { renderNewOrder(el); }, 400);
+      renderWithSkeleton(el, Skeletons.newOrder(), function () { renderNewOrder(el); }, 4000);
     } else if (subView === "detail" && selectedOrderId) {
-      renderWithSkeleton(el, Skeletons.orderDetail(), function () { renderOrderDetail(el, selectedOrderId); }, 400);
+      renderWithSkeleton(el, Skeletons.orderDetail(), function () { renderOrderDetail(el, selectedOrderId); }, 4000);
     } else {
       subView = "orders";
       renderOrderList(el);
@@ -905,4 +903,4 @@ const PosView = {
   },
 };
 
-export default withLoading(PosView, Skeletons.ordersTable(), 800);
+export default withLoading(PosView, Skeletons.ordersTable(), 5000);

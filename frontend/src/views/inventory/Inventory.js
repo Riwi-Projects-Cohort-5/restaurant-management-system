@@ -559,15 +559,15 @@ function setupListEvents(el) {
     if (action === "create-item") {
       subView = "create";
       selectedId = null;
-      renderForm(el, null);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 4000);
     } else if (action === "view-detail") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "detail";
-      renderDetail(el, selectedId);
+      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 4000);
     } else if (action === "edit-item") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "edit";
-      renderForm(el, selectedId);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 4000);
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -600,7 +600,7 @@ function setupDetailEvents(el, itemId) {
       renderList(el);
     } else if (action === "edit-item") {
       subView = "edit";
-      renderForm(el, itemId);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, itemId); }, 4000);
     } else if (action === "stock-in") {
       renderMovementForm(el, itemId, "in");
     } else if (action === "stock-out") {
@@ -720,11 +720,11 @@ const InventoryView = {
     inventoryStore.loadItems();
 
     if (subView === "detail" && selectedId) {
-      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 400);
+      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 4000);
     } else if (subView === "create") {
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 400);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 4000);
     } else if (subView === "edit" && selectedId) {
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 400);
+      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 4000);
     } else {
       subView = "list";
       renderList(el);
@@ -739,4 +739,4 @@ const InventoryView = {
   },
 };
 
-export default withLoading(InventoryView, Skeletons.inventoryTable(), 800);
+export default withLoading(InventoryView, Skeletons.inventoryTable(), 5000);
