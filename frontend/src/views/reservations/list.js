@@ -5,6 +5,7 @@ import {
   STATUS_COLORS,
   initMockReservations,
 } from "../../services/mockReservations.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 initMockReservations();
 
@@ -549,4 +550,4 @@ export function renderReservations(container) {
   }
 }
 
-export default { render: renderReservations, init: function () {}, destroy: function () {} };
+export default withLoading({ render: renderReservations, init: function () {}, destroy: function () {} }, Skeletons.reservationsTable(), 800);

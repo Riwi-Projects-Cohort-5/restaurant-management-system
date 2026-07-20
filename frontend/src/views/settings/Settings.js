@@ -2,6 +2,7 @@ import * as settingsStore from "../../store/settings.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import InputField from "../../components/forms/InputField.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 function render(el) {
   const settings = settingsStore.getSettings();
@@ -118,4 +119,4 @@ const SettingsView = {
   destroy: function () {},
 };
 
-export default SettingsView;
+export default withLoading(SettingsView, Skeletons.settings(), 600);

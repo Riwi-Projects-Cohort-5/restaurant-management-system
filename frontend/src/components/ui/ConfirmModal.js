@@ -25,7 +25,7 @@ class ConfirmModal {
         >
           <div
             data-confirm-modal
-            class="bg-brand-100 rounded-xl shadow-xl max-w-sm w-full mx-4 p-6 space-y-4 animate-modal-in"
+            class="bg-white border border-brand-200 rounded-xl shadow-xl max-w-sm w-full mx-4 p-6 space-y-4 animate-modal-in"
           >
             <h3 class="text-lg font-semibold text-neutral-900">${title}</h3>
             <p class="text-sm text-neutral-600">${message}</p>

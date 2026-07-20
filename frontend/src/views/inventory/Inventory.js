@@ -13,6 +13,7 @@ import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import InputField from "../../components/forms/InputField.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 initMockInventory();
 
@@ -738,4 +739,4 @@ const InventoryView = {
   },
 };
 
-export default InventoryView;
+export default withLoading(InventoryView, Skeletons.inventoryTable(), 800);

@@ -1,4 +1,5 @@
 import { kitchenOrders } from "../../store/posData.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 function moveOrder(id, newStatus) {
   const order = kitchenOrders.find(function (o) {
@@ -167,4 +168,4 @@ const KitchenView = {
   destroy: function () {},
 };
 
-export default KitchenView;
+export default withLoading(KitchenView, Skeletons.kitchen(), 800);

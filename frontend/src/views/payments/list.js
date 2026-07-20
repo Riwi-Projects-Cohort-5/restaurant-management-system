@@ -11,6 +11,7 @@ import { currentUser } from "../../store/auth.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import InputField from "../../components/forms/InputField.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 initMockPayments();
 
@@ -761,4 +762,4 @@ export function renderPayments(el) {
   }
 }
 
-export default { render: renderPayments, init: function () {}, destroy: function () {} };
+export default withLoading({ render: renderPayments, init: function () {}, destroy: function () {} }, Skeletons.paymentsTable(), 800);

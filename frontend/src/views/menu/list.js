@@ -6,6 +6,7 @@ import { toast } from "../../components/ui/ToastManager.js";
 import InputField from "../../components/forms/InputField.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 initMockCategories();
 initMockProducts();
@@ -564,4 +565,4 @@ export function renderMenu(el) {
   }
 }
 
-export default { render: renderMenu, init: function () {}, destroy: function () {} };
+export default withLoading({ render: renderMenu, init: function () {}, destroy: function () {} }, Skeletons.menuCards(8), 800);

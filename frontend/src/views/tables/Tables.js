@@ -1,5 +1,6 @@
 import { tables, areas, allOrders } from "../../store/posData.js";
 import InputField from "../../components/forms/InputField.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -1195,4 +1196,4 @@ const TablesView = {
   },
 };
 
-export default TablesView;
+export default withLoading(TablesView, Skeletons.tables(), 800);

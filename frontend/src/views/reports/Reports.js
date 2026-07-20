@@ -1,4 +1,5 @@
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/mockReports.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let startDate = "";
 let endDate = "";
@@ -272,4 +273,4 @@ const ReportsView = {
   },
 };
 
-export default ReportsView;
+export default withLoading(ReportsView, Skeletons.reports(), 1000);

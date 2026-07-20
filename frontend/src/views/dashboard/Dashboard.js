@@ -2,6 +2,7 @@ import WelcomeBanner from "../../components/ui/WelcomeBanner.js";
 import StatCard from "../../components/ui/StatCard.js";
 import SalesChart from "../../components/dashboard/SalesChart.js";
 import { allOrders } from "../../store/posData.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const Dashboard = {
   render: function (el) {
@@ -140,4 +141,4 @@ const Dashboard = {
   },
 };
 
-export default Dashboard;
+export default withLoading(Dashboard, Skeletons.dashboard(), 1000);

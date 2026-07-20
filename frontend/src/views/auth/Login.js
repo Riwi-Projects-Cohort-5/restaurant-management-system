@@ -209,17 +209,20 @@ export function init() {
       }
 
       const username = email.split("@")[0];
-      const result = authStore.login(username, password);
 
-      if (result.success) {
-        toast.success("Welcome back!", "Redirecting...");
-        window.location.hash = "#" + getHomeRoute(result.user.role);
-      } else {
-        if (signInBtn) {
-          signInBtn._setLoading(false);
+      setTimeout(function () {
+        const result = authStore.login(username, password);
+
+        if (result.success) {
+          toast.success("Welcome back!", "Redirecting...");
+          window.location.hash = "#" + getHomeRoute(result.user.role);
+        } else {
+          if (signInBtn) {
+            signInBtn._setLoading(false);
+          }
+          toast.error("Login Failed", result.error || "Invalid credentials");
         }
-        toast.error("Login Failed", result.error || "Invalid credentials");
-      }
+      }, 1000);
     });
   }
 }

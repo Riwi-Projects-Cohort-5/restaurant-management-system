@@ -7,6 +7,7 @@ import {
   currentRole,
 } from "../../store/posData.js";
 import CartPanel from "../../components/pos/CartPanel.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -904,4 +905,4 @@ const PosView = {
   },
 };
 
-export default PosView;
+export default withLoading(PosView, Skeletons.ordersTable(), 800);
