@@ -7,6 +7,7 @@ import {
   currentRole,
 } from "../../store/posData.js";
 import CartPanel from "../../components/pos/CartPanel.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -593,8 +594,14 @@ function setupOrderListEvents(container) {
     if (newBtn) {
       subView = "new";
       editingOrder = null;
-      renderNewOrder(container);
-      window.createIcons();
+      renderWithSkeleton(
+        container,
+        Skeletons.newOrder(),
+        function () {
+          renderNewOrder(container);
+        },
+        400
+      );
       return;
     }
 
@@ -604,8 +611,14 @@ function setupOrderListEvents(container) {
       selectedOrderId = id;
       subView = "detail";
       editingOrder = null;
-      renderOrderDetail(container, id);
-      window.createIcons();
+      renderWithSkeleton(
+        container,
+        Skeletons.orderDetail(),
+        function () {
+          renderOrderDetail(container, id);
+        },
+        400
+      );
       return;
     }
 
@@ -888,9 +901,23 @@ function setupOrderDetailEvents(container, order) {
 const PosView = {
   render: function (el) {
     if (subView === "new") {
-      renderNewOrder(el);
+      renderWithSkeleton(
+        el,
+        Skeletons.newOrder(),
+        function () {
+          renderNewOrder(el);
+        },
+        400
+      );
     } else if (subView === "detail" && selectedOrderId) {
-      renderOrderDetail(el, selectedOrderId);
+      renderWithSkeleton(
+        el,
+        Skeletons.orderDetail(),
+        function () {
+          renderOrderDetail(el, selectedOrderId);
+        },
+        400
+      );
     } else {
       subView = "orders";
       renderOrderList(el);
@@ -904,4 +931,4 @@ const PosView = {
   },
 };
 
-export default PosView;
+export default withLoading(PosView, Skeletons.ordersTable(), 800);

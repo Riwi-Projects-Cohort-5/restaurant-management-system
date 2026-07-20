@@ -8,6 +8,10 @@ import {
 } from "../../services/mockPayments.js";
 import { allOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import InputField from "../../components/forms/InputField.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockPayments();
 
@@ -476,18 +480,20 @@ function renderNewPayment(el) {
   html += "</select>";
   html += "</div>";
 
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Amount *</label>';
-  html +=
-    '<input type="number" id="new-payment-amount" step="0.01" min="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({
+    id: "new-payment-amount",
+    label: "Amount *",
+    type: "number",
+    placeholder: "0.00",
+    step: "0.01",
+    min: "0.01",
+  });
 
-  html += "<div>";
-  html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Reference Number (Optional)</label>';
-  html +=
-    '<input type="text" id="new-payment-reference" placeholder="e.g. TXN-123456" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
+  html += InputField({
+    id: "new-payment-reference",
+    label: "Reference Number (Optional)",
+    placeholder: "e.g. TXN-123456",
+  });
 
   html += "</div></div></div>";
 
@@ -575,14 +581,35 @@ function setupListEvents(el) {
 
     if (action === "new-payment") {
       subView = "new";
-      renderNewPayment(el);
+      renderWithSkeleton(
+        el,
+        Skeletons.newPayment(),
+        function () {
+          renderNewPayment(el);
+        },
+        400
+      );
     } else if (action === "config-methods") {
       subView = "config";
-      renderConfig(el);
+      renderWithSkeleton(
+        el,
+        Skeletons.paymentConfig(),
+        function () {
+          renderConfig(el);
+        },
+        400
+      );
     } else if (action === "view-detail") {
       selectedId = btn.dataset.paymentId;
       subView = "detail";
-      renderDetail(el, selectedId);
+      renderWithSkeleton(
+        el,
+        Skeletons.paymentDetail(),
+        function () {
+          renderDetail(el, selectedId);
+        },
+        400
+      );
     } else if (action === "refund-payment") {
       e.stopPropagation();
       const refundId = btn.dataset.paymentId;
@@ -592,11 +619,19 @@ function setupListEvents(el) {
     } else if (action === "delete-payment") {
       e.stopPropagation();
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(deleteId);
-        paymentsStore.refreshPayments();
-        renderList(el);
-      }
+      confirmModal
+        .show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment? This action cannot be undone.",
+          confirmText: "Delete",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            paymentService.deletePayment(deleteId);
+            paymentsStore.refreshPayments();
+            renderList(el);
+          }
+        });
     } else if (action === "clear-search") {
       searchQuery = "";
       dateFilter = "";
@@ -644,13 +679,21 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "delete-payment") {
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
-        paymentService.deletePayment(deleteId);
-        paymentsStore.refreshPayments();
-        subView = "list";
-        selectedId = null;
-        renderList(el);
-      }
+      confirmModal
+        .show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment? This action cannot be undone.",
+          confirmText: "Delete",
+        })
+        .then((confirmed) => {
+          if (confirmed) {
+            paymentService.deletePayment(deleteId);
+            paymentsStore.refreshPayments();
+            subView = "list";
+            selectedId = null;
+            renderList(el);
+          }
+        });
     }
   });
 }
@@ -677,15 +720,15 @@ function setupNewPaymentEvents(el) {
       const reference = referenceInput.value.trim();
 
       if (!orderId) {
-        alert("Please select an order");
+        toast.warning("Validation", "Please select an order");
         return;
       }
       if (!method) {
-        alert("Please select a payment method");
+        toast.warning("Validation", "Please select a payment method");
         return;
       }
       if (!amount || amount <= 0) {
-        alert("Please enter a valid amount");
+        toast.warning("Validation", "Please enter a valid amount");
         return;
       }
 
@@ -740,15 +783,40 @@ export function renderPayments(el) {
   paymentsStore.loadPayments();
 
   if (subView === "detail" && selectedId) {
-    renderDetail(el, selectedId);
+    renderWithSkeleton(
+      el,
+      Skeletons.paymentDetail(),
+      function () {
+        renderDetail(el, selectedId);
+      },
+      400
+    );
   } else if (subView === "new") {
-    renderNewPayment(el);
+    renderWithSkeleton(
+      el,
+      Skeletons.newPayment(),
+      function () {
+        renderNewPayment(el);
+      },
+      400
+    );
   } else if (subView === "config") {
-    renderConfig(el);
+    renderWithSkeleton(
+      el,
+      Skeletons.paymentConfig(),
+      function () {
+        renderConfig(el);
+      },
+      400
+    );
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default { render: renderPayments, init: function () {}, destroy: function () {} };
+export default withLoading(
+  { render: renderPayments, init: function () {}, destroy: function () {} },
+  Skeletons.paymentsTable(),
+  800
+);

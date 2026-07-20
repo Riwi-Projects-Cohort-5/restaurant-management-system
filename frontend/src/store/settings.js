@@ -1,8 +1,8 @@
 import { createStore } from "./index.js";
 
-var STORAGE_KEY = "restaurant_settings";
+const STORAGE_KEY = "restaurant_settings";
 
-var defaults = {
+const defaults = {
   restaurant_name: "El Fogon Caribeno",
   address: "123 Main Street, San Juan, PR 00901",
   phone: "+1 787-555-0123",
@@ -14,11 +14,11 @@ var defaults = {
 
 function loadFromStorage() {
   try {
-    var stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       return JSON.parse(stored);
     }
-  } catch (e) {
+  } catch {
     // ignore
   }
   return null;
@@ -28,7 +28,7 @@ function saveToStorage(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-var settingsStore = createStore({
+const settingsStore = createStore({
   settings: loadFromStorage() || defaults,
 });
 
@@ -37,8 +37,8 @@ export function getSettings() {
 }
 
 export function updateSettings(data) {
-  var current = settingsStore.getState().settings;
-  var updated = {};
+  const current = settingsStore.getState().settings;
+  const updated = {};
   Object.keys(current).forEach(function (key) {
     updated[key] = data[key] !== undefined ? data[key] : current[key];
   });

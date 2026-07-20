@@ -1,7 +1,7 @@
-var STORAGE_KEY = "inventory_items";
-var MOVEMENTS_KEY = "inventory_movements";
+const STORAGE_KEY = "inventory_items";
+const MOVEMENTS_KEY = "inventory_movements";
 
-var defaultItems = [
+const defaultItems = [
   {
     id: "inv-001",
     name: "Extra Virgin Olive Oil",
@@ -124,7 +124,7 @@ var defaultItems = [
   },
 ];
 
-var defaultMovements = [
+const defaultMovements = [
   {
     id: "mov-001",
     item_id: "inv-003",
@@ -205,7 +205,7 @@ export function getAllItems() {
 }
 
 export function getItemById(id) {
-  var items = getAllItems();
+  const items = getAllItems();
   return (
     items.find(function (i) {
       return i.id === id;
@@ -214,10 +214,10 @@ export function getItemById(id) {
 }
 
 export function createItem(data) {
-  var items = getAllItems();
-  var now = new Date().toISOString();
-  var id = "inv-" + String(items.length + 1).padStart(3, "0");
-  var item = {
+  const items = getAllItems();
+  const now = new Date().toISOString();
+  const id = "inv-" + String(items.length + 1).padStart(3, "0");
+  const item = {
     id: id,
     name: data.name,
     unit: data.unit,
@@ -233,12 +233,12 @@ export function createItem(data) {
 }
 
 export function updateItem(id, data) {
-  var items = getAllItems();
-  var idx = items.findIndex(function (i) {
+  const items = getAllItems();
+  const idx = items.findIndex(function (i) {
     return i.id === id;
   });
   if (idx === -1) return null;
-  var item = items[idx];
+  const item = items[idx];
   Object.keys(data).forEach(function (key) {
     if (data[key] !== undefined && data[key] !== null) {
       item[key] = data[key];
@@ -251,7 +251,7 @@ export function updateItem(id, data) {
 }
 
 export function deleteItem(id) {
-  var items = getAllItems();
+  let items = getAllItems();
   items = items.filter(function (i) {
     return i.id !== id;
   });
@@ -263,17 +263,17 @@ export function getAllMovements() {
 }
 
 export function getMovementsByItem(itemId) {
-  var movements = getAllMovements();
+  const movements = getAllMovements();
   return movements.filter(function (m) {
     return m.item_id === itemId;
   });
 }
 
 export function createMovement(data) {
-  var movements = getAllMovements();
-  var now = new Date().toISOString();
-  var id = "mov-" + String(movements.length + 1).padStart(3, "0");
-  var movement = {
+  const movements = getAllMovements();
+  const now = new Date().toISOString();
+  const id = "mov-" + String(movements.length + 1).padStart(3, "0");
+  const movement = {
     id: id,
     item_id: data.item_id,
     type: data.type,
@@ -284,7 +284,7 @@ export function createMovement(data) {
   movements.push(movement);
   localStorage.setItem(MOVEMENTS_KEY, JSON.stringify(movements));
 
-  var item = getItemById(data.item_id);
+  const item = getItemById(data.item_id);
   if (item) {
     if (data.type === "in") {
       item.quantity = parseFloat(item.quantity) + parseFloat(data.quantity);
@@ -292,8 +292,8 @@ export function createMovement(data) {
       item.quantity = parseFloat(item.quantity) - parseFloat(data.quantity);
     }
     item.updated_at = now;
-    var items = getAllItems();
-    var idx = items.findIndex(function (i) {
+    const items = getAllItems();
+    const idx = items.findIndex(function (i) {
       return i.id === data.item_id;
     });
     if (idx > -1) {
@@ -305,7 +305,7 @@ export function createMovement(data) {
   return movement;
 }
 
-export var UNITS = [
+export const UNITS = [
   { id: "kg", name: "Kilograms" },
   { id: "L", name: "Liters" },
   { id: "bunch", name: "Bunches" },
@@ -316,13 +316,13 @@ export var UNITS = [
   { id: "lb", name: "Pounds" },
 ];
 
-export var STATUS_LABELS = {
+export const STATUS_LABELS = {
   active: "Active",
   inactive: "Inactive",
   low_stock: "Low Stock",
 };
 
-export var STATUS_COLORS = {
+export const STATUS_COLORS = {
   active: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
   inactive: { bg: "bg-neutral-100", text: "text-neutral-600", dot: "bg-neutral-500" },
   low_stock: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },

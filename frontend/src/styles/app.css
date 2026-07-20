@@ -201,6 +201,106 @@
   background: var(--color-brand-400);
 }
 
+/* ── Toast & Modal animations (can't be Tailwind) ── */
+@keyframes toast-slide-in {
+  0% {
+    transform: translateX(calc(100% + 20px));
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-8px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(100% + 20px));
+    opacity: 0;
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@keyframes backdrop-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdrop-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modal-card-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@layer utilities {
+  .animate-toast-in {
+    animation: toast-slide-in 400ms cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+  }
+  .animate-toast-out {
+    animation: toast-slide-out 250ms ease-in forwards;
+  }
+  .animate-toast-progress {
+    animation: toast-progress linear forwards;
+  }
+  .animate-backdrop-in {
+    animation: backdrop-fade-in 200ms ease-out forwards;
+  }
+  .animate-backdrop-out {
+    animation: backdrop-fade-out 150ms ease-in forwards;
+  }
+  .animate-modal-in {
+    animation: modal-card-in 200ms ease-out forwards;
+  }
+  .animate-modal-out {
+    animation: modal-card-out 150ms ease-in forwards;
+  }
+}
+
 /* ── Checkbox :checked + sibling (can't be Tailwind) ── */
 input[type="checkbox"]:checked + .checkbox-box {
   background-color: var(--color-brand-500);

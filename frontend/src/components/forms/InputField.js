@@ -3,18 +3,25 @@ function InputField(opts) {
   const label = opts.label || "";
   const type = opts.type || "text";
   const placeholder = opts.placeholder || "";
+  const value = opts.value != null ? opts.value : "";
   const error = opts.error || "";
   const required = opts.required;
   const autocomplete = opts.autocomplete || "";
+  const step = opts.step;
+  const min = opts.min;
+  const max = opts.max;
+  const maxlength = opts.maxlength;
   const errorId = id + "Error";
 
   let html = '<div class="flex flex-col gap-1">';
-  html +=
-    '<label class="text-sm font-medium leading-loose text-neutral-900" for="' +
-    id +
-    '">' +
-    label +
-    "</label>";
+  if (label) {
+    html +=
+      '<label class="text-sm font-medium leading-loose text-neutral-900" for="' +
+      id +
+      '">' +
+      label +
+      "</label>";
+  }
   html += '<div class="relative flex items-center">';
   html +=
     '<input class="w-full h-11 text-sm font-normal leading-normal text-neutral-900 box-border pl-3 pr-3 ' +
@@ -32,8 +39,13 @@ function InputField(opts) {
     '" placeholder="' +
     placeholder +
     '"' +
+    (value ? ' value="' + value + '"' : "") +
     (autocomplete ? ' autocomplete="' + autocomplete + '"' : "") +
     (required ? " required" : "") +
+    (step ? ' step="' + step + '"' : "") +
+    (min != null ? ' min="' + min + '"' : "") +
+    (max != null ? ' max="' + max + '"' : "") +
+    (maxlength ? ' maxlength="' + maxlength + '"' : "") +
     ">";
   html += "</div>";
 

@@ -1,4 +1,6 @@
 import { tables, areas, allOrders } from "../../store/posData.js";
+import InputField from "../../components/forms/InputField.js";
+import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -20,20 +22,6 @@ const ICON_LIST = [
   "star",
   "building",
 ];
-
-function getAreaName(areaId) {
-  const a = areas.find(function (x) {
-    return x.id === areaId;
-  });
-  return a ? a.name : "";
-}
-
-function getAreaIcon(areaId) {
-  const a = areas.find(function (x) {
-    return x.id === areaId;
-  });
-  return a ? a.icon : "home";
-}
 
 function getActiveOrderForTable(tableId) {
   return allOrders.find(function (o) {
@@ -78,12 +66,7 @@ function renderMain(el) {
     ")</span>";
   html += "</div>";
 
-  if (selectedTableId) {
-    const st = tables.find(function (t) {
-      return t.id === selectedTableId;
-    });
-    if (st) html += renderTableDetailCard(st);
-  }
+  html += "</div>";
 
   const areasToShow =
     currentAreaFilter === "all"
@@ -232,25 +215,33 @@ function renderTableShape(table) {
   return html;
 }
 
-/* ── Table Detail Card (inline overlay in main view) ── */
+/* ── Table Detail Sub-view ── */
 
-function renderTableDetailCard(t) {
+function renderDetail(el, tableId) {
+  const t = tables.find(function (x) {
+    return x.id === tableId;
+  });
+  if (!t) {
+    subView = "main";
+    selectedTableId = null;
+    renderMain(el);
+    return;
+  }
+
   const order = getActiveOrderForTable(t.id);
-  const badgeHtml = renderBadge(t.status);
 
-  let html =
-    '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
+  let html = '<div class="space-y-5">';
+
+  html += '<div class="flex items-center justify-between">';
+  html += '<div class="flex items-center gap-3">';
   html +=
-    '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html += '<h3 class="text-base font-semibold text-brand-900 font-display">Table ' + t.id + "</h3>";
-  html += '<div class="flex items-center gap-2">' + badgeHtml;
-  html +=
-    '<button data-action="close-detail" class="w-8 h-8 border border-brand-300 rounded-lg flex items-center justify-center text-brand-500 hover:bg-brand-50 cursor-pointer bg-white"><i data-lucide="x" class="w-4 h-4"></i></button>';
-  html += "</div></div>";
+    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.id + "</h2>";
+  html += "</div>";
+  html += renderBadge(t.status);
+  html += "</div>";
 
-  html += '<div class="px-5 py-4">';
-
-  html += '<div class="grid grid-cols-3 gap-3 mb-4">';
+  html += '<div class="grid grid-cols-3 gap-3">';
   html +=
     '<div class="bg-brand-50 rounded-lg p-3 text-center"><span class="block text-[10px] font-bold text-brand-500 uppercase">Seats</span><span class="text-lg font-bold text-primary-800">' +
     t.seats +
@@ -265,161 +256,21 @@ function renderTableDetailCard(t) {
     "</span></div>";
   html += "</div>";
 
-  if (t.status === "occupied" && order) {
-    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html +=
-      '<h4 class="text-sm font-semibold text-primary-700 mb-3">Active Order #' + order.id + "</h4>";
-    html += '<div class="grid grid-cols-3 gap-3 mb-4">';
-    html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Items</div><div class="text-xl font-bold text-brand-900">' +
-      order.items.length +
-      "</div></div>";
-    html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-xl font-bold text-brand-900">$' +
-      order.total.toFixed(2) +
-      "</div></div>";
-    html +=
-      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Time</div><div class="text-xl font-bold text-brand-900">' +
-      (order.time || "\u2014") +
-      "</div></div>";
-    html += "</div>";
-    html += '<div class="flex gap-2 mt-3">';
-    html +=
-      '<button data-action="view-order" data-order-id="' +
-      order.id +
-      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
-    html +=
-      '<button class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Seat New</button>';
-    html += "</div></div>";
-  } else if (t.status === "occupied") {
-    html +=
-      '<div class="border-t border-brand-200 pt-4 mt-4 text-center text-neutral-500 text-sm py-4">No active order found for this table.</div>';
-  } else if (t.status === "reserved") {
-    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Reservation</h4>';
-    html +=
-      '<div class="bg-info-50 border border-info-200 rounded-lg p-3 text-sm text-info-700">Reserved for ' +
-      t.info +
-      "</div>";
-    html += '<div class="flex gap-2 mt-3">';
-    html +=
-      '<button class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
-    html +=
-      '<button class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
-    html += "</div></div>";
-  } else {
-    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
-    html += '<div class="flex gap-2">';
-    html +=
-      '<button class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
-    html +=
-      '<button class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
-    html +=
-      '<button class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
-    html += "</div></div>";
-  }
-
-  html += "</div></div>";
-  return html;
-}
-
-function renderBadge(status) {
-  let cls = "bg-secondary-100 text-secondary-700";
-  let dotCls = "bg-secondary-500";
-  let label = status;
-  if (status === "available") {
-    cls = "bg-success-100 text-success-700";
-    dotCls = "bg-success-500";
-    label = "Free";
-  } else if (status === "occupied") {
-    cls = "bg-brand-100 text-brand-700";
-    dotCls = "bg-brand-500";
-    label = "Occupied";
-  } else if (status === "reserved") {
-    cls = "bg-accent-100 text-accent-700";
-    dotCls = "bg-accent-500";
-    label = "Reserved";
-  }
-  return (
-    '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ' +
-    cls +
-    '"><span class="w-1.5 h-1.5 rounded-full ' +
-    dotCls +
-    '"></span> ' +
-    label +
-    "</span>"
-  );
-}
-
-/* ── Table Detail Sub-view ── */
-
-function renderDetail(el) {
-  const t = tables.find(function (x) {
-    return x.id === selectedTableId;
-  });
-  if (!t) {
-    subView = "main";
-    selectedTableId = null;
-    renderMain(el);
-    return;
-  }
-
-  const order = getActiveOrderForTable(t.id);
-
-  let html = "";
-
-  html += '<div class="flex items-center justify-between mb-5">';
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
-  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.id + "</h2>";
-  html += "</div>";
-  html += renderBadge(t.status);
-  html += "</div>";
-
-  const gridCols = t.timer ? "grid-cols-5" : "grid-cols-4";
-  html += '<div class="grid ' + gridCols + ' gap-4 mb-5">';
-  html += renderInfoCard(
-    "Table",
-    '<span class="text-2xl font-bold text-brand-900">' + t.id + "</span>"
-  );
-  html += renderInfoCard(
-    "Area",
-    '<span class="flex items-center justify-center gap-2 text-sm font-semibold text-brand-900"><i data-lucide="' +
-      getAreaIcon(t.area) +
-      '" class="w-4 h-4"></i> ' +
-      getAreaName(t.area) +
-      "</span>"
-  );
-  html += renderInfoCard(
-    "Seats",
-    '<span class="text-2xl font-bold text-brand-900">' + t.seats + "</span>"
-  );
-  html += renderInfoCard(
-    "Status",
-    '<span class="text-2xl font-bold text-brand-900 capitalize">' + t.status + "</span>"
-  );
-  if (t.timer) {
-    html += renderInfoCard(
-      "Time",
-      '<span class="text-2xl font-bold text-brand-900">' + t.timer + "</span>"
-    );
-  }
-  html += "</div>";
-
   if (t.status === "available") {
     html += '<div class="text-center py-10">';
     html +=
       '<div class="w-16 h-16 rounded-full bg-success-100 text-success-600 inline-flex items-center justify-center mb-4"><i data-lucide="check-circle" class="w-8 h-8"></i></div>';
     html += '<h3 class="text-lg text-neutral-800 mb-2">Table is free</h3>';
     html += '<p class="text-neutral-500 mb-6">Ready for new guests</p>';
+    html += '<div class="flex justify-center gap-3">';
     html +=
-      '<button data-action="open-order" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
-    html += "</div>";
+      '<button data-action="open-order" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+    html +=
+      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Reserve</button>';
+    html += "</div></div>";
   } else if (t.status === "occupied" && order) {
     html +=
-      '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
+      '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden">';
     html +=
       '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
     html += '<h3 class="text-sm font-bold text-brand-800">Active Order #' + order.id + "</h3>";
@@ -461,6 +312,14 @@ function renderDetail(el) {
         "</td></tr>";
     });
     html += "</tbody></table>";
+    html += '<div class="flex gap-2 mt-4">';
+    html +=
+      '<button data-action="view-order" data-order-id="' +
+      order.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
+    html +=
+      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Seat New</button>';
+    html += "</div>";
     html += "</div></div>";
   } else if (t.status === "occupied") {
     html +=
@@ -470,45 +329,45 @@ function renderDetail(el) {
     html +=
       '<div class="w-16 h-16 rounded-full bg-accent-100 text-accent-600 inline-flex items-center justify-center mb-4"><i data-lucide="clock" class="w-8 h-8"></i></div>';
     html += '<h3 class="text-lg text-neutral-800 mb-2">Reservation at ' + t.info + "</h3>";
-    html += '<p class="text-neutral-500">' + t.seats + " seats reserved</p>";
-    html += "</div>";
-  }
-
-  let actions = "";
-  if (t.status === "occupied" && order) {
-    actions =
-      '<button data-action="view-order" data-order-id="' +
-      order.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
-  } else if (t.status === "occupied" && !order) {
-    actions =
-      '<button data-action="open-order" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
-  } else if (t.status === "reserved") {
-    actions =
-      '<button data-action="cancel-reservation" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>';
-    actions +=
-      '<button data-action="seat-guests" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Seat Guests</button>';
-  }
-
-  if (actions) {
+    html += '<p class="text-neutral-500 mb-6">' + t.seats + " seats reserved</p>";
+    html += '<div class="flex justify-center gap-3">';
     html +=
-      '<div class="flex gap-5 p-5 bg-brand-50 border-t border-brand-200 rounded-b-xl">' +
-      actions +
-      "</div>";
+      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+    html +=
+      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+    html += "</div></div>";
   }
 
+  html += "</div>";
   el.innerHTML = html;
   window.createIcons();
 }
 
-function renderInfoCard(label, valueHtml) {
+function renderBadge(status) {
+  let cls = "bg-secondary-100 text-secondary-700";
+  let dotCls = "bg-secondary-500";
+  let label = status;
+  if (status === "available") {
+    cls = "bg-success-100 text-success-700";
+    dotCls = "bg-success-500";
+    label = "Free";
+  } else if (status === "occupied") {
+    cls = "bg-brand-100 text-brand-700";
+    dotCls = "bg-brand-500";
+    label = "Occupied";
+  } else if (status === "reserved") {
+    cls = "bg-accent-100 text-accent-700";
+    dotCls = "bg-accent-500";
+    label = "Reserved";
+  }
   return (
-    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center">' +
-    '<div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">' +
+    '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ' +
+    cls +
+    '"><span class="w-1.5 h-1.5 rounded-full ' +
+    dotCls +
+    '"></span> ' +
     label +
-    "</div>" +
-    valueHtml +
-    "</div>"
+    "</span>"
   );
 }
 
@@ -650,8 +509,14 @@ function renderManageAreas(el) {
     html += '<option value="' + a.id + '">' + a.name + "</option>";
   });
   html += "</select></label>";
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Seats<input type="number" id="new-table-seats" min="1" max="20" value="4" class="w-full border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({
+    id: "new-table-seats",
+    label: "Seats",
+    type: "number",
+    value: "4",
+    min: "1",
+    max: "20",
+  });
   html +=
     '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Add Table</button>';
   html += "</div></div>";
@@ -660,8 +525,7 @@ function renderManageAreas(el) {
   html +=
     '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Add New Area</span></div>';
   html += '<div class="flex flex-col gap-3 p-4">';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Area Name<input type="text" id="new-area-name" placeholder="e.g. Rooftop" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({ id: "new-area-name", label: "Area Name", placeholder: "e.g. Rooftop" });
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-new-area-icon-picker" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
     (editingAreaIcon || "home") +
@@ -764,10 +628,7 @@ function renderInlineAreaForm(areaId, mode) {
 
   let html =
     '<div class="flex gap-3 items-end bg-white border border-brand-300 rounded-xl p-4 shadow-sm mb-4">';
-  html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Name<input type="text" id="inline-area-name" value="' +
-    area.name +
-    '" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
+  html += InputField({ id: "inline-area-name", label: "Name", value: area.name });
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-inline-icon-picker" data-area-id="' +
     areaId +
@@ -816,16 +677,15 @@ function setupEvents(el) {
       const tid = parseInt(tableEl.getAttribute("data-table-id"));
       selectedTableId = tid;
       expandedAreaId = null;
-      subView = "main";
-      renderMain(el);
-      return;
-    }
-
-    const closeDetail = target.closest('[data-action="close-detail"]');
-    if (closeDetail) {
-      e.stopPropagation();
-      selectedTableId = null;
-      renderMain(el);
+      subView = "detail";
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesDetail(),
+        function () {
+          renderDetail(el, selectedTableId);
+        },
+        400
+      );
       return;
     }
 
@@ -939,7 +799,14 @@ function setupEvents(el) {
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
       });
-      renderManageAreas(el);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesManageAreas(),
+        function () {
+          renderManageAreas(el);
+        },
+        400
+      );
       return;
     }
 
@@ -1177,10 +1044,24 @@ function setupEvents(el) {
 const TablesView = {
   render: function (el) {
     setupEvents(el);
-    if (subView === "detail") {
-      renderDetail(el);
+    if (subView === "detail" && selectedTableId) {
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesDetail(),
+        function () {
+          renderDetail(el, selectedTableId);
+        },
+        400
+      );
     } else if (subView === "manage-areas") {
-      renderManageAreas(el);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesManageAreas(),
+        function () {
+          renderManageAreas(el);
+        },
+        400
+      );
     } else {
       renderMain(el);
     }
@@ -1199,4 +1080,4 @@ const TablesView = {
   },
 };
 
-export default TablesView;
+export default withLoading(TablesView, Skeletons.tables(), 800);
