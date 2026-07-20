@@ -440,8 +440,19 @@ function renderMovementForm(el, itemId, type) {
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-2 gap-4 max-w-md">';
-  html += InputField({ id: "movement-qty", label: "Quantity", type: "number", placeholder: "0.0", min: "0.1", step: "0.1" });
-  html += InputField({ id: "movement-reason", label: "Reason", placeholder: "e.g. Supplier delivery" });
+  html += InputField({
+    id: "movement-qty",
+    label: "Quantity",
+    type: "number",
+    placeholder: "0.0",
+    min: "0.1",
+    step: "0.1",
+  });
+  html += InputField({
+    id: "movement-reason",
+    label: "Reason",
+    placeholder: "e.g. Supplier delivery",
+  });
   html += "</div>";
   html += '<div class="flex gap-3 mt-4">';
   html +=
@@ -490,7 +501,12 @@ function renderForm(el, itemId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += InputField({ id: "inv-name", label: "Name *", value: item ? item.name : "", placeholder: "e.g. Extra Virgin Olive Oil" });
+  html += InputField({
+    id: "inv-name",
+    label: "Name *",
+    value: item ? item.name : "",
+    placeholder: "e.g. Extra Virgin Olive Oil",
+  });
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unit *</label>';
@@ -512,8 +528,22 @@ function renderForm(el, itemId) {
   html += "</select></div>";
 
   html += '<div class="grid grid-cols-2 gap-4">';
-  html += InputField({ id: "inv-quantity", label: "Quantity *", type: "number", value: item ? item.quantity : "0", step: "0.1", min: "0" });
-  html += InputField({ id: "inv-min-stock", label: "Minimum Stock *", type: "number", value: item ? item.min_stock : "0", step: "0.1", min: "0" });
+  html += InputField({
+    id: "inv-quantity",
+    label: "Quantity *",
+    type: "number",
+    value: item ? item.quantity : "0",
+    step: "0.1",
+    min: "0",
+  });
+  html += InputField({
+    id: "inv-min-stock",
+    label: "Minimum Stock *",
+    type: "number",
+    value: item ? item.min_stock : "0",
+    step: "0.1",
+    min: "0",
+  });
   html += "</div>";
 
   html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || !!item.is_active });
@@ -559,15 +589,36 @@ function setupListEvents(el) {
     if (action === "create-item") {
       subView = "create";
       selectedId = null;
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryForm(),
+        function () {
+          renderForm(el, null);
+        },
+        400
+      );
     } else if (action === "view-detail") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryDetail(),
+        function () {
+          renderDetail(el, selectedId);
+        },
+        400
+      );
     } else if (action === "edit-item") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryForm(),
+        function () {
+          renderForm(el, selectedId);
+        },
+        400
+      );
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -600,7 +651,14 @@ function setupDetailEvents(el, itemId) {
       renderList(el);
     } else if (action === "edit-item") {
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, itemId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryForm(),
+        function () {
+          renderForm(el, itemId);
+        },
+        400
+      );
     } else if (action === "stock-in") {
       renderMovementForm(el, itemId, "in");
     } else if (action === "stock-out") {
@@ -720,11 +778,32 @@ const InventoryView = {
     inventoryStore.loadItems();
 
     if (subView === "detail" && selectedId) {
-      renderWithSkeleton(el, Skeletons.inventoryDetail(), function () { renderDetail(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryDetail(),
+        function () {
+          renderDetail(el, selectedId);
+        },
+        400
+      );
     } else if (subView === "create") {
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, null); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryForm(),
+        function () {
+          renderForm(el, null);
+        },
+        400
+      );
     } else if (subView === "edit" && selectedId) {
-      renderWithSkeleton(el, Skeletons.inventoryForm(), function () { renderForm(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.inventoryForm(),
+        function () {
+          renderForm(el, selectedId);
+        },
+        400
+      );
     } else {
       subView = "list";
       renderList(el);

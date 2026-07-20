@@ -509,7 +509,14 @@ function renderManageAreas(el) {
     html += '<option value="' + a.id + '">' + a.name + "</option>";
   });
   html += "</select></label>";
-  html += InputField({ id: "new-table-seats", label: "Seats", type: "number", value: "4", min: "1", max: "20" });
+  html += InputField({
+    id: "new-table-seats",
+    label: "Seats",
+    type: "number",
+    value: "4",
+    min: "1",
+    max: "20",
+  });
   html +=
     '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Add Table</button>';
   html += "</div></div>";
@@ -671,9 +678,14 @@ function setupEvents(el) {
       selectedTableId = tid;
       expandedAreaId = null;
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.tablesDetail(), function () {
-        renderDetail(el, selectedTableId);
-      }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesDetail(),
+        function () {
+          renderDetail(el, selectedTableId);
+        },
+        400
+      );
       return;
     }
 
@@ -787,7 +799,14 @@ function setupEvents(el) {
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
       });
-      renderWithSkeleton(el, Skeletons.tablesManageAreas(), function () { renderManageAreas(el); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesManageAreas(),
+        function () {
+          renderManageAreas(el);
+        },
+        400
+      );
       return;
     }
 
@@ -1026,9 +1045,23 @@ const TablesView = {
   render: function (el) {
     setupEvents(el);
     if (subView === "detail" && selectedTableId) {
-      renderWithSkeleton(el, Skeletons.tablesDetail(), function () { renderDetail(el, selectedTableId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesDetail(),
+        function () {
+          renderDetail(el, selectedTableId);
+        },
+        400
+      );
     } else if (subView === "manage-areas") {
-      renderWithSkeleton(el, Skeletons.tablesManageAreas(), function () { renderManageAreas(el); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.tablesManageAreas(),
+        function () {
+          renderManageAreas(el);
+        },
+        400
+      );
     } else {
       renderMain(el);
     }

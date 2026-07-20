@@ -23,12 +23,26 @@ function render(el) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4">';
 
-  html += InputField({ id: "settings-name", label: "Restaurant Name", value: settings.restaurant_name || "" });
+  html += InputField({
+    id: "settings-name",
+    label: "Restaurant Name",
+    value: settings.restaurant_name || "",
+  });
   html += InputField({ id: "settings-address", label: "Address", value: settings.address || "" });
 
   html += '<div class="grid grid-cols-2 gap-4">';
-  html += InputField({ id: "settings-phone", label: "Phone", type: "tel", value: settings.phone || "" });
-  html += InputField({ id: "settings-email", label: "Email", type: "email", value: settings.email || "" });
+  html += InputField({
+    id: "settings-phone",
+    label: "Phone",
+    type: "tel",
+    value: settings.phone || "",
+  });
+  html += InputField({
+    id: "settings-email",
+    label: "Email",
+    type: "email",
+    value: settings.email || "",
+  });
   html += "</div>";
 
   html += "</div></div></div>";
@@ -41,8 +55,21 @@ function render(el) {
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-3 gap-4">';
 
-  html += InputField({ id: "settings-tax", label: "Tax Rate (%)", type: "number", value: settings.tax_rate || 0, step: "0.1", min: "0", max: "100" });
-  html += InputField({ id: "settings-currency-symbol", label: "Currency Symbol", value: settings.currency_symbol || "$", maxlength: "3" });
+  html += InputField({
+    id: "settings-tax",
+    label: "Tax Rate (%)",
+    type: "number",
+    value: settings.tax_rate || 0,
+    step: "0.1",
+    min: "0",
+    max: "100",
+  });
+  html += InputField({
+    id: "settings-currency-symbol",
+    label: "Currency Symbol",
+    value: settings.currency_symbol || "$",
+    maxlength: "3",
+  });
 
   html += "<div>";
   html +=

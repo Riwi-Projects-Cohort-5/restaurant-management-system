@@ -480,9 +480,20 @@ function renderNewPayment(el) {
   html += "</select>";
   html += "</div>";
 
-  html += InputField({ id: "new-payment-amount", label: "Amount *", type: "number", placeholder: "0.00", step: "0.01", min: "0.01" });
+  html += InputField({
+    id: "new-payment-amount",
+    label: "Amount *",
+    type: "number",
+    placeholder: "0.00",
+    step: "0.01",
+    min: "0.01",
+  });
 
-  html += InputField({ id: "new-payment-reference", label: "Reference Number (Optional)", placeholder: "e.g. TXN-123456" });
+  html += InputField({
+    id: "new-payment-reference",
+    label: "Reference Number (Optional)",
+    placeholder: "e.g. TXN-123456",
+  });
 
   html += "</div></div></div>";
 
@@ -570,14 +581,35 @@ function setupListEvents(el) {
 
     if (action === "new-payment") {
       subView = "new";
-      renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.newPayment(),
+        function () {
+          renderNewPayment(el);
+        },
+        400
+      );
     } else if (action === "config-methods") {
       subView = "config";
-      renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.paymentConfig(),
+        function () {
+          renderConfig(el);
+        },
+        400
+      );
     } else if (action === "view-detail") {
       selectedId = btn.dataset.paymentId;
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.paymentDetail(),
+        function () {
+          renderDetail(el, selectedId);
+        },
+        400
+      );
     } else if (action === "refund-payment") {
       e.stopPropagation();
       const refundId = btn.dataset.paymentId;
@@ -751,15 +783,40 @@ export function renderPayments(el) {
   paymentsStore.loadPayments();
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(el, Skeletons.paymentDetail(), function () { renderDetail(el, selectedId); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.paymentDetail(),
+      function () {
+        renderDetail(el, selectedId);
+      },
+      400
+    );
   } else if (subView === "new") {
-    renderWithSkeleton(el, Skeletons.newPayment(), function () { renderNewPayment(el); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.newPayment(),
+      function () {
+        renderNewPayment(el);
+      },
+      400
+    );
   } else if (subView === "config") {
-    renderWithSkeleton(el, Skeletons.paymentConfig(), function () { renderConfig(el); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.paymentConfig(),
+      function () {
+        renderConfig(el);
+      },
+      400
+    );
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading({ render: renderPayments, init: function () {}, destroy: function () {} }, Skeletons.paymentsTable(), 800);
+export default withLoading(
+  { render: renderPayments, init: function () {}, destroy: function () {} },
+  Skeletons.paymentsTable(),
+  800
+);

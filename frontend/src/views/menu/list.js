@@ -339,7 +339,12 @@ function renderForm(el, productId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += InputField({ id: "product-name", label: "Name *", value: product ? product.name : "", placeholder: "e.g. Grilled Chicken" });
+  html += InputField({
+    id: "product-name",
+    label: "Name *",
+    value: product ? product.name : "",
+    placeholder: "e.g. Grilled Chicken",
+  });
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Category *</label>';
@@ -367,11 +372,28 @@ function renderForm(el, productId) {
     "</textarea>";
   html += "</div>";
 
-  html += InputField({ id: "product-price", label: "Price *", type: "number", value: product ? product.price : "", placeholder: "0.00", step: "0.01", min: "0.01" });
+  html += InputField({
+    id: "product-price",
+    label: "Price *",
+    type: "number",
+    value: product ? product.price : "",
+    placeholder: "0.00",
+    step: "0.01",
+    min: "0.01",
+  });
 
-  html += InputField({ id: "product-image-url", label: "Image URL", value: product ? product.image_url || "" : "", placeholder: "https://example.com/image.jpg" });
+  html += InputField({
+    id: "product-image-url",
+    label: "Image URL",
+    value: product ? product.image_url || "" : "",
+    placeholder: "https://example.com/image.jpg",
+  });
 
-  html += CheckboxField({ id: "product-available", label: "Available", checked: product ? !!product.available : true });
+  html += CheckboxField({
+    id: "product-available",
+    label: "Available",
+    checked: product ? !!product.available : true,
+  });
 
   html += "</div></div></div>";
 
@@ -403,15 +425,36 @@ function setupListEvents(el) {
     if (action === "create-product") {
       subView = "create";
       selectedId = null;
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.menuForm(),
+        function () {
+          renderForm(el, null);
+        },
+        400
+      );
     } else if (action === "view-detail") {
       selectedId = parseInt(btn.dataset.productId);
       subView = "detail";
-      renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.menuDetail(),
+        function () {
+          renderDetail(el, selectedId);
+        },
+        400
+      );
     } else if (action === "edit-product") {
       selectedId = parseInt(btn.dataset.productId);
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.menuForm(),
+        function () {
+          renderForm(el, selectedId);
+        },
+        400
+      );
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -461,7 +504,14 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "edit-product") {
       subView = "edit";
-      renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
+      renderWithSkeleton(
+        el,
+        Skeletons.menuForm(),
+        function () {
+          renderForm(el, selectedId);
+        },
+        400
+      );
     } else if (action === "toggle-availability") {
       menuService.toggleProductAvailability(selectedId);
       menuStore.refreshProducts();
@@ -554,15 +604,40 @@ export function renderMenu(el) {
   menuStore.loadCategories();
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(el, Skeletons.menuDetail(), function () { renderDetail(el, selectedId); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.menuDetail(),
+      function () {
+        renderDetail(el, selectedId);
+      },
+      400
+    );
   } else if (subView === "create") {
-    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, null); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.menuForm(),
+      function () {
+        renderForm(el, null);
+      },
+      400
+    );
   } else if (subView === "edit" && selectedId) {
-    renderWithSkeleton(el, Skeletons.menuForm(), function () { renderForm(el, selectedId); }, 400);
+    renderWithSkeleton(
+      el,
+      Skeletons.menuForm(),
+      function () {
+        renderForm(el, selectedId);
+      },
+      400
+    );
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading({ render: renderMenu, init: function () {}, destroy: function () {} }, Skeletons.menuCards(8), 800);
+export default withLoading(
+  { render: renderMenu, init: function () {}, destroy: function () {} },
+  Skeletons.menuCards(8),
+  800
+);
