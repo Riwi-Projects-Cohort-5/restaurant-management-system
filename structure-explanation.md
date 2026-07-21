@@ -12,9 +12,12 @@ Back to [README.md](README.md) · [docs/README.md](docs/README.md).
 
 GitHub Actions workflows (the project's CI/CD).
 
-- `workflows/backend.yml` — install deps, lint, pytest, build check.
-- `workflows/frontend.yml` — install pnpm deps, `vite build`, lint, artifact check.
-- `workflows/deploy.yml` — production deploy (Render / docker push / post-deploy hooks).
+- `workflows/backend.yml` — install deps, lint (`ruff`), pytest (with a Postgres service container), build check. Deploys to Render's **preview** service on push to `develop`.
+- `workflows/frontend.yml` — install pnpm deps, `vite build`, lint (`pnpm lint`), prettier check.
+- `workflows/release.yml` — gates PRs to `main` (backend + frontend validation, **no deploy**). On push to `main` it computes a semver tag, publishes a GitHub Release using `.github/release.yml` to categorise PR notes, and triggers production deploys on Render for the backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`) services.
+- `release.yml` — auto-generated release notes categorisation (categories, excluded authors/labels, template).
+
+See [docs/contributing.md](docs/contributing.md) for the release flow and required repository secrets.
 
 ---
 

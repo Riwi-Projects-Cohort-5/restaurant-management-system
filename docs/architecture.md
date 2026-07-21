@@ -147,9 +147,16 @@ cd frontend && pnpm dev        # :5173 (Vite, VITE_API_URL → http://localhost:
 
 Configured via `render.yaml`:
 
-- Backend: web service running `uvicorn`, Python 3.13.
+- Backend: Docker web service running `uvicorn`, Python 3.13.
+- Frontend: Vite-built static site served by Render's CDN, with SPA fallback for hash routing.
 - Database: managed PostgreSQL.
-- Frontend: static site (`vite build` output) with `VITE_API_URL` pointing to the backend.
+
+Deploys are triggered by the **release** workflow in `.github/workflows/release.yml`:
+
+- On a PR targeting `main`: a validation gate runs (backend lint + tests, frontend lint + prettier + build). No deploy. The PR can only merge once this gate is green (`Render Production` secrets `RENDER_API_KEY`, `RENDER_PROD_SERVICE_ID`, `RENDER_PROD_FRONTEND_SERVICE_ID` are referenced by the deploy jobs but not required for the gate).
+- On push to `main` (a merged release PR): a semver tag is computed from the previous tag and pushed, a GitHub Release is published (notes generated from `.github/release.yml`), and the production backend + frontend services on Render are triggered via their deploy hooks.
+
+See [contributing.md](contributing.md) for the release flow and the secrets/branch protection rules.
 
 ## 8. Cross-cutting concerns
 

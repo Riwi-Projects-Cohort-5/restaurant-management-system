@@ -4,6 +4,19 @@ Most recent first. For source-code changes see the Git history.
 
 Back to [docs/README.md](README.md).
 
+## 2026-07-21 — `Its-JrDev/chore/release-config`
+
+### Added (new files)
+- `.github/workflows/release.yml` — governs the path to `main`. On PR to `main`: validation gate (backend lint + tests with Postgres service container, frontend lint + prettier + build; no deploys). On push to `main`: computes next semver tag (first release → `v1.0.0` aligned with `frontend/package.json`; subsequent releases auto-bump by scanning commit subjects for Conventional Commits: `BREAKING CHANGE` / `!:` → major, `feat(...)` → minor, default → patch), pushes the tag, publishes a GitHub Release using `.github/release.yml` for auto-categorised notes, and triggers production deploys on Render for both backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
+- `.github/release.yml` — `release-drafter` categorisation config (features, bug fixes, UI/UX, perf, docs, chores/refactor, security) and notes template.
+
+### Updated
+- `render.yaml` — added the frontend static site service (`restaurant-frontend`, `runtime: static`, `pnpm build`, SPA fallback rewrite rule, hashed-asset cache headers, `VITE_API_URL` pointing at the deployed backend). Corrected the backend `healthCheckPath` from `/api/v1/health` to `/health` (the FastAPI app exposes the health check at root, not under the API prefix).
+- `docs/architecture.md` — production deployment section now explains the release flow (PR gate to `main`, semver tag + GitHub Release + Render deploys on push to `main`).
+- `docs/contributing.md` — added the "Releases to `main`" subsection with the full release flow, the four required Render secrets (`RENDER_API_KEY`, `RENDER_SERVICE_ID`, `RENDER_PROD_SERVICE_ID`, `RENDER_PROD_FRONTEND_SERVICE_ID`), and recommended branch protection rules for `main` and `develop`. Review checklist now includes the `main`-target gate check.
+- `structure-explanation.md` — `.github/` section now documents the new `release.yml` workflow and `release.yml` notes config (replacing the stale mention of a `deploy.yml` that never existed).
+- `docs/CHANGELOG.md` — this entry.
+
 ## 2026-07-21 — `ItsJrDev/chore/review-docs`
 
 ### Added (new documents)
