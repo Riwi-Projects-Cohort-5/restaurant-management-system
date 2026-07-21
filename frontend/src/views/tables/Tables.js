@@ -11,6 +11,7 @@ import {
   createArea as apiCreateArea,
   deleteArea as apiDeleteArea,
 } from "../../store/posData.js";
+import { reservationModal } from "../../components/ui/ReservationModal.js";
 import { createReservation } from "../../services/reservationService.js";
 import { getState as getReservationState, loadReservations } from "../../store/reservations.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
@@ -929,90 +930,6 @@ function renderInlineAreaForm(areaId, mode) {
   if (nameInput) nameInput.focus();
 }
 
-function showReserveModal(tableId, seats, el) {
-  const existing = document.getElementById("reserve-modal");
-  if (existing) existing.remove();
-
-  const now = new Date();
-  const dateDefault = now.toISOString().split("T")[0];
-  const timeDefault = now.toTimeString().slice(0, 5);
-
-  let modal =
-    '<div id="reserve-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">';
-  modal += '<div class="bg-white rounded-xl shadow-xl w-[380px] flex flex-col">';
-  modal += '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100">';
-  modal += '<h3 class="text-base font-bold text-brand-800">Reserve Table</h3>';
-  modal +=
-    '<button id="reserve-modal-close" class="text-brand-400 hover:text-brand-600 bg-transparent border-0 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>';
-  modal += "</div>";
-  modal += '<div class="px-5 py-4 flex flex-col gap-4">';
-  modal +=
-    '<div class="flex flex-col gap-1"><label class="text-sm font-semibold text-brand-700" for="reserve-guest-name">Guest Name</label><input id="reserve-guest-name" type="text" placeholder="Enter guest name" class="h-10 px-3 text-sm rounded-md border border-brand-300 bg-brand-50 outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.1)]"></div>';
-  modal +=
-    '<div class="flex gap-3"><div class="flex flex-col gap-1 flex-1"><label class="text-sm font-semibold text-brand-700" for="reserve-date">Date</label><input id="reserve-date" type="date" value="' +
-    dateDefault +
-    '" class="h-10 px-3 text-sm rounded-md border border-brand-300 bg-brand-50 outline-none focus:border-brand-500"></div>';
-  modal +=
-    '<div class="flex flex-col gap-1 flex-1"><label class="text-sm font-semibold text-brand-700" for="reserve-time">Time</label><input id="reserve-time" type="time" value="' +
-    timeDefault +
-    '" class="h-10 px-3 text-sm rounded-md border border-brand-300 bg-brand-50 outline-none focus:border-brand-500"></div></div>';
-  modal +=
-    '<div class="flex flex-col gap-1"><label class="text-sm font-semibold text-brand-700" for="reserve-guests">Guests</label><input id="reserve-guests" type="number" min="1" max="' +
-    seats +
-    '" value="2" class="h-10 px-3 text-sm rounded-md border border-brand-300 bg-brand-50 outline-none focus:border-brand-500"></div>';
-  modal += "</div>";
-  modal += '<div class="px-5 py-3 border-t border-brand-100 flex justify-end gap-3">';
-  modal +=
-    '<button id="reserve-modal-cancel" class="h-9 px-4 text-sm font-semibold rounded-lg bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors">Cancel</button>';
-  modal +=
-    '<button id="reserve-modal-confirm" class="h-9 px-4 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors">Reserve</button>';
-  modal += "</div></div></div>";
-
-  document.body.insertAdjacentHTML("beforeend", modal);
-  window.createIcons();
-
-  const guestInput = document.getElementById("reserve-guest-name");
-  if (guestInput) guestInput.focus();
-
-  function closeModal() {
-    const m = document.getElementById("reserve-modal");
-    if (m) m.remove();
-  }
-
-  document.getElementById("reserve-modal-close").onclick = closeModal;
-  document.getElementById("reserve-modal-cancel").onclick = closeModal;
-  document.getElementById("reserve-modal").onclick = function (e) {
-    if (e.target === this) closeModal();
-  };
-
-  document.getElementById("reserve-modal-confirm").onclick = async function () {
-    const name = guestInput ? guestInput.value.trim() : "";
-    if (!name) {
-      guestInput.classList.add("border-error-600");
-      guestInput.focus();
-      return;
-    }
-    const dateVal = document.getElementById("reserve-date").value;
-    const timeVal = document.getElementById("reserve-time").value;
-    const guestsVal = parseInt(document.getElementById("reserve-guests").value) || 2;
-
-    await createReservation({
-      table_id: tableId,
-      guest_name: name,
-      date: dateVal,
-      time: timeVal,
-      partySize: guestsVal,
-      notes: "Reserved by " + name,
-    });
-    await apiUpdateTable(tableId, { status: "reserved" });
-    await loadTables();
-    closeModal();
-    selectedTableId = null;
-    renderMain(el);
-    window.createIcons();
-  };
-}
-
 /* ── Event Handling ── */
 
 let eventsAttached = false;
@@ -1220,7 +1137,25 @@ function setupEvents(el) {
         const rt = tables.find(function (tbl) {
           return tbl.id === rid;
         });
-        showReserveModal(rid, rt ? rt.seats : 4, el);
+        const data = await reservationModal.show({
+          title: "Reserve Table",
+          preset: { tableId: rid, partySize: rt ? rt.seats : 4 },
+        });
+        if (data) {
+          await createReservation({
+            guestName: data.guestName,
+            guestPhone: data.guestPhone,
+            date: data.date,
+            time: data.time,
+            partySize: data.partySize,
+            tableId: data.tableId || rid,
+            notes: data.notes,
+          });
+          await apiUpdateTable(rid, { status: "reserved" });
+          await loadTables();
+          selectedTableId = null;
+          renderMain(el);
+        }
       }
       return;
     }

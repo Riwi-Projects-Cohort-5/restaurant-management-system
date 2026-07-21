@@ -36,6 +36,9 @@ services:
     env_file:
       - ./backend/.env
 
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
+
     ports:
       - "${API_PORT}:8000"
 

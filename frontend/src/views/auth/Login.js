@@ -29,6 +29,7 @@
 import { createIcons, Eye, EyeOff } from "lucide";
 import * as authStore from "../../store/auth.js";
 import { getHomeRoute } from "../../utils/routeGuard.js";
+import { toast } from "../../components/ui/ToastManager.js";
 import "../../components/forms/InputField.js";
 import "../../components/forms/CheckboxField.js";
 import "../../components/forms/SubmitButton.js";
@@ -217,6 +218,7 @@ export function init() {
       const result = await authStore.login(username, password);
 
       if (result.success) {
+        toast.success("Welcome back!", "Logged in as " + (result.user.role || "admin"));
         window.location.hash = "#" + getHomeRoute(result.user.role);
       } else {
         if (signInBtn) {
