@@ -312,14 +312,16 @@ export async function deleteOrder(orderId) {
   }
 }
 
-export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
+export async function updateKitchenOrderStatus(kitchenOrderId, newStatus, silent) {
   try {
     const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", {
       status: newStatus,
     });
-    await loadOrders();
-    await loadKitchenOrders();
-    window.dispatchEvent(new CustomEvent("orders:updated"));
+    if (!silent) {
+      await loadOrders();
+      await loadKitchenOrders();
+      window.dispatchEvent(new CustomEvent("orders:updated"));
+    }
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
@@ -343,9 +345,15 @@ export async function updateAllKitchenOrderStatuses(
     : lineStatuses.map(function (ls) {
         return ls.id;
       });
-  for (const kid of targetIds) {
-    lastResult = await updateKitchenOrderStatus(kid, newStatus);
+  if (targetIds.length === 0) {
+    return { success: false, error: "No kitchen order IDs match the expected status" };
   }
+  for (const kid of targetIds) {
+    lastResult = await updateKitchenOrderStatus(kid, newStatus, true);
+  }
+  await loadOrders();
+  await loadKitchenOrders();
+  window.dispatchEvent(new CustomEvent("orders:updated"));
   return lastResult || { success: false, error: "No kitchen order IDs provided" };
 }
 
