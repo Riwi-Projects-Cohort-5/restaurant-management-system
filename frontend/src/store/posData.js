@@ -328,13 +328,13 @@ export function canTransition(role, from, to) {
     const fi = LIFECYCLE.indexOf(from);
     const ti = LIFECYCLE.indexOf(to);
     if (fi === -1 || ti === -1) return false;
-    return ti === fi + 1;
+    return ti === fi + 1 && fi >= 3;
   }
   if (role === "chef") {
     const fi2 = LIFECYCLE.indexOf(from);
     const ti2 = LIFECYCLE.indexOf(to);
     if (fi2 === -1 || ti2 === -1) return false;
-    return ti2 === fi2 + 1 && fi2 >= 1 && ti2 <= 4;
+    return ti2 === fi2 + 1 && fi2 >= 1 && ti2 <= 3;
   }
   return false;
 }
