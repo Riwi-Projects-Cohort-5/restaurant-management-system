@@ -188,12 +188,12 @@ Project documentation. Entry point: [docs/README.md](docs/README.md).
 
 - `README.md` — index.
 - `vision.md`, `architecture.md` — product context + architecture (C4 diagrams).
-- `backend-overview.md`, `api-reference.md`, `database-guide.md`, `architecture.md` — backend docs.
-- `frontend-overview.md`, `IMPLEMENTATION_GUIDE.md` — frontend docs.
-- `USER_CREDENTIALS.md` — user creation + roles + bootstrap.
+- `backend/overview.md`, `backend/api-reference.md`, `backend/database-guide.md` — backend docs.
+- `backend/endpoints/` — per-module endpoint docs (`README.md` + one file per router module).
+- `frontend/overview.md`, `frontend/implementation-guide.md` — frontend docs.
+- `backend/user-credentials.md` — user creation + roles + bootstrap.
 - `contributing.md` — Git workflow, lint, testing.
 - `CHANGELOG.md` — documentation change log.
-- `backend/endpoints/DOCUMENTACION_BACKEND.md` — narrative endpoint walk-through.
 - `ui/design-system/` — design tokens (light + dark), primitives, theme architecture.
 - `ui/feedback-system/` — Toast / Skeleton / Spinner primitives.
 

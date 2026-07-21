@@ -57,7 +57,7 @@ The main router (`app/api/router.py`) includes **14 routers**:
 | 13 | settings | `/settings` | `GET /` | `PUT /` |
 | 14 | (root) | — | `GET /` , `GET /health` | — |
 
-For the full route table with request/response shapes, see [api-reference.md](api-reference.md). For narrative explanations + examples, see [backend/endpoints/DOCUMENTACION_BACKEND.md](backend/endpoints/DOCUMENTACION_BACKEND.md).
+For the full route table with request/response shapes, see [api-reference.md](api-reference.md). For narrative explanations + examples per module, see [endpoints/](endpoints/).
 
 > Public/Protected column reflects the actual `Depends(get_current_user)` usage in `v1/*.py` as of this writing. Some "public" reads may be locked down in a future release.
 

@@ -2,7 +2,7 @@
 
 A staff-centered web platform for small and medium restaurants: reservations, table management, ordering, kitchen workflow, payments, inventory, reporting and system settings — all in one monorepo.
 
-Quick links: [docs/README.md](docs/README.md) · [architecture](docs/architecture.md) · [API reference](docs/api-reference.md) · [frontend overview](docs/frontend-overview.md) · [contributing](docs/contributing.md)
+Quick links: [docs/README.md](docs/README.md) · [architecture](docs/architecture.md) · [API reference](docs/backend/api-reference.md) · [frontend overview](docs/frontend/overview.md) · [contributing](docs/contributing.md)
 
 ## Tech stack
 
@@ -75,7 +75,7 @@ pnpm dev                        # http://localhost:3000 (proxies /api → :8000)
 
 ### 4. Create the first admin
 
-The `POST /api/v1/auth/register` endpoint is currently public so you can bootstrap the first user. See [docs/USER_CREDENTIALS.md](docs/USER_CREDENTIALS.md).
+The `POST /api/v1/auth/register` endpoint is currently public so you can bootstrap the first user. See [docs/backend/user-credentials.md](docs/backend/user-credentials.md).
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/auth/register \
@@ -97,7 +97,7 @@ The backend currently exposes **14 routers** under `/api/v1`:
 
 `auth`, `users`, `categories`, `locations`, `tables`, `reservations`, `menu`, `orders`, `kitchen`, `inventory`, `payments`, `reports`, `settings` — plus `/` and `/health` at root.
 
-For the full endpoint table see [docs/api-reference.md](docs/api-reference.md). The live OpenAPI schema is at <http://localhost:8000/openapi.json>.
+For the full endpoint table see [docs/backend/api-reference.md](docs/backend/api-reference.md). The live OpenAPI schema is at <http://localhost:8000/openapi.json>.
 
 ## Testing
 
@@ -130,7 +130,7 @@ The backend reads its settings from `backend/.env` via Pydantic Settings (`app/c
 
 ## Source of truth for the schema
 
-SQLAlchemy models in `backend/app/db/models/` are the source of truth. The database schema is migrated through Alembic (`backend/alembic/versions/`). Never hand-edit SQL that diverges from the models — see [docs/database-guide.md](docs/database-guide.md).
+SQLAlchemy models in `backend/app/db/models/` are the source of truth. The database schema is migrated through Alembic (`backend/alembic/versions/`). Never hand-edit SQL that diverges from the models — see [docs/backend/database-guide.md](docs/backend/database-guide.md).
 
 ## Documentation
 

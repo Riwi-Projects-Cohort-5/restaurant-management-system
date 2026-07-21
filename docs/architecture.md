@@ -89,7 +89,7 @@ flowchart TB
 
 Additional models that exist in the database and have services/repositories but **no router yet**:
 
-- `Supplier`, `Purchase`, `PurchaseDetail`, `Recipe`, `Customer` — see [database-guide.md](database-guide.md).
+- `Supplier`, `Purchase`, `PurchaseDetail`, `Recipe`, `Customer` — see [backend/database-guide.md](backend/database-guide.md).
 
 ## 5. Request flow example
 
@@ -131,7 +131,7 @@ sequenceDiagram
     A-->>S: user object
 ```
 
-See [USER_CREDENTIALS.md](USER_CREDENTIALS.md) for how the first admin is created.
+See [backend/user-credentials.md](backend/user-credentials.md) for how the first admin is created.
 
 ## 7. Deployment topology
 

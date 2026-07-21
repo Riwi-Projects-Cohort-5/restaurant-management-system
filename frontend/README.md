@@ -2,10 +2,9 @@
 
 > The full frontend documentation lives in the project docs. See:
 
-- [`docs/frontend-overview.md`](../docs/frontend-overview.md) — architecture, routing, state, theming.
-- [`docs/IMPLEMENTATION_GUIDE.md`](../docs/IMPLEMENTATION_GUIDE.md) — how to build a new view/module.
-- [`docs/ui/design-system/README.md`](../docs/ui/design-system/README.md) — Tailwind v4 tokens, light/dark themes.
-- [`docs/api-reference.md`](../docs/api-reference.md) — backend endpoints the SPA calls.
+- [`docs/frontend/overview.md`](../docs/frontend/overview.md) — architecture, routing, state, theming.
+- [`docs/frontend/implementation-guide.md`](../docs/frontend/implementation-guide.md) — how to build a new view/module.
+- [`docs/backend/api-reference.md`](../docs/backend/api-reference.md) — backend endpoints the SPA calls.
 - [`docs/contributing.md`](../docs/contributing.md) — Git workflow, lint and test commands.
 
 ## Quick start

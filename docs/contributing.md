@@ -140,8 +140,8 @@ The checklist below assumes a simple CRUD module named `foo` (singular model, on
 7. **Modal** (if needed) — `frontend/src/components/ui/FooModal.js`.
 
 ### Docs
-
-8. Update [api-reference.md](api-reference.md), [database-guide.md](database-guide.md) (new table), [frontend-overview.md](frontend-overview.md) if it adds a role or route.
+8. Update [backend/api-reference.md](backend/api-reference.md), [backend/database-guide.md](backend/database-guide.md) (new table), 
+[frontend/overview.md](frontend/overview.md) if it adds a role or route.
 9. Add a [CHANGELOG.md](CHANGELOG.md) entry like `docs: add /foo endpoint and Foo view`.
 
 ## 7. Review checklist
@@ -152,9 +152,9 @@ Before opening a PR, make sure:
 - [ ] Commit subject follows Conventional Commits.
 - [ ] `pnpm lint` and `pnpm format:check` pass on the frontend.
 - [ ] `pytest` passes on the backend (or skip with a justification if it's a frontend-only change).
-- [ ] New endpoints are reflected in `docs/api-reference.md`.
-- [ ] New tables/columns have a migration and an entry in `docs/database-guide.md`.
-- [ ] New roles or routes are reflected in `frontend/src/utils/routeGuard.js` and `docs/frontend-overview.md`.
+- [ ] New endpoints are reflected in `docs/backend/api-reference.md` and in a new `docs/backend/endpoints/<module>.md` file.
+- [ ] New tables/columns have a migration and an entry in `docs/backend/database-guide.md`.
+- [ ] New roles or routes are reflected in `frontend/src/utils/routeGuard.js` and `docs/frontend/overview.md`.
 - [ ] `docs/README.md` index is still accurate (or has a new row).
 - [ ] `CHANGELOG.md` captures the change.
 

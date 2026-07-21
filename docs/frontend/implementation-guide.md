@@ -1,6 +1,6 @@
 # Frontend Implementation Guide
 
-How to build and extend a view/module in the SPA. For the architecture overview see [frontend-overview.md](frontend-overview.md). For styling tokens see [ui/design-system/README.md](ui/design-system/README.md).
+How to build and extend a view/module in the SPA. For the architecture overview see [overview.md](overview.md). For styling tokens see [../ui/design-system/README.md](../ui/design-system/README.md).
 
 Back to [docs/README.md](README.md).
 
@@ -246,7 +246,7 @@ Create new service modules as thin wrappers — never call `fetch` directly from
 
 ## 10. Demo users — gone
 
-The old `{role}123` hardcoded users (`usr_001 admin`, etc.) were used by the mock-only prototype. They do **not** exist against the live backend. Create the first admin through `POST /api/v1/auth/register` (currently public) and additional users through the same endpoint (when called by an authenticated admin) or via the Users view reachable from `/admin`. Demo seed users may be added via `python -m app.db.seed` on the backend; see [USER_CREDENTIALS.md](USER_CREDENTIALS.md).
+The old `{role}123` hardcoded users (`usr_001 admin`, etc.) were used by the mock-only prototype. They do **not** exist against the live backend. Create the first admin through `POST /api/v1/auth/register` (currently public) and additional users through the same endpoint (when called by an authenticated admin) or via the Users view reachable from `/admin`. Demo seed users may be added via `python -m app.db.seed` on the backend; see [../backend/user-credentials.md](../backend/user-credentials.md).
 
 ## 11. Useful commands
 

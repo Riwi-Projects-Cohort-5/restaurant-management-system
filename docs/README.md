@@ -10,13 +10,13 @@ This is the entry point for the project documentation. All files live under `doc
 | [../structure-explanation.md](../structure-explanation.md) | Repository layout — every directory and its purpose |
 | [vision.md](vision.md) | Product vision, users, MVP scope |
 | [architecture.md](architecture.md) | System architecture (C4 diagrams, layered backend, container topology) |
-| [backend-overview.md](backend-overview.md) | Backend modules, layers, tech stack |
-| [backend/endpoints/DOCUMENTACION_BACKEND.md](backend/endpoints/DOCUMENTACION_BACKEND.md) | End-to-end backend write-up with examples |
-| [api-reference.md](api-reference.md) | Canonical API reference — one table per resource |
-| [database-guide.md](database-guide.md) | Schema, tables, relationships, migrations |
-| [frontend-overview.md](frontend-overview.md) | Frontend architecture, routing, state, theming |
-| [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md) | How to build a new frontend view/module |
-| [USER_CREDENTIALS.md](USER_CREDENTIALS.md) | How users are created, roles, security notes |
+| [backend/overview.md](backend/overview.md) | Backend modules, layers, tech stack |
+| [backend/endpoints/README.md](backend/endpoints/README.md) | Per-module endpoint docs with examples |
+| [backend/api-reference.md](backend/api-reference.md) | Canonical API reference — one table per resource |
+| [backend/database-guide.md](backend/database-guide.md) | Schema, tables, relationships, migrations |
+| [backend/user-credentials.md](backend/user-credentials.md) | How users are created, roles, security notes |
+| [frontend/overview.md](frontend/overview.md) | Frontend architecture, routing, state, theming |
+| [frontend/implementation-guide.md](frontend/implementation-guide.md) | How to build a new frontend view/module |
 | [contributing.md](contributing.md) | Git workflow, commit style, testing commands |
 | [CHANGELOG.md](CHANGELOG.md) | Documentation change log |
 | [ui/design-system/README.md](ui/design-system/README.md) | Tailwind v4 design tokens, light/dark themes |
@@ -27,8 +27,8 @@ This is the entry point for the project documentation. All files live under `doc
 | You are... | Read first |
 |---|---|
 | New developer | `README.md` → `structure-explanation.md` → `architecture.md` → `contributing.md` |
-| Backend contributor | `backend-overview.md` → `api-reference.md` → `database-guide.md` |
-| Frontend contributor | `frontend-overview.md` → `IMPLEMENTATION_GUIDE.md` → `ui/design-system/README.md` |
+| Backend contributor | `backend/overview.md` → `backend/api-reference.md` → `backend/database-guide.md` |
+| Frontend contributor | `frontend/overview.md` → `frontend/implementation-guide.md` → `ui/design-system/README.md` |
 | Product owner / stakeholder | `vision.md` → `README.md` |
 | DevOps | `architecture.md` → `../docker-compose.yml` → `../render.yaml` |
 

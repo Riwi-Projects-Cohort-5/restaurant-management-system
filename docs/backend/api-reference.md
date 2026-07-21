@@ -2,7 +2,7 @@
 
 Canonical endpoint table. All routes are prefixed with `/api/v1`. Method + path are verified against `backend/app/api/v1/*.py`.
 
-For the narrative version with request/response examples and architecture context, see [backend/endpoints/DOCUMENTACION_BACKEND.md](backend/endpoints/DOCUMENTACION_BACKEND.md).
+For the narrative version per module with request/response examples and architecture context, see [endpoints/](endpoints/).
 
 Back to [docs/README.md](README.md).
 
@@ -29,7 +29,7 @@ Back to [docs/README.md](README.md).
 | POST | `/auth/login` | public | `application/x-www-form-urlencoded`: `username`, `password` | `{ access_token, token_type: "bearer" }` |
 | POST | `/auth/register` | public | JSON `UserCreate` → `username, email, password, full_name, role` | `UserOut` (201) |
 
-> `register` is currently open so the first administrator can be created. In production it should be locked down to authenticated admins. See [USER_CREDENTIALS.md](USER_CREDENTIALS.md).
+> `register` is currently open so the first administrator can be created. In production it should be locked down to authenticated admins. See [user-credentials.md](user-credentials.md).
 
 ## Users — `/users`
 
