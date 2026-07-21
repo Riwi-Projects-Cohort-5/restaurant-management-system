@@ -3,6 +3,7 @@ import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { productModal } from "../../components/ui/ProductModal.js";
 
 initMockCategories();
 initMockProducts();
@@ -411,16 +412,27 @@ async function renderForm(el, productId) {
 }
 
 function setupListEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
     const action = btn.dataset.action;
 
     if (action === "create-product") {
-      subView = "create";
-      selectedId = null;
-      renderForm(el, null);
+      e.stopPropagation();
+      const data = await productModal.show();
+      if (data) {
+        await menuService.createProduct({
+          category_id: data.category_id,
+          name: data.name,
+          description: data.description || null,
+          price: data.price,
+          image_url: data.image_url || null,
+          available: data.available,
+        });
+        await menuStore.refreshProducts();
+        renderList(el);
+      }
     } else if (action === "view-detail") {
       selectedId = btn.dataset.productId;
       subView = "detail";
@@ -564,8 +576,6 @@ export function renderMenu(el) {
 
   if (subView === "detail" && selectedId) {
     renderDetail(el, selectedId);
-  } else if (subView === "create") {
-    renderForm(el, null);
   } else if (subView === "edit" && selectedId) {
     renderForm(el, selectedId);
   } else {

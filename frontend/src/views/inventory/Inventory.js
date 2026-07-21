@@ -1,5 +1,6 @@
 import * as inventoryStore from "../../store/inventory.js";
 import * as inventoryService from "../../services/inventoryService.js";
+import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
 
 const UNITS = [
   { id: "kg", name: "Kilograms" },
@@ -577,9 +578,18 @@ function setupListEvents(el) {
     const action = btn.getAttribute("data-action");
 
     if (action === "create-item") {
-      subView = "create";
-      selectedId = null;
-      await renderForm(el, null);
+      const data = await inventoryItemModal.show();
+      if (data) {
+        await inventoryService.createItem({
+          name: data.name.trim(),
+          unit: data.unit,
+          quantity: data.quantity,
+          min_stock: data.min_stock,
+          is_active: data.is_active,
+        });
+        await inventoryStore.refreshItems();
+        renderList(el);
+      }
     } else if (action === "view-detail") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "detail";
@@ -730,8 +740,6 @@ const InventoryView = {
 
     if (subView === "detail" && selectedId) {
       await renderDetail(el, selectedId);
-    } else if (subView === "create") {
-      await renderForm(el, null);
     } else if (subView === "edit" && selectedId) {
       await renderForm(el, selectedId);
     } else {

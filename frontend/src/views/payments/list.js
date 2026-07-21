@@ -3,6 +3,7 @@ import * as paymentService from "../../services/paymentService.js";
 import { allOrders, loadOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { paymentModal } from "../../components/ui/PaymentModal.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -433,84 +434,6 @@ async function renderDetail(el, paymentId) {
   window.createIcons();
 }
 
-function renderNewPayment(el) {
-  const unpaidOrders = allOrders.filter(function (o) {
-    return o.status === "completed";
-  });
-
-  let html = '<div class="space-y-5">';
-
-  html += '<div class="flex items-center justify-between">';
-  html +=
-    '<button data-action="back-to-list" class="flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
-  html += '<h2 class="text-xl font-semibold text-brand-900 font-display">New Payment</h2>';
-  html += "</div>";
-
-  html += '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden">';
-  html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html +=
-    '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Payment Details</h3>';
-  html += "</div>";
-  html += '<div class="p-5">';
-  html += '<div class="space-y-4 max-w-md">';
-
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Order *</label>';
-  html +=
-    '<select id="new-payment-order" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer">';
-  html += '<option value="">Select an order...</option>';
-  unpaidOrders.forEach(function (order) {
-    html +=
-      '<option value="' +
-      order.fullId +
-      '" data-amount="' +
-      order.total +
-      '">Order #' +
-      order.id +
-      " - Table " +
-      order.table +
-      " ($" +
-      order.total.toFixed(2) +
-      ")</option>";
-  });
-  html += "</select>";
-  html += "</div>";
-
-  html += "<div>";
-  html +=
-    '<label class="block text-sm font-semibold text-secondary-600 mb-1">Payment Method *</label>';
-  html +=
-    '<select id="new-payment-method" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer">';
-  PAYMENT_METHODS.forEach(function (method) {
-    if (enabledMethods[method.id]) {
-      html += '<option value="' + method.id + '">' + method.name + "</option>";
-    }
-  });
-  html += "</select>";
-  html += "</div>";
-
-  html += "<div>";
-  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Amount *</label>';
-  html +=
-    '<input type="number" id="new-payment-amount" step="0.01" min="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
-  html += "</div>";
-
-  html += "</div></div></div>";
-
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<button data-action="submit-payment" class="flex items-center gap-2 px-6 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="check" class="w-4 h-4"></i> Create Payment</button>';
-  html +=
-    '<button data-action="back-to-list" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors">Cancel</button>';
-  html += "</div>";
-
-  html += "</div>";
-
-  el.innerHTML = html;
-  setupNewPaymentEvents(el);
-  window.createIcons();
-}
-
 function renderConfig(el) {
   let html = '<div class="space-y-5">';
 
@@ -580,8 +503,21 @@ function setupListEvents(el) {
     const action = btn.dataset.action;
 
     if (action === "new-payment") {
-      subView = "new";
-      renderNewPayment(el);
+      e.stopPropagation();
+      const data = await paymentModal.show();
+      if (data) {
+        const result = await paymentService.createPayment({
+          order_id: data.orderId,
+          amount: data.amount,
+          method: data.method,
+        });
+        if (result.success) {
+          await paymentsStore.refreshPayments();
+          renderList(el);
+        } else {
+          alert(result.error || "Error creating payment");
+        }
+      }
     } else if (action === "config-methods") {
       subView = "config";
       renderConfig(el);
@@ -661,66 +597,6 @@ function setupDetailEvents(el) {
   });
 }
 
-function setupNewPaymentEvents(el) {
-  el.addEventListener("click", async function (e) {
-    const btn = e.target.closest("[data-action]");
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-
-    if (action === "back-to-list") {
-      subView = "list";
-      renderList(el);
-    } else if (action === "submit-payment") {
-      const orderSelect = el.querySelector("#new-payment-order");
-      const methodSelect = el.querySelector("#new-payment-method");
-      const amountInput = el.querySelector("#new-payment-amount");
-
-      const orderId = orderSelect.value;
-      const method = methodSelect.value;
-      const amount = parseFloat(amountInput.value);
-
-      if (!orderId) {
-        alert("Please select an order");
-        return;
-      }
-      if (!method) {
-        alert("Please select a payment method");
-        return;
-      }
-      if (!amount || amount <= 0) {
-        alert("Please enter a valid amount");
-        return;
-      }
-
-      const result = await paymentService.createPayment({
-        order_id: orderId,
-        amount: amount,
-        method: method,
-      });
-
-      if (result.success) {
-        await paymentsStore.refreshPayments();
-        subView = "list";
-        renderList(el);
-      } else {
-        alert(result.error || "Error creating payment");
-      }
-    }
-  });
-
-  const orderSelect = el.querySelector("#new-payment-order");
-  if (orderSelect) {
-    orderSelect.addEventListener("change", function (e) {
-      const selectedOption = e.target.selectedOptions[0];
-      if (selectedOption && selectedOption.dataset.amount) {
-        const amountInput = el.querySelector("#new-payment-amount");
-        amountInput.value = parseFloat(selectedOption.dataset.amount).toFixed(2);
-      }
-    });
-  }
-}
-
 function setupConfigEvents(el) {
   el.addEventListener("click", function (e) {
     const btn = e.target.closest("[data-action]");
@@ -746,8 +622,6 @@ export async function renderPayments(el) {
 
   if (subView === "detail" && selectedId) {
     await renderDetail(el, selectedId);
-  } else if (subView === "new") {
-    renderNewPayment(el);
   } else if (subView === "config") {
     renderConfig(el);
   } else {
