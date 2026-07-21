@@ -9,10 +9,12 @@ from pydantic import BaseModel
 class OrderItemCreate(BaseModel):
     menu_item_id: UUID
     quantity: int = 1
+    notes: Optional[str] = None
 
 
 class OrderCreate(BaseModel):
     table_id: UUID
+    reservation_id: Optional[str] = None
 
 
 class OrderUpdate(BaseModel):
@@ -33,6 +35,7 @@ class OrderOut(BaseModel):
     id: UUID
     waiter_id: UUID
     table_id: UUID
+    reservation_id: Optional[str] = None
     status: str
     total: Decimal
     created_at: datetime

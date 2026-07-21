@@ -7,6 +7,7 @@ from app.db.models.order import Order, OrderStatus
 from app.db.models.order_item import OrderItem
 from app.repositories.menu_item_repository import MenuItemRepository
 from app.repositories.order_repository import OrderRepository
+from app.services.kitchen_service import KitchenService
 
 
 class InvalidEnumValueError(Exception):
@@ -30,11 +31,11 @@ class OrderService:
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Order]:
         return self.repo.get_all(skip, limit)
 
-    def create(self, waiter_id: UUID, table_id: UUID) -> Order:
-        order = Order(waiter_id=waiter_id, table_id=table_id)
+    def create(self, waiter_id: UUID, table_id: UUID, reservation_id: Optional[str] = None) -> Order:
+        order = Order(waiter_id=waiter_id, table_id=table_id, reservation_id=reservation_id)
         return self.repo.create(order)
 
-    def add_item(self, order_id: UUID, menu_item_id: UUID, quantity: int = 1) -> Optional[Order]:
+    def add_item(self, order_id: UUID, menu_item_id: UUID, quantity: int = 1, notes: Optional[str] = None) -> Optional[Order]:
         order = self.repo.get_by_id(order_id)
         if not order:
             return None
@@ -52,6 +53,13 @@ class OrderService:
         )
         order.total = (order.total or 0) + subtotal
         self.repo.db.add(order_item)
+        kitchen_svc = KitchenService(self.repo.db)
+        kitchen_svc.create(
+            order_id=order_id,
+            menu_item_name=item.name,
+            quantity=quantity,
+            notes=notes,
+        )
         return self.repo.update(order)
 
     def update_status(self, order_id: UUID, status: str) -> Optional[Order]:
@@ -63,3 +71,10 @@ class OrderService:
         except ValueError:
             raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in OrderStatus]}")
         return self.repo.update(order)
+
+    def delete(self, order_id: UUID) -> bool:
+        order = self.repo.get_by_id(order_id)
+        if not order:
+            return False
+        self.repo.delete(order)
+        return True

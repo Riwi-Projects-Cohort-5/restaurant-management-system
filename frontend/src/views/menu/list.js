@@ -2,11 +2,6 @@ import * as menuStore from "../../store/menu.js";
 import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
-import { toast } from "../../components/ui/ToastManager.js";
-import InputField from "../../components/forms/InputField.js";
-import CheckboxField from "../../components/forms/CheckboxField.js";
-import { confirmModal } from "../../components/ui/ConfirmModal.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
 initMockCategories();
 initMockProducts();
@@ -17,18 +12,8 @@ let activeCategoryFilter = "";
 let activeAvailableFilter = "";
 let searchQuery = "";
 
-function getCategoryEmoji(categoryId) {
-  const emojis = {
-    1: "🍟",
-    2: "🍽️",
-    3: "🦐",
-    4: "🍰",
-    5: "🥤",
-    6: "☕",
-    7: "🍸",
-    8: "🍺",
-  };
-  return emojis[categoryId] || "🍽️";
+function getCategoryEmoji() {
+  return "🍽️";
 }
 
 function availabilityBadge(available) {
@@ -53,7 +38,7 @@ function getFiltered() {
 
   if (activeCategoryFilter) {
     filtered = filtered.filter(function (p) {
-      return p.category_id === parseInt(activeCategoryFilter);
+      return p.category_id === activeCategoryFilter;
     });
   }
 
@@ -77,9 +62,9 @@ function getFiltered() {
   return filtered;
 }
 
-function renderList(el) {
+async function renderList(el) {
   const products = getFiltered();
-  const categories = menuService.getAllCategories();
+  const categories = await menuService.getAllCategories();
 
   let html = '<div class="space-y-5">';
 
@@ -156,8 +141,8 @@ function renderList(el) {
     }
     html += "</div>";
   } else {
-    products.forEach(function (product) {
-      const category = menuService.getCategoryById(product.category_id);
+    for (const product of products) {
+      const category = await menuService.getCategoryById(product.category_id);
       const categoryName = category ? category.name : "Unknown";
       const emoji = product.image_url || getCategoryEmoji(product.category_id);
 
@@ -197,7 +182,7 @@ function renderList(el) {
         '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-3 h-3"></i> Edit</button>';
       html += "</div>";
       html += "</div>";
-    });
+    }
   }
 
   html += "</div>";
@@ -208,14 +193,14 @@ function renderList(el) {
   window.createIcons();
 }
 
-function renderDetail(el, productId) {
-  const product = menuService.getProductById(productId);
+async function renderDetail(el, productId) {
+  const product = await menuService.getProductById(productId);
   if (!product) {
     renderList(el);
     return;
   }
 
-  const category = menuService.getCategoryById(product.category_id);
+  const category = await menuService.getCategoryById(product.category_id);
   const categoryName = category ? category.name : "Unknown";
   const emoji = product.image_url || getCategoryEmoji(product.category_id);
   const canDelete = currentUser && currentUser.role === "admin";
@@ -315,10 +300,10 @@ function renderDetail(el, productId) {
   window.createIcons();
 }
 
-function renderForm(el, productId) {
+async function renderForm(el, productId) {
   const isEdit = !!productId;
-  const product = isEdit ? menuService.getProductById(productId) : null;
-  const categories = menuService.getAllCategories();
+  const product = isEdit ? await menuService.getProductById(productId) : null;
+  const categories = await menuService.getAllCategories();
 
   let html = '<div class="space-y-5">';
 
@@ -339,12 +324,13 @@ function renderForm(el, productId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += InputField({
-    id: "product-name",
-    label: "Name *",
-    value: product ? product.name : "",
-    placeholder: "e.g. Grilled Chicken",
-  });
+  html += "<div>";
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Name *</label>';
+  html +=
+    '<input type="text" id="product-name" value="' +
+    (product ? product.name : "") +
+    '" placeholder="e.g. Grilled Chicken" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
+  html += "</div>";
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Category *</label>';
@@ -372,28 +358,30 @@ function renderForm(el, productId) {
     "</textarea>";
   html += "</div>";
 
-  html += InputField({
-    id: "product-price",
-    label: "Price *",
-    type: "number",
-    value: product ? product.price : "",
-    placeholder: "0.00",
-    step: "0.01",
-    min: "0.01",
-  });
+  html += "<div>";
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Price *</label>';
+  html +=
+    '<input type="number" id="product-price" step="0.01" min="0.01" value="' +
+    (product ? product.price : "") +
+    '" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
+  html += "</div>";
 
-  html += InputField({
-    id: "product-image-url",
-    label: "Image URL",
-    value: product ? product.image_url || "" : "",
-    placeholder: "https://example.com/image.jpg",
-  });
+  html += "<div>";
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Image URL</label>';
+  html +=
+    '<input type="text" id="product-image-url" value="' +
+    (product ? product.image_url || "" : "") +
+    '" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
+  html += "</div>";
 
-  html += CheckboxField({
-    id: "product-available",
-    label: "Available",
-    checked: product ? !!product.available : true,
-  });
+  html += '<div class="flex items-center gap-3">';
+  html +=
+    '<input type="checkbox" id="product-available" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
+    (product && product.available ? "checked" : "") +
+    " />";
+  html +=
+    '<label for="product-available" class="text-sm font-semibold text-secondary-700">Available</label>';
+  html += "</div>";
 
   html += "</div></div></div>";
 
@@ -425,36 +413,15 @@ function setupListEvents(el) {
     if (action === "create-product") {
       subView = "create";
       selectedId = null;
-      renderWithSkeleton(
-        el,
-        Skeletons.menuForm(),
-        function () {
-          renderForm(el, null);
-        },
-        400
-      );
+      renderForm(el, null);
     } else if (action === "view-detail") {
-      selectedId = parseInt(btn.dataset.productId);
+      selectedId = btn.dataset.productId;
       subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.menuDetail(),
-        function () {
-          renderDetail(el, selectedId);
-        },
-        400
-      );
+      renderDetail(el, selectedId);
     } else if (action === "edit-product") {
-      selectedId = parseInt(btn.dataset.productId);
+      selectedId = btn.dataset.productId;
       subView = "edit";
-      renderWithSkeleton(
-        el,
-        Skeletons.menuForm(),
-        function () {
-          renderForm(el, selectedId);
-        },
-        400
-      );
+      renderForm(el, selectedId);
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -492,7 +459,7 @@ function setupListEvents(el) {
 }
 
 function setupDetailEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
@@ -504,40 +471,25 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "edit-product") {
       subView = "edit";
-      renderWithSkeleton(
-        el,
-        Skeletons.menuForm(),
-        function () {
-          renderForm(el, selectedId);
-        },
-        400
-      );
+      renderForm(el, selectedId);
     } else if (action === "toggle-availability") {
-      menuService.toggleProductAvailability(selectedId);
-      menuStore.refreshProducts();
+      await menuService.toggleProductAvailability(selectedId);
+      await menuStore.refreshProducts();
       renderDetail(el, selectedId);
     } else if (action === "delete-product") {
-      confirmModal
-        .show({
-          title: "Delete Product",
-          message: "Are you sure you want to delete this product? This action cannot be undone.",
-          confirmText: "Delete",
-        })
-        .then((confirmed) => {
-          if (confirmed) {
-            menuService.deleteProduct(selectedId);
-            menuStore.refreshProducts();
-            subView = "list";
-            selectedId = null;
-            renderList(el);
-          }
-        });
+      if (confirm("Are you sure you want to delete this product?")) {
+        await menuService.deleteProduct(selectedId);
+        await menuStore.refreshProducts();
+        subView = "list";
+        selectedId = null;
+        renderList(el);
+      }
     }
   });
 }
 
 function setupFormEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
@@ -548,7 +500,7 @@ function setupFormEvents(el) {
       selectedId = null;
       renderList(el);
     } else if (action === "save-product") {
-      const productId = btn.dataset.productId ? parseInt(btn.dataset.productId) : null;
+      const productId = btn.dataset.productId || null;
       const nameInput = el.querySelector("#product-name");
       const categorySelect = el.querySelector("#product-category");
       const descInput = el.querySelector("#product-description");
@@ -557,22 +509,22 @@ function setupFormEvents(el) {
       const availableInput = el.querySelector("#product-available");
 
       const name = nameInput.value.trim();
-      const categoryId = parseInt(categorySelect.value);
+      const categoryId = categorySelect.value;
       const description = descInput.value.trim();
       const price = parseFloat(priceInput.value);
       const imageUrl = imageInput.value.trim() || null;
       const available = availableInput.checked;
 
       if (!name) {
-        toast.warning("Validation", "Please enter a product name");
+        alert("Please enter a product name");
         return;
       }
       if (!categoryId) {
-        toast.warning("Validation", "Please select a category");
+        alert("Please select a category");
         return;
       }
       if (!price || price <= 0) {
-        toast.warning("Validation", "Please enter a valid price");
+        alert("Please enter a valid price");
         return;
       }
 
@@ -586,12 +538,12 @@ function setupFormEvents(el) {
       };
 
       if (productId) {
-        menuService.updateProduct(productId, data);
+        await menuService.updateProduct(productId, data);
       } else {
-        menuService.createProduct(data);
+        await menuService.createProduct(data);
       }
 
-      menuStore.refreshProducts();
+      await menuStore.refreshProducts();
       subView = "list";
       selectedId = null;
       renderList(el);
@@ -604,40 +556,15 @@ export function renderMenu(el) {
   menuStore.loadCategories();
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(
-      el,
-      Skeletons.menuDetail(),
-      function () {
-        renderDetail(el, selectedId);
-      },
-      400
-    );
+    renderDetail(el, selectedId);
   } else if (subView === "create") {
-    renderWithSkeleton(
-      el,
-      Skeletons.menuForm(),
-      function () {
-        renderForm(el, null);
-      },
-      400
-    );
+    renderForm(el, null);
   } else if (subView === "edit" && selectedId) {
-    renderWithSkeleton(
-      el,
-      Skeletons.menuForm(),
-      function () {
-        renderForm(el, selectedId);
-      },
-      400
-    );
+    renderForm(el, selectedId);
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading(
-  { render: renderMenu, init: function () {}, destroy: function () {} },
-  Skeletons.menuCards(8),
-  800
-);
+export default { render: renderMenu, init: function () {}, destroy: function () {} };

@@ -42,6 +42,13 @@ def obtener_mesas_disponibles(db: Session = Depends(get_db)):
     return service.get_available()
 
 
+@router.get("/status")
+def obtener_estado_mesas(db: Session = Depends(get_db)):
+    """Retorna resumen de estados: available, occupied, reserved, total."""
+    service = TableService(db)
+    return service.get_status_summary()
+
+
 @router.get("/{table_id}", response_model=TableOut)
 def obtener_mesa_por_id(table_id: UUID, db: Session = Depends(get_db)):
     """Retorna una mesa por su ID. Lanza 404 si no existe."""

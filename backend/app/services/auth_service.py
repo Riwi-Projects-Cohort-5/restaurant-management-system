@@ -15,7 +15,8 @@ class AuthService:
         user = self.repo.get_by_username(username)
         if not user or not verify_password(password, user.hashed_password):
             return None
-        return create_access_token(data={"sub": str(user.id), "role": user.role.value})
+        role_value = user.role.value if hasattr(user.role, "value") else user.role
+        return create_access_token(data={"sub": str(user.id), "role": role_value})
 
     def register(self, username: str, email: str, password: str, full_name: str, role: str = "waiter") -> User:
         hashed = get_password_hash(password)

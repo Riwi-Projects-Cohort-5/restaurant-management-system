@@ -39,29 +39,31 @@ const AppShell = {
   },
 
   renderSidebarNav: function (el) {
+    const userRole = window.currentRole || "admin";
+
     const sections = [
       {
         label: "Main",
         items: [
-          { icon: "layout-dashboard", label: "Dashboard", path: "/dashboard", badge: "" },
-          { icon: "shopping-cart", label: "POS / Orders", path: "/pos", badge: "3" },
-          { icon: "chef-hat", label: "Kitchen", path: "/kitchen", badge: "5" },
-          { icon: "square", label: "Tables", path: "/tables", badge: "" },
+          { icon: "layout-dashboard", label: "Dashboard", path: "/dashboard", badge: "", roles: ["admin", "client"] },
+          { icon: "shopping-cart", label: "POS / Orders", path: "/pos", badge: "3", roles: ["admin", "waiter"] },
+          { icon: "chef-hat", label: "Kitchen", path: "/kitchen", badge: "5", roles: ["admin", "chef"] },
+          { icon: "square", label: "Tables", path: "/tables", badge: "", roles: ["admin", "waiter"] },
         ],
       },
       {
         label: "Management",
         items: [
-          { icon: "calendar", label: "Reservations", path: "/reservations", badge: "" },
-          { icon: "utensils", label: "Menu", path: "/menu", badge: "" },
-          { icon: "package", label: "Inventory", path: "/inventory", badge: "" },
-          { icon: "credit-card", label: "Payments", path: "/payments", badge: "" },
-          { icon: "bar-chart-3", label: "Reports", path: "/reports", badge: "" },
+          { icon: "calendar", label: "Reservations", path: "/reservations", badge: "", roles: ["admin"] },
+          { icon: "utensils", label: "Menu", path: "/menu", badge: "", roles: ["*"] },
+          { icon: "package", label: "Inventory", path: "/inventory", badge: "", roles: ["admin"] },
+          { icon: "credit-card", label: "Payments", path: "/payments", badge: "", roles: ["admin", "cashier"] },
+          { icon: "bar-chart-3", label: "Reports", path: "/reports", badge: "", roles: ["admin"] },
         ],
       },
       {
         label: "System",
-        items: [{ icon: "settings", label: "Settings", path: "/settings", badge: "" }],
+        items: [{ icon: "settings", label: "Settings", path: "/settings", badge: "", roles: ["admin"] }],
       },
     ];
 
@@ -69,11 +71,16 @@ const AppShell = {
 
     let html = "";
     sections.forEach(function (section) {
+      const visibleItems = section.items.filter(function (item) {
+        if (!item.roles || item.roles.includes("*")) return true;
+        return item.roles.includes(userRole);
+      });
+      if (visibleItems.length === 0) return;
       html +=
         '<p class="text-[11px] font-bold uppercase mb-2 px-3 pt-4 tracking-[0.08em] text-white/50">' +
         section.label +
         "</p>";
-      section.items.forEach(function (item) {
+      visibleItems.forEach(function (item) {
         const isActive = currentPath === item.path;
         const stateClasses = isActive
           ? "bg-white text-brand-700 font-semibold"

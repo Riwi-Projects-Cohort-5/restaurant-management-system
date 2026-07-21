@@ -20,8 +20,10 @@ class Reservation(Base):
     __tablename__ = "reservations"
 
     id = Column(String(30), primary_key=True)
-    customer_id = Column(String(30), ForeignKey("customers.id"), nullable=False)
+    customer_id = Column(String(30), ForeignKey("customers.id"), nullable=True)
     table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=True)
+    guest_name = Column(String(100), nullable=True)
+    guest_phone = Column(String(20), nullable=True)
     reservation_date = Column(DateTime(timezone=True), nullable=False)
     guest_count = Column(Integer, nullable=False)
     status = Column(SAEnum("pending", "confirmed", "cancelled", "completed", name="reservationstatus", create_type=False), nullable=False, default="pending")
@@ -31,6 +33,7 @@ class Reservation(Base):
 
     customer = relationship("Customer", back_populates="reservations")
     table = relationship("Table", back_populates="reservations")
+    orders = relationship("Order", back_populates="reservation")
 
 
 def generate_reservation_id(db) -> str:

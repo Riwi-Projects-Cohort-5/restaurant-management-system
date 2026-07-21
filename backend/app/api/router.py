@@ -23,12 +23,13 @@ from app.api.v1 import (
     payments,
     reports,
     reservations,
+    settings,
     tables,
     users,
 )
 
-# Router principal que agrupa todos los módulos bajo /api/v1
-api_router = APIRouter(prefix="/api/v1")
+# Router principal — el prefijo /api/v1 se aplica en main.py al hacer include_router
+api_router = APIRouter()
 
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
@@ -42,3 +43,4 @@ api_router.include_router(kitchen.router)
 api_router.include_router(inventory.router)
 api_router.include_router(payments.router)
 api_router.include_router(reports.router)
+api_router.include_router(settings.router)

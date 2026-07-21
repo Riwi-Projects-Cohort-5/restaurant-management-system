@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
-from app.db.schemas.payment import PaymentCreate, PaymentOut
+from app.db.schemas.payment import PaymentCreate, PaymentOut, PaymentUpdate
 from app.services.payment_service import PaymentService
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
@@ -99,3 +99,37 @@ def registrar_pago(
             detail=f"Orden con id {data.order_id} no encontrada"
         )
     return payment
+
+
+@router.put("/{payment_id}", response_model=PaymentOut)
+def actualizar_estado_pago(
+    payment_id: UUID,
+    data: PaymentUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Actualiza el estado de un pago. Requiere autenticación."""
+    service = PaymentService(db)
+    updated = service.update_status(payment_id, data.status)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Pago con id {payment_id} no encontrado"
+        )
+    return updated
+
+
+@router.delete("/{payment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_pago(
+    payment_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Elimina un pago por su ID. Requiere autenticación."""
+    service = PaymentService(db)
+    deleted = service.delete(payment_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Pago con id {payment_id} no encontrado"
+        )

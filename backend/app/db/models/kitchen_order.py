@@ -21,7 +21,7 @@ class KitchenOrder(Base):
     __tablename__ = "kitchen_orders"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     menu_item_name = Column(String(150), nullable=False)
     quantity = Column(Integer, nullable=False)
     notes = Column(Text, nullable=True)

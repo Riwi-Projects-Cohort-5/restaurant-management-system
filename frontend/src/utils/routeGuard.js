@@ -1,4 +1,10 @@
-import { ROLES } from "../services/mockUsers.js";
+const ROLES = {
+  ADMIN: "admin",
+  CLIENT: "client",
+  WAITER: "waiter",
+  CHEF: "chef",
+  CASHIER: "cashier",
+};
 
 const ROLE_HOME = {
   [ROLES.ADMIN]: "/admin",
@@ -12,7 +18,9 @@ const ROLE_ACCESS = {
   "/admin": [ROLES.ADMIN],
   "/dashboard": [ROLES.ADMIN, ROLES.CLIENT],
   "/orders": [ROLES.ADMIN, ROLES.WAITER],
+  "/pos": [ROLES.ADMIN, ROLES.WAITER],
   "/kitchen": [ROLES.ADMIN, ROLES.CHEF],
+  "/tables": [ROLES.ADMIN, ROLES.WAITER],
   "/payments": [ROLES.ADMIN, ROLES.CASHIER],
   "/reservations": [ROLES.ADMIN],
   "/reservation-status": [ROLES.CLIENT],

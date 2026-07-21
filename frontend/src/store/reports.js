@@ -1,27 +1,31 @@
 import { createStore } from "./index.js";
-import * as reportService from "../services/mockReports.js";
+import * as reportService from "../services/reportService.js";
 
-reportService.initMockReports();
-
-const reportsStore = createStore({
+var reportsStore = createStore({
   sales: null,
   topProducts: [],
   dailySales: [],
+  todayStats: null,
 });
 
-export function loadSalesReport(startDate, endDate) {
-  const sales = reportService.getSalesReport(startDate, endDate);
+export async function loadSalesReport(startDate, endDate) {
+  var sales = await reportService.getSalesReport(startDate, endDate);
   reportsStore.setState({ sales: sales });
 }
 
-export function loadTopProducts(startDate, endDate, limit) {
-  const products = reportService.getTopProducts(startDate, endDate, limit);
+export async function loadTopProducts(startDate, endDate, limit) {
+  var products = await reportService.getTopProducts(startDate, endDate, limit);
   reportsStore.setState({ topProducts: products });
 }
 
-export function loadDailySales() {
-  const daily = reportService.getDailySales();
+export async function loadDailySales(startDate, endDate) {
+  var daily = await reportService.getDailySales(startDate, endDate);
   reportsStore.setState({ dailySales: daily });
+}
+
+export async function loadTodayStats() {
+  var stats = await reportService.getTodayStats();
+  reportsStore.setState({ todayStats: stats });
 }
 
 export function getState() {

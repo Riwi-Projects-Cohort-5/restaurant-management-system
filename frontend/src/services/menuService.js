@@ -1,47 +1,90 @@
-import {
-  getMockProducts,
-  addMockProduct,
-  updateMockProduct,
-  deleteMockProduct,
-} from "./mockProducts.js";
-import { getMockCategories } from "./mockCategories.js";
+import { apiGet, apiPost, apiPut, apiDelete } from "./api.js";
 
-export { initMockProducts } from "./mockProducts.js";
-export { initMockCategories } from "./mockCategories.js";
-
-export function getCategoryById(id) {
-  return getMockCategories().find((c) => c.id === id) || null;
+function mapMenuItem(item) {
+  return {
+    id: item.id,
+    category_id: item.category_id,
+    name: item.name,
+    description: item.description || "",
+    price: parseFloat(item.price),
+    available: item.is_available,
+    image_url: item.image_url || null,
+    created_at: item.created_at,
+    updated_at: item.updated_at,
+  };
 }
 
-export function getAllProducts() {
-  return getMockProducts();
+function mapCategory(cat) {
+  return {
+    id: cat.id,
+    name: cat.name,
+    description: cat.description || "",
+  };
 }
 
-export function getProductById(id) {
-  return getMockProducts().find((p) => p.id === id) || null;
+export async function getAllProducts() {
+  try {
+    const items = await apiGet("/api/v1/menu/");
+    return items.map(mapMenuItem);
+  } catch {
+    return [];
+  }
 }
 
-export function getProductsByCategory(categoryId) {
-  return getMockProducts().filter((p) => p.category_id === categoryId);
+export async function getProductById(id) {
+  try {
+    const item = await apiGet(`/api/v1/menu/${id}`);
+    return mapMenuItem(item);
+  } catch {
+    return null;
+  }
 }
 
-export function getAvailableProducts() {
-  return getMockProducts().filter((p) => p.available);
+export async function getProductsByCategory(categoryId) {
+  try {
+    const items = await apiGet(`/api/v1/menu/category/${categoryId}`);
+    return items.map(mapMenuItem);
+  } catch {
+    return [];
+  }
 }
 
-export function getAllCategories() {
-  return getMockCategories();
+export async function getAvailableProducts() {
+  try {
+    const items = await apiGet("/api/v1/menu/available");
+    return items.map(mapMenuItem);
+  } catch {
+    return [];
+  }
 }
 
-export function filterProducts({ category, available, search }) {
-  let results = getMockProducts();
+export async function getAllCategories() {
+  try {
+    const cats = await apiGet("/api/v1/categories/");
+    return cats.map(mapCategory);
+  } catch {
+    return [];
+  }
+}
+
+export async function getCategoryById(id) {
+  try {
+    const cat = await apiGet(`/api/v1/categories/${id}`);
+    return mapCategory(cat);
+  } catch {
+    return null;
+  }
+}
+
+export async function filterProducts({ category, available, search }) {
+  let results = await getAllProducts();
 
   if (category) {
-    results = results.filter((p) => p.category_id === parseInt(category));
+    results = results.filter((p) => p.category_id === category);
   }
 
-  if (available !== "") {
-    const isAvailable = available === "available";
+  if (available !== "" && available !== undefined && available !== null) {
+    const isAvailable = available === "available" || available === true;
     results = results.filter((p) => p.available === isAvailable);
   }
 
@@ -57,55 +100,55 @@ export function filterProducts({ category, available, search }) {
   return results;
 }
 
-export function createProduct(data) {
-  const newProduct = {
-    category_id: data.category_id,
-    name: data.name,
-    description: data.description || "",
-    price: data.price,
-    available: data.available !== undefined ? data.available : true,
-    image_url: data.image_url || null,
-  };
-
-  const product = addMockProduct(newProduct);
-
-  return { success: true, product };
-}
-
-export function updateProduct(id, data) {
-  const updates = {
-    category_id: data.category_id,
-    name: data.name,
-    description: data.description,
-    price: data.price,
-    available: data.available,
-    image_url: data.image_url,
-  };
-
-  const product = updateMockProduct(id, updates);
-
-  if (!product) {
-    return { success: false, error: "Product not found" };
+export async function createProduct(data) {
+  try {
+    const item = await apiPost("/api/v1/menu/", {
+      name: data.name,
+      description: data.description || "",
+      price: data.price,
+      category_id: data.category_id,
+      image_url: data.image_url || null,
+    });
+    return { success: true, product: mapMenuItem(item) };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  return { success: true, product };
 }
 
-export function toggleProductAvailability(id) {
-  const product = getProductById(id);
-  if (!product) {
-    return { success: false, error: "Product not found" };
+export async function updateProduct(id, data) {
+  try {
+    const item = await apiPut(`/api/v1/menu/${id}`, {
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      category_id: data.category_id,
+      is_available: data.available,
+      image_url: data.image_url,
+    });
+    return { success: true, product: mapMenuItem(item) };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  return updateProduct(id, { ...product, available: !product.available });
 }
 
-export function deleteProduct(id) {
-  const success = deleteMockProduct(id);
-
-  if (!success) {
-    return { success: false, error: "Product not found" };
+export async function toggleProductAvailability(id) {
+  try {
+    const product = await getProductById(id);
+    if (!product) return { success: false, error: "Product not found" };
+    return updateProduct(id, { ...product, available: !product.available });
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  return { success: true };
 }
+
+export async function deleteProduct(id) {
+  try {
+    await apiDelete(`/api/v1/menu/${id}`);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export function initMockProducts() {}
+export function initMockCategories() {}

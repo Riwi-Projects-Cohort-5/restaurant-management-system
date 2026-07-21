@@ -1,6 +1,20 @@
 import * as authStore from "../../store/auth.js";
-import { ROLES, ROLE_LABELS } from "../../services/mockUsers.js";
-import { toast } from "../../components/ui/ToastManager.js";
+
+const ROLES = {
+  ADMIN: "admin",
+  CLIENT: "client",
+  WAITER: "waiter",
+  CHEF: "chef",
+  CASHIER: "cashier",
+};
+
+const ROLE_LABELS = {
+  admin: "Administrator",
+  client: "Client",
+  waiter: "Waiter",
+  chef: "Chef",
+  cashier: "Cashier",
+};
 
 export function renderRegister(container) {
   const user = authStore.currentUser();
@@ -32,6 +46,12 @@ export function renderRegister(container) {
           </p>
         </div>
         <form id="register-form" class="mt-8 space-y-6">
+          <div id="register-error" class="hidden rounded-md bg-red-50 p-4">
+            <p class="text-sm text-red-700"></p>
+          </div>
+          <div id="register-success" class="hidden rounded-md bg-green-50 p-4">
+            <p class="text-sm text-green-700"></p>
+          </div>
           <div class="rounded-md shadow-sm space-y-4">
             <div>
               <label for="new-username" class="block text-sm font-medium text-gray-700">
@@ -118,9 +138,16 @@ export function renderRegister(container) {
   renderUserList(container);
 
   const form = container.querySelector("#register-form");
+  const errorBox = container.querySelector("#register-error");
+  const errorText = errorBox.querySelector("p");
+  const successBox = container.querySelector("#register-success");
+  const successText = successBox.querySelector("p");
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+
+    errorBox.classList.add("hidden");
+    successBox.classList.add("hidden");
 
     const username = form.username.value.trim();
     const email = form.email.value.trim();
@@ -128,26 +155,27 @@ export function renderRegister(container) {
     const role = form.role.value;
 
     if (!username || !email || !password || !role) {
-      toast.error("Validation", "All fields are required.");
+      errorText.textContent = "All fields are required.";
+      errorBox.classList.remove("hidden");
       return;
     }
 
     if (password.length < 6) {
-      toast.error("Validation", "Password must be at least 6 characters.");
+      errorText.textContent = "Password must be at least 6 characters.";
+      errorBox.classList.remove("hidden");
       return;
     }
 
     const result = authStore.addUser({ username, email, password, role });
 
     if (result.success) {
-      toast.success(
-        "User Created",
-        `User "${result.user.username}" (${ROLE_LABELS[result.user.role]}) created successfully.`
-      );
+      successText.textContent = `User "${result.user.username}" (${ROLE_LABELS[result.user.role]}) created successfully.`;
+      successBox.classList.remove("hidden");
       form.reset();
       renderUserList(container);
     } else {
-      toast.error("Error", result.error);
+      errorText.textContent = result.error;
+      errorBox.classList.remove("hidden");
     }
   });
 }

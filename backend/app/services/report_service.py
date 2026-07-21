@@ -14,3 +14,9 @@ class ReportService:
 
     def get_top_products(self, start_date: datetime, end_date: datetime, limit: int = 10) -> list[dict]:
         return self.repo.get_top_products(start_date, end_date, limit)
+
+    def get_daily_sales(self, start_date: datetime, end_date: datetime) -> list[dict]:
+        return self.repo.get_daily_sales(start_date, end_date)
+
+    def get_today_stats(self) -> dict:
+        return self.repo.get_today_stats()

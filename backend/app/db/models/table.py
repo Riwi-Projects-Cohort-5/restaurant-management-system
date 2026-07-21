@@ -24,7 +24,7 @@ class Table(Base):
     number = Column(Integer, unique=True, nullable=False)
     capacity = Column(Integer, nullable=False)
     status = Column(SAEnum("available", "occupied", "reserved", "maintenance", name="tablestatus", create_type=False), nullable=False, default="available")
-    location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id"), nullable=True)
+    location_id = Column(UUID(as_uuid=True), ForeignKey("locations.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

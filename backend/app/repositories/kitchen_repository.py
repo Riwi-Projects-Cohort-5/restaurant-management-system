@@ -26,6 +26,11 @@ class KitchenRepository:
             KitchenOrder.status == KitchenOrderStatus.PREPARING
         ).all()
 
+    def get_ready(self) -> list[KitchenOrder]:
+        return self.db.query(KitchenOrder).filter(
+            KitchenOrder.status == KitchenOrderStatus.READY
+        ).all()
+
     def create(self, kitchen_order: KitchenOrder) -> KitchenOrder:
         self.db.add(kitchen_order)
         self.db.commit()

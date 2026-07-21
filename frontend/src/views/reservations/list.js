@@ -1,18 +1,26 @@
 import * as reservationStore from "../../store/reservations.js";
 import * as reservationService from "../../services/reservationService.js";
-import {
-  STATUS_LABELS,
-  STATUS_COLORS,
-  initMockReservations,
-} from "../../services/mockReservations.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
+import { tables, loadTables } from "../../store/posData.js";
 
-initMockReservations();
+const STATUS_LABELS = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  cancelled: "Cancelled",
+  completed: "Completed",
+};
+
+const STATUS_COLORS = {
+  pending:   { bg: "bg-accent-100",   text: "text-accent-700",   dot: "bg-accent-500" },
+  confirmed: { bg: "bg-success-100",  text: "text-success-700",  dot: "bg-success-500" },
+  cancelled: { bg: "bg-error-100",    text: "text-error-700",    dot: "bg-error-500" },
+  completed: { bg: "bg-secondary-100", text: "text-secondary-700", dot: "bg-secondary-500" },
+};
 
 let subView = "list";
 let selectedId = null;
 let activeFilter = "all";
 let searchQuery = "";
+let selectedTableId = null;
 
 function statusBadge(status, size) {
   const colors = STATUS_COLORS[status] || STATUS_COLORS.pending;
@@ -135,7 +143,7 @@ function renderList(el) {
   html += '<div class="overflow-x-auto">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  const cols = ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions"];
+  const cols = ["Code", "Guest", "Date", "Time", "Party", "Table", "Status", "Actions", ""];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -146,7 +154,7 @@ function renderList(el) {
   html += "<tbody>";
 
   if (reservations.length === 0) {
-    html += '<tr><td colspan="8" class="px-5 py-12 text-center">';
+    html += '<tr><td colspan="9" class="px-5 py-12 text-center">';
     html += '<div class="flex flex-col items-center gap-2">';
     html += '<i data-lucide="calendar-x" class="w-10 h-10 text-secondary-300"></i>';
     html +=
@@ -183,6 +191,14 @@ function renderList(el) {
         '<td class="px-5 py-3.5"><button data-action="view-detail" data-id="' +
         r.id +
         '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-brand-500 hover:bg-brand-100 border border-brand-300 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3.5 h-3.5"></i> View</button></td>';
+      if (r.status === "pending" || r.status === "confirmed") {
+        html +=
+          '<td class="px-5 py-3.5"><button data-action="cancel" data-id="' +
+          r.id +
+          '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></td>';
+      } else {
+        html += '<td class="px-5 py-3.5"></td>';
+      }
       html += "</tr>";
     });
   }
@@ -242,6 +258,10 @@ function renderDetail(el) {
       '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i> Cancel</button>';
     html += "</div>";
   }
+  html +=
+    '<button data-action="delete-reservation" data-id="' +
+    r.id +
+    '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar</button>';
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-4 gap-4">';
@@ -315,6 +335,108 @@ function renderInfoCard(label, valueHtml) {
   );
 }
 
+function renderConfirmTablePanel(el) {
+  const r = reservationStore.getState().reservations.find(function (x) {
+    return x.id === selectedId;
+  });
+  if (!r) {
+    subView = "list";
+    selectedId = null;
+    renderList(el);
+    return;
+  }
+
+  const availableTables = tables.filter(function (t) {
+    return t.status === "available" && t.seats >= r.partySize;
+  });
+
+  let html = '<div class="space-y-5">';
+
+  html += '<div class="flex items-center justify-between">';
+  html += '<div class="flex items-center gap-3">';
+  html +=
+    '<button data-action="back-to-detail" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+  html +=
+    '<h2 class="text-xl font-semibold text-primary-700 font-display">Select Table for ' +
+    r.code +
+    "</h2>";
+  html += "</div>";
+  html += "</div>";
+
+  html +=
+    '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden">';
+  html += '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50">';
+  html +=
+    '<h3 class="text-sm font-bold text-brand-800">Available Tables <span class="font-normal text-secondary-500">(capacity ≥ ' +
+    r.partySize +
+    " guests)</span></h3>";
+  html += "</div>";
+
+  if (availableTables.length === 0) {
+    html += '<div class="px-5 py-8 text-center">';
+    html += '<i data-lucide="table" class="w-10 h-10 text-secondary-300 mx-auto mb-2"></i>';
+    html += '<p class="text-sm text-secondary-400">No tables available with enough capacity</p>';
+    html += "</div>";
+  } else {
+    html += '<div class="grid grid-cols-2 gap-3 p-5">';
+    availableTables.forEach(function (t) {
+      const isSelected = selectedTableId === t.id;
+      html +=
+        '<button data-action="select-table" data-table-id="' +
+        t.id +
+        '" class="flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all text-left ' +
+        (isSelected
+          ? "border-primary-500 bg-primary-50 shadow-[0_0_0_3px_rgba(229,119,34,0.15)]"
+          : "border-brand-200 bg-white hover:border-brand-400 hover:bg-brand-50") +
+        '">';
+      html +=
+        '<div class="flex items-center justify-center w-10 h-10 rounded-lg font-bold text-sm ' +
+        (isSelected ? "bg-primary-500 text-white" : "bg-brand-100 text-brand-700") +
+        '">' +
+        t.number +
+        "</div>";
+      html += '<div class="flex-1">';
+      html +=
+        '<div class="text-sm font-semibold ' +
+        (isSelected ? "text-primary-700" : "text-neutral-800") +
+        '">Table ' +
+        t.number +
+        "</div>";
+      html += '<div class="text-xs text-secondary-500">' + t.seats + " seats";
+      if (t.area) html += " · " + t.area;
+      html += "</div>";
+      html += "</div>";
+      if (isSelected) {
+        html +=
+          '<i data-lucide="check-circle" class="w-5 h-5 text-primary-500 shrink-0"></i>';
+      }
+      html += "</button>";
+    });
+    html += "</div>";
+  }
+
+  html += "</div>";
+
+  html += '<div class="flex justify-end gap-3">';
+  html +=
+    '<button data-action="back-to-detail" class="px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Cancel</button>';
+  html +=
+    '<button data-action="confirm-with-table" data-id="' +
+    r.id +
+    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border-0 cursor-pointer transition-colors ' +
+    (selectedTableId
+      ? "bg-success-600 hover:bg-success-700 text-white"
+      : "bg-secondary-200 text-secondary-400 cursor-not-allowed") +
+    '"' +
+    (!selectedTableId ? " disabled" : "") +
+    '><i data-lucide="check" class="w-4 h-4"></i> Confirm Reservation</button>';
+  html += "</div>";
+
+  html += "</div>";
+  el.innerHTML = html;
+  window.createIcons();
+}
+
 function renderNewReservationForm(el) {
   let html = '<div class="space-y-5">';
 
@@ -336,7 +458,11 @@ function renderNewReservationForm(el) {
   html += renderFormField("res-date", "Date", "date", "", true);
   html += renderFormField("res-time", "Time", "time", "", true);
   html += renderFormField("res-party-size", "Party Size", "number", "4", true);
-  html += renderFormField("res-table-num", "Table Number", "number", "Optional", false);
+  html += '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Table<select id="res-table-num" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white"><option value="">-- Optional --</option>';
+  tables.forEach(function (t) {
+    html += '<option value="' + t.id + '">Table ' + t.number + ' (' + t.seats + ' seats)</option>';
+  });
+  html += '</select></label>';
   html += "</div>";
   html += '<div class="mt-4">';
   html +=
@@ -375,22 +501,25 @@ function renderFormField(id, label, type, placeholder, required) {
   );
 }
 
-function handleAction(el, action, id) {
+async function handleAction(el, action, id) {
   if (action === "confirm") {
-    reservationService.updateReservationStatus(id, "confirmed");
+    selectedTableId = null;
+    subView = "confirm-table";
+    renderConfirmTablePanel(el);
+    return;
   } else if (action === "complete") {
-    reservationService.updateReservationStatus(id, "completed");
+    await reservationService.updateReservationStatus(id, "completed");
   } else if (action === "cancel") {
-    reservationService.updateReservationStatus(id, "cancelled");
+    await reservationService.updateReservationStatus(id, "cancelled");
   }
-  reservationStore.refreshReservations();
+  await reservationStore.refreshReservations();
   selectedId = id;
   subView = "detail";
   renderDetail(el);
 }
 
 function setupEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const target = e.target;
 
     const filterBtn = target.closest("[data-filter]");
@@ -415,14 +544,7 @@ function setupEvents(el) {
     if (newRes) {
       e.stopPropagation();
       subView = "new";
-      renderWithSkeleton(
-        el,
-        Skeletons.newReservation(),
-        function () {
-          renderNewReservationForm(el);
-        },
-        400
-      );
+      renderNewReservationForm(el);
       return;
     }
 
@@ -431,14 +553,7 @@ function setupEvents(el) {
       e.stopPropagation();
       selectedId = viewDetail.getAttribute("data-id");
       subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.reservationDetail(),
-        function () {
-          renderDetail(el);
-        },
-        400
-      );
+      renderDetail(el);
       return;
     }
 
@@ -447,14 +562,7 @@ function setupEvents(el) {
       e.stopPropagation();
       selectedId = row.getAttribute("data-reservation-id");
       subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.reservationDetail(),
-        function () {
-          renderDetail(el);
-        },
-        400
-      );
+      renderDetail(el);
       return;
     }
 
@@ -488,6 +596,56 @@ function setupEvents(el) {
       return;
     }
 
+    const deleteBtn = target.closest('[data-action="delete-reservation"]');
+    if (deleteBtn) {
+      e.stopPropagation();
+      const deleteId = deleteBtn.getAttribute("data-id");
+      if (confirm("\u00BFEliminar esta reservaci\u00F3n permanentemente?")) {
+        const result = await reservationService.deleteReservation(deleteId);
+        if (result.success) {
+          await reservationStore.refreshReservations();
+          subView = "list";
+          selectedId = null;
+          renderList(el);
+        } else {
+          alert(result.error || "Error al eliminar la reservaci\u00F3n");
+        }
+      }
+      return;
+    }
+
+    const selectTableBtn = target.closest('[data-action="select-table"]');
+    if (selectTableBtn) {
+      e.stopPropagation();
+      selectedTableId = selectTableBtn.getAttribute("data-table-id");
+      renderConfirmTablePanel(el);
+      return;
+    }
+
+    const confirmWithTableBtn = target.closest('[data-action="confirm-with-table"]');
+    if (confirmWithTableBtn) {
+      e.stopPropagation();
+      if (!selectedTableId) return;
+      const resId = confirmWithTableBtn.getAttribute("data-id");
+      await reservationService.confirmReservation(resId, selectedTableId);
+      await reservationStore.refreshReservations();
+      await loadTables();
+      selectedId = resId;
+      subView = "detail";
+      selectedTableId = null;
+      renderDetail(el);
+      return;
+    }
+
+    const backToDetailBtn = target.closest('[data-action="back-to-detail"]');
+    if (backToDetailBtn) {
+      e.stopPropagation();
+      selectedTableId = null;
+      subView = "detail";
+      renderDetail(el);
+      return;
+    }
+
     const saveBtn = target.closest('[data-action="save-reservation"]');
     if (saveBtn) {
       e.stopPropagation();
@@ -496,7 +654,7 @@ function setupEvents(el) {
       const date = (document.getElementById("res-date") || {}).value || "";
       const time = (document.getElementById("res-time") || {}).value || "";
       const party = parseInt((document.getElementById("res-party-size") || {}).value) || 2;
-      const table = parseInt((document.getElementById("res-table-num") || {}).value) || null;
+      const tableId = (document.getElementById("res-table-num") || {}).value || null;
       const notes = (document.getElementById("res-notes") || {}).value || "";
 
       if (!name.trim() || !date || !time) {
@@ -510,21 +668,21 @@ function setupEvents(el) {
           firstEmpty.focus();
           setTimeout(function () {
             firstEmpty.classList.remove("border-error-400");
-          }, 400);
+          }, 2000);
         }
         return;
       }
 
-      reservationService.createReservation({
+      await reservationService.createReservation({
         guestName: name.trim(),
         guestPhone: phone,
         date: date,
         time: time,
         partySize: party,
-        tableNumber: table,
+        tableId: tableId,
         notes: notes,
       });
-      reservationStore.refreshReservations();
+      await reservationStore.refreshReservations();
       subView = "list";
       selectedId = null;
       renderList(el);
@@ -552,41 +710,27 @@ function setupEvents(el) {
   });
 }
 
-let eventsAttached = false;
+let _eventsEl = null;
 
-export function renderReservations(container) {
-  reservationStore.loadReservations();
+export async function renderReservations(container) {
+  reservationService.setTablesCache(tables);
+  await reservationStore.loadReservations();
 
-  if (!eventsAttached) {
+  if (_eventsEl !== container) {
     setupEvents(container);
-    eventsAttached = true;
+    _eventsEl = container;
   }
 
   if (subView === "detail") {
-    renderWithSkeleton(
-      container,
-      Skeletons.reservationDetail(),
-      function () {
-        renderDetail(container);
-      },
-      400
-    );
+    renderDetail(container);
+  } else if (subView === "confirm-table") {
+    renderConfirmTablePanel(container);
   } else if (subView === "new") {
-    renderWithSkeleton(
-      container,
-      Skeletons.newReservation(),
-      function () {
-        renderNewReservationForm(container);
-      },
-      400
-    );
+    renderNewReservationForm(container);
   } else {
+    subView = "list";
     renderList(container);
   }
 }
 
-export default withLoading(
-  { render: renderReservations, init: function () {}, destroy: function () {} },
-  Skeletons.reservationsTable(),
-  800
-);
+export default { render: renderReservations, init: function () {}, destroy: function () { _eventsEl = null; } };

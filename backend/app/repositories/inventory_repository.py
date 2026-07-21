@@ -43,3 +43,7 @@ class InventoryRepository:
         self.db.commit()
         self.db.refresh(movement)
         return movement
+
+    def delete_item(self, item: InventoryItem) -> None:
+        self.db.delete(item)
+        self.db.commit()

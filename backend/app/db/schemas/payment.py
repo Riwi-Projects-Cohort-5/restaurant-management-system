@@ -11,6 +11,10 @@ class PaymentCreate(BaseModel):
     method: str
 
 
+class PaymentUpdate(BaseModel):
+    status: str
+
+
 class PaymentOut(BaseModel):
     id: UUID
     order_id: UUID

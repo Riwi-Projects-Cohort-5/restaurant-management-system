@@ -1,44 +1,39 @@
 import * as inventoryStore from "../../store/inventory.js";
-import {
-  initMockInventory,
-  getItemById,
-  createItem,
-  updateItem,
-  deleteItem,
-  createMovement,
-  getMovementsByItem,
-  UNITS,
-} from "../../services/mockInventory.js";
-import { toast } from "../../components/ui/ToastManager.js";
-import { confirmModal } from "../../components/ui/ConfirmModal.js";
-import InputField from "../../components/forms/InputField.js";
-import CheckboxField from "../../components/forms/CheckboxField.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
+import * as inventoryService from "../../services/inventoryService.js";
 
-initMockInventory();
+const UNITS = [
+  { id: "kg", name: "Kilograms" },
+  { id: "L", name: "Liters" },
+  { id: "bunch", name: "Bunches" },
+  { id: "unit", name: "Units" },
+  { id: "g", name: "Grams" },
+  { id: "ml", name: "Milliliters" },
+  { id: "oz", name: "Ounces" },
+  { id: "lb", name: "Pounds" },
+];
 
-let subView = "list";
-let selectedId = null;
-let activeFilter = "all";
-let searchQuery = "";
+var subView = "list";
+var selectedId = null;
+var activeFilter = "all";
+var searchQuery = "";
 
 function stockStatus(item) {
-  const qty = parseFloat(item.quantity);
-  const min = parseFloat(item.min_stock);
+  var qty = parseFloat(item.quantity);
+  var min = parseFloat(item.min_stock);
   if (!item.is_active) return "inactive";
   if (qty <= min) return "low_stock";
   return "active";
 }
 
 function statusBadge(item) {
-  const status = stockStatus(item);
-  const labels = { active: "In Stock", low_stock: "Low Stock", inactive: "Inactive" };
-  const colors = {
+  var status = stockStatus(item);
+  var labels = { active: "In Stock", low_stock: "Low Stock", inactive: "Inactive" };
+  var colors = {
     active: "bg-success-100 text-success-700",
     low_stock: "bg-error-100 text-error-700",
     inactive: "bg-neutral-100 text-neutral-600",
   };
-  const dots = { active: "bg-success-500", low_stock: "bg-error-500", inactive: "bg-neutral-500" };
+  var dots = { active: "bg-success-500", low_stock: "bg-error-500", inactive: "bg-neutral-500" };
   return (
     '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ' +
     colors[status] +
@@ -52,11 +47,11 @@ function statusBadge(item) {
 }
 
 function stockBar(item) {
-  const qty = parseFloat(item.quantity);
-  const min = parseFloat(item.min_stock);
-  const max = Math.max(qty, min * 2, 1);
-  const pct = Math.min((qty / max) * 100, 100);
-  const barColor = qty <= min ? "bg-error-500" : "bg-success-500";
+  var qty = parseFloat(item.quantity);
+  var min = parseFloat(item.min_stock);
+  var max = Math.max(qty, min * 2, 1);
+  var pct = Math.min((qty / max) * 100, 100);
+  var barColor = qty <= min ? "bg-error-500" : "bg-success-500";
   return (
     '<div class="flex items-center gap-2">' +
     '<div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">' +
@@ -74,8 +69,8 @@ function stockBar(item) {
 }
 
 function getFiltered() {
-  const all = inventoryStore.getState().items;
-  let filtered = all;
+  var all = inventoryStore.getState().items;
+  var filtered = all;
 
   if (activeFilter === "low_stock") {
     filtered = filtered.filter(function (i) {
@@ -92,7 +87,7 @@ function getFiltered() {
   }
 
   if (searchQuery) {
-    const q = searchQuery.toLowerCase();
+    var q = searchQuery.toLowerCase();
     filtered = filtered.filter(function (i) {
       return i.name.toLowerCase().includes(q) || i.unit.toLowerCase().includes(q);
     });
@@ -102,7 +97,7 @@ function getFiltered() {
 }
 
 function formatDate(dateStr) {
-  const date = new Date(dateStr);
+  var date = new Date(dateStr);
   return (
     date.toLocaleDateString() +
     " " +
@@ -113,9 +108,9 @@ function formatDate(dateStr) {
 /* ── List View ── */
 
 function renderList(el) {
-  const items = getFiltered();
-  const allItems = inventoryStore.getState().items;
-  const counts = { all: allItems.length };
+  var items = getFiltered();
+  var allItems = inventoryStore.getState().items;
+  var counts = { all: allItems.length };
   counts.active = allItems.filter(function (i) {
     return i.is_active && stockStatus(i) !== "low_stock";
   }).length;
@@ -126,7 +121,7 @@ function renderList(el) {
     return !i.is_active;
   }).length;
 
-  let html = '<div class="space-y-5">';
+  var html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Inventory</h2>';
@@ -148,14 +143,14 @@ function renderList(el) {
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
-  const tabs = [
+  var tabs = [
     { key: "all", label: "All" },
     { key: "active", label: "In Stock" },
     { key: "low_stock", label: "Low Stock" },
     { key: "inactive", label: "Inactive" },
   ];
   tabs.forEach(function (tab) {
-    const isActive = activeFilter === tab.key;
+    var isActive = activeFilter === tab.key;
     html +=
       '<button data-filter="' +
       tab.key +
@@ -191,7 +186,7 @@ function renderList(el) {
   html += '<div class="overflow-x-auto">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  const cols = ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"];
+  var cols = ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -213,7 +208,7 @@ function renderList(el) {
     html += "</div></td></tr>";
   } else {
     items.forEach(function (item, i) {
-      const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+      var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html +=
         '<tr class="' +
         zebra +
@@ -261,18 +256,18 @@ function renderList(el) {
 
 /* ── Detail View ── */
 
-function renderDetail(el, itemId) {
-  const item = getItemById(itemId);
+async function renderDetail(el, itemId) {
+  var item = await inventoryService.getItemById(itemId);
   if (!item) {
     renderList(el);
     return;
   }
 
-  const movements = getMovementsByItem(itemId).sort(function (a, b) {
+  var movements = (await inventoryService.getMovementsByItem(itemId)).sort(function (a, b) {
     return new Date(b.created_at) - new Date(a.created_at);
   });
 
-  let html = '<div class="space-y-5">';
+  var html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
@@ -311,11 +306,11 @@ function renderDetail(el, itemId) {
   html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Stock Level</h3>';
   html += "</div>";
   html += '<div class="p-5">';
-  const qty = parseFloat(item.quantity);
-  const min = parseFloat(item.min_stock);
-  const max = Math.max(qty, min * 2, 1);
-  const pct = Math.min((qty / max) * 100, 100);
-  const barColor = qty <= min ? "bg-error-500" : "bg-success-500";
+  var qty = parseFloat(item.quantity);
+  var min = parseFloat(item.min_stock);
+  var max = Math.max(qty, min * 2, 1);
+  var pct = Math.min((qty / max) * 100, 100);
+  var barColor = qty <= min ? "bg-error-500" : "bg-success-500";
   html +=
     '<div class="flex items-center gap-3 mb-2"><span class="text-sm font-semibold text-secondary-600">' +
     qty +
@@ -386,9 +381,9 @@ function renderDetail(el, itemId) {
     html += "</tr></thead>";
     html += "<tbody>";
     movements.forEach(function (m) {
-      const typeColor = m.type === "in" ? "text-success-700" : "text-error-700";
-      const typeBg = m.type === "in" ? "bg-success-100" : "bg-error-100";
-      const typeIcon = m.type === "in" ? "arrow-down-left" : "arrow-up-right";
+      var typeColor = m.type === "in" ? "text-success-700" : "text-error-700";
+      var typeBg = m.type === "in" ? "bg-success-100" : "bg-error-100";
+      var typeIcon = m.type === "in" ? "arrow-down-left" : "arrow-up-right";
       html += '<tr class="border-b border-brand-100">';
       html +=
         '<td class="px-5 py-3"><span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ' +
@@ -423,14 +418,14 @@ function renderDetail(el, itemId) {
 }
 
 function renderMovementForm(el, itemId, type) {
-  const form = el.querySelector("#movement-form");
+  var form = el.querySelector("#movement-form");
   if (!form) return;
 
-  const title = type === "in" ? "Stock In" : "Stock Out";
-  const btnColor =
+  var title = type === "in" ? "Stock In" : "Stock Out";
+  var btnColor =
     type === "in" ? "bg-success-600 hover:bg-success-700" : "bg-accent-600 hover:bg-accent-700";
 
-  let html = '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden mb-5">';
+  var html = '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden mb-5">';
   html +=
     '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50 flex items-center justify-between">';
   html +=
@@ -440,19 +435,10 @@ function renderMovementForm(el, itemId, type) {
   html += "</div>";
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-2 gap-4 max-w-md">';
-  html += InputField({
-    id: "movement-qty",
-    label: "Quantity",
-    type: "number",
-    placeholder: "0.0",
-    min: "0.1",
-    step: "0.1",
-  });
-  html += InputField({
-    id: "movement-reason",
-    label: "Reason",
-    placeholder: "e.g. Supplier delivery",
-  });
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Quantity<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Reason<input type="text" id="movement-reason" placeholder="e.g. Supplier delivery" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
   html += "</div>";
   html += '<div class="flex gap-3 mt-4">';
   html +=
@@ -472,17 +458,17 @@ function renderMovementForm(el, itemId, type) {
 
   form.innerHTML = html;
   window.createIcons();
-  const qtyInput = document.getElementById("movement-qty");
+  var qtyInput = document.getElementById("movement-qty");
   if (qtyInput) qtyInput.focus();
 }
 
 /* ── Create / Edit Form ── */
 
-function renderForm(el, itemId) {
-  const isEdit = !!itemId;
-  const item = isEdit ? getItemById(itemId) : null;
+async function renderForm(el, itemId) {
+  var isEdit = !!itemId;
+  var item = isEdit ? await inventoryService.getItemById(itemId) : null;
 
-  let html = '<div class="space-y-5">';
+  var html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -501,12 +487,13 @@ function renderForm(el, itemId) {
   html += '<div class="p-5">';
   html += '<div class="space-y-4 max-w-md">';
 
-  html += InputField({
-    id: "inv-name",
-    label: "Name *",
-    value: item ? item.name : "",
-    placeholder: "e.g. Extra Virgin Olive Oil",
-  });
+  html += "<div>";
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Name *</label>';
+  html +=
+    '<input type="text" id="inv-name" value="' +
+    (item ? item.name : "") +
+    '" placeholder="e.g. Extra Virgin Olive Oil" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
+  html += "</div>";
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unit *</label>';
@@ -528,25 +515,28 @@ function renderForm(el, itemId) {
   html += "</select></div>";
 
   html += '<div class="grid grid-cols-2 gap-4">';
-  html += InputField({
-    id: "inv-quantity",
-    label: "Quantity *",
-    type: "number",
-    value: item ? item.quantity : "0",
-    step: "0.1",
-    min: "0",
-  });
-  html += InputField({
-    id: "inv-min-stock",
-    label: "Minimum Stock *",
-    type: "number",
-    value: item ? item.min_stock : "0",
-    step: "0.1",
-    min: "0",
-  });
+  html +=
+    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Quantity *</label>';
+  html +=
+    '<input type="number" id="inv-quantity" step="0.1" min="0" value="' +
+    (item ? item.quantity : "0") +
+    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
+
+  html +=
+    '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Minimum Stock *</label>';
+  html +=
+    '<input type="number" id="inv-min-stock" step="0.1" min="0" value="' +
+    (item ? item.min_stock : "0") +
+    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
   html += "</div>";
 
-  html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || !!item.is_active });
+  html += '<div class="flex items-center gap-3">';
+  html +=
+    '<input type="checkbox" id="inv-active" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
+    (!item || item.is_active ? "checked" : "") +
+    " />";
+  html += '<label for="inv-active" class="text-sm font-semibold text-secondary-700">Active</label>';
+  html += "</div>";
 
   html += "</div></div></div>";
 
@@ -566,17 +556,17 @@ function renderForm(el, itemId) {
   el.innerHTML = html;
   setupFormEvents(el);
   window.createIcons();
-  const nameInput = document.getElementById("inv-name");
+  var nameInput = document.getElementById("inv-name");
   if (nameInput) nameInput.focus();
 }
 
 /* ── Event Setup ── */
 
 function setupListEvents(el) {
-  el.addEventListener("click", function (e) {
-    const btn = e.target.closest("[data-action]");
+  el.addEventListener("click", async function (e) {
+    var btn = e.target.closest("[data-action]");
     if (!btn) {
-      const filterBtn = e.target.closest("[data-filter]");
+      var filterBtn = e.target.closest("[data-filter]");
       if (filterBtn) {
         activeFilter = filterBtn.getAttribute("data-filter");
         renderList(el);
@@ -584,41 +574,20 @@ function setupListEvents(el) {
       return;
     }
 
-    const action = btn.getAttribute("data-action");
+    var action = btn.getAttribute("data-action");
 
     if (action === "create-item") {
       subView = "create";
       selectedId = null;
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryForm(),
-        function () {
-          renderForm(el, null);
-        },
-        400
-      );
+      await renderForm(el, null);
     } else if (action === "view-detail") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryDetail(),
-        function () {
-          renderDetail(el, selectedId);
-        },
-        400
-      );
+      await renderDetail(el, selectedId);
     } else if (action === "edit-item") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "edit";
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryForm(),
-        function () {
-          renderForm(el, selectedId);
-        },
-        400
-      );
+      await renderForm(el, selectedId);
     } else if (action === "clear-search") {
       searchQuery = "";
       renderList(el);
@@ -629,7 +598,7 @@ function setupListEvents(el) {
     }
   });
 
-  const searchInput = el.querySelector("#inv-search");
+  var searchInput = el.querySelector("#inv-search");
   if (searchInput) {
     searchInput.addEventListener("input", function (e) {
       searchQuery = e.target.value;
@@ -639,11 +608,11 @@ function setupListEvents(el) {
 }
 
 function setupDetailEvents(el, itemId) {
-  el.addEventListener("click", function (e) {
-    const btn = e.target.closest("[data-action]");
+  el.addEventListener("click", async function (e) {
+    var btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    const action = btn.getAttribute("data-action");
+    var action = btn.getAttribute("data-action");
 
     if (action === "back-to-list") {
       subView = "list";
@@ -651,67 +620,47 @@ function setupDetailEvents(el, itemId) {
       renderList(el);
     } else if (action === "edit-item") {
       subView = "edit";
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryForm(),
-        function () {
-          renderForm(el, itemId);
-        },
-        400
-      );
+      await renderForm(el, itemId);
     } else if (action === "stock-in") {
       renderMovementForm(el, itemId, "in");
     } else if (action === "stock-out") {
       renderMovementForm(el, itemId, "out");
     } else if (action === "cancel-movement") {
-      const form = el.querySelector("#movement-form");
+      var form = el.querySelector("#movement-form");
       if (form) form.innerHTML = "";
     } else if (action === "submit-movement") {
-      const qtyInput = el.querySelector("#movement-qty");
-      const reasonInput = el.querySelector("#movement-reason");
-      const qty = parseFloat(qtyInput ? qtyInput.value : 0);
-      const reason = reasonInput ? reasonInput.value.trim() : "";
-      const type = btn.getAttribute("data-movement-type");
+      var qtyInput = el.querySelector("#movement-qty");
+      var reasonInput = el.querySelector("#movement-reason");
+      var qty = parseFloat(qtyInput ? qtyInput.value : 0);
+      var reason = reasonInput ? reasonInput.value.trim() : "";
+      var type = btn.getAttribute("data-movement-type");
 
       if (!qty || qty <= 0) {
-        toast.warning("Validation", "Please enter a valid quantity");
+        alert("Please enter a valid quantity");
         return;
       }
 
-      createMovement({ item_id: itemId, type: type, quantity: qty, reason: reason || null });
-      inventoryStore.refreshItems();
-      toast.success(
-        "Stock Updated",
-        `${type === "in" ? "Stock added" : "Stock removed"} successfully`
-      );
-      renderDetail(el, itemId);
+      await inventoryService.registerMovement(itemId, { type: type, quantity: qty, reason: reason || "" });
+      await inventoryStore.refreshItems();
+      await renderDetail(el, itemId);
     } else if (action === "delete-item") {
-      confirmModal
-        .show({
-          title: "Delete Item",
-          message: "Are you sure you want to delete this item? This action cannot be undone.",
-          confirmText: "Delete",
-        })
-        .then((confirmed) => {
-          if (confirmed) {
-            deleteItem(itemId);
-            inventoryStore.refreshItems();
-            toast.success("Deleted", "Item removed from inventory");
-            subView = "list";
-            selectedId = null;
-            renderList(el);
-          }
-        });
+      if (confirm("Are you sure you want to delete this item?")) {
+        await inventoryService.deleteItem(itemId);
+        await inventoryStore.refreshItems();
+        subView = "list";
+        selectedId = null;
+        renderList(el);
+      }
     }
   });
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
-      const submitBtn = el.querySelector('[data-action="submit-movement"]');
+      var submitBtn = el.querySelector('[data-action="submit-movement"]');
       if (submitBtn) submitBtn.click();
     }
     if (e.key === "Escape") {
-      const form = el.querySelector("#movement-form");
+      var form = el.querySelector("#movement-form");
       if (form && form.innerHTML) {
         form.innerHTML = "";
       }
@@ -720,34 +669,34 @@ function setupDetailEvents(el, itemId) {
 }
 
 function setupFormEvents(el) {
-  el.addEventListener("click", function (e) {
-    const btn = e.target.closest("[data-action]");
+  el.addEventListener("click", async function (e) {
+    var btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    const action = btn.getAttribute("data-action");
+    var action = btn.getAttribute("data-action");
 
     if (action === "back-to-list") {
       subView = "list";
       selectedId = null;
       renderList(el);
     } else if (action === "save-item") {
-      const itemId = btn.getAttribute("data-item-id");
-      const name = (document.getElementById("inv-name") || {}).value || "";
-      const unit = (document.getElementById("inv-unit") || {}).value || "";
-      const quantity = parseFloat((document.getElementById("inv-quantity") || {}).value) || 0;
-      const minStock = parseFloat((document.getElementById("inv-min-stock") || {}).value) || 0;
-      const active = (document.getElementById("inv-active") || {}).checked;
+      var itemId = btn.getAttribute("data-item-id");
+      var name = (document.getElementById("inv-name") || {}).value || "";
+      var unit = (document.getElementById("inv-unit") || {}).value || "";
+      var quantity = parseFloat((document.getElementById("inv-quantity") || {}).value) || 0;
+      var minStock = parseFloat((document.getElementById("inv-min-stock") || {}).value) || 0;
+      var active = (document.getElementById("inv-active") || {}).checked;
 
       if (!name.trim()) {
-        toast.warning("Validation", "Please enter a name");
+        alert("Please enter a name");
         return;
       }
       if (!unit) {
-        toast.warning("Validation", "Please select a unit");
+        alert("Please select a unit");
         return;
       }
 
-      const data = {
+      var data = {
         name: name.trim(),
         unit: unit,
         quantity: quantity,
@@ -756,14 +705,12 @@ function setupFormEvents(el) {
       };
 
       if (itemId) {
-        updateItem(itemId, data);
-        toast.success("Updated", "Item updated successfully");
+        await inventoryService.updateItem(itemId, data);
       } else {
-        createItem(data);
-        toast.success("Created", "Item added to inventory");
+        await inventoryService.createItem(data);
       }
 
-      inventoryStore.refreshItems();
+      await inventoryStore.refreshItems();
       subView = "list";
       selectedId = null;
       renderList(el);
@@ -773,37 +720,16 @@ function setupFormEvents(el) {
 
 /* ── Export ── */
 
-const InventoryView = {
-  render: function (el) {
-    inventoryStore.loadItems();
+var InventoryView = {
+  render: async function (el) {
+    await inventoryStore.loadItems();
 
     if (subView === "detail" && selectedId) {
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryDetail(),
-        function () {
-          renderDetail(el, selectedId);
-        },
-        400
-      );
+      await renderDetail(el, selectedId);
     } else if (subView === "create") {
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryForm(),
-        function () {
-          renderForm(el, null);
-        },
-        400
-      );
+      await renderForm(el, null);
     } else if (subView === "edit" && selectedId) {
-      renderWithSkeleton(
-        el,
-        Skeletons.inventoryForm(),
-        function () {
-          renderForm(el, selectedId);
-        },
-        400
-      );
+      await renderForm(el, selectedId);
     } else {
       subView = "list";
       renderList(el);
@@ -818,4 +744,4 @@ const InventoryView = {
   },
 };
 
-export default withLoading(InventoryView, Skeletons.inventoryTable(), 800);
+export default InventoryView;

@@ -40,3 +40,21 @@ class PaymentService:
             method=method_enum, status=PaymentStatus.COMPLETED,
         )
         return self.repo.create(payment)
+
+    def update_status(self, payment_id: UUID, new_status: str) -> Optional[Payment]:
+        payment = self.repo.get_by_id(payment_id)
+        if not payment:
+            return None
+        try:
+            payment.status = PaymentStatus(new_status)
+        except ValueError:
+            raise InvalidEnumValueError(f"Invalid status: {new_status}. Must be one of: {[e.value for e in PaymentStatus]}")
+        return self.repo.update(payment)
+
+    def delete(self, payment_id: UUID) -> bool:
+        payment = self.repo.get_by_id(payment_id)
+        if not payment:
+            return False
+        self.repo.db.delete(payment)
+        self.repo.db.commit()
+        return True

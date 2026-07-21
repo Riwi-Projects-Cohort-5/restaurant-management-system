@@ -65,8 +65,7 @@ def obtener_usuario_actual(
     """
     service = UserService(db)
 
-    # current_user viene del token JWT — contiene el ID del usuario
-    user = service.get_by_id(UUID(current_user["sub"]))
+    user = current_user
 
     if not user:
         raise HTTPException(

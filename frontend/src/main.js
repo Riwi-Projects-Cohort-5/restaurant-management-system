@@ -1,6 +1,6 @@
 import { createIcons, icons } from "lucide";
 import * as authStore from "./store/auth.js";
-import { getHomeRoute } from "./utils/routeGuard.js";
+import { getHomeRoute, isRouteAllowed } from "./utils/routeGuard.js";
 import AppShell from "./components/layout/AppShell.js";
 import Dashboard from "./views/dashboard/Dashboard.js";
 import PosView from "./views/orders/PosView.js";
@@ -14,9 +14,7 @@ import Menu from "./views/menu/list.js";
 import Inventory from "./views/inventory/Inventory.js";
 import Reports from "./views/reports/Reports.js";
 import Settings from "./views/settings/Settings.js";
-import { initMockUsers } from "./services/mockUsers.js";
-
-initMockUsers();
+import { getToken } from "./services/api.js";
 
 window.createIcons = function () {
   createIcons({ icons });
@@ -88,6 +86,12 @@ function renderView() {
       return;
     }
 
+    if (user && !isRouteAllowed(path, user.role)) {
+      const home = getHomeRoute(user.role);
+      window.location.hash = "#" + home;
+      return;
+    }
+
     if (route.shell) {
       window.currentRole = user ? user.role : "admin";
       const roleLabels = {
@@ -135,14 +139,21 @@ function renderView() {
     viewEl.id = "current-view";
     container.appendChild(viewEl);
 
-    route.view.render(viewEl);
-    currentView = route.view;
-
-    window.createIcons();
-
-    if (route.view.init) {
-      route.view.init();
+    const renderResult = route.view.render(viewEl);
+    if (renderResult && typeof renderResult.then === "function") {
+      renderResult.then(function () {
+        window.createIcons();
+        if (route.view.init) {
+          route.view.init();
+        }
+      });
+    } else {
+      window.createIcons();
+      if (route.view.init) {
+        route.view.init();
+      }
     }
+    currentView = route.view;
   } catch (err) {
     console.error("[app] renderView failed", err);
     const errorEl = document.getElementById("app");
