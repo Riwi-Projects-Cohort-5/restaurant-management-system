@@ -4,6 +4,7 @@ import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const UNITS = [
   { id: "kg", name: "Kilograms" },
@@ -758,4 +759,4 @@ const InventoryView = {
   },
 };
 
-export default InventoryView;
+export default withLoading(InventoryView, Skeletons.inventoryTable());

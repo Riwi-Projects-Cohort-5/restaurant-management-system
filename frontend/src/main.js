@@ -98,7 +98,6 @@ function renderView() {
         waiter: "Waiter",
         chef: "Chef",
         cashier: "Cashier",
-        client: "Client",
       };
       const username = user ? user.displayName || user.username || "Admin" : "Admin";
       const initials = username

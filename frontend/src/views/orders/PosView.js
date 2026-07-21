@@ -22,6 +22,7 @@ import { exportToCSV } from "../../utils/csvExport.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -1159,4 +1160,4 @@ const PosView = {
   },
 };
 
-export default PosView;
+export default withLoading(PosView, Skeletons.ordersTable());

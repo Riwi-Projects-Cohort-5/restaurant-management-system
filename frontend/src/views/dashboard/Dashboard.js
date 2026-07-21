@@ -4,6 +4,7 @@ import SalesChart from "../../components/dashboard/SalesChart.js";
 import { allOrders, loadOrders } from "../../store/posData.js";
 import { apiGet } from "../../services/api.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const Dashboard = {
   render: async function (el) {
@@ -204,4 +205,4 @@ const Dashboard = {
   },
 };
 
-export default Dashboard;
+export default withLoading(Dashboard, Skeletons.dashboard());
