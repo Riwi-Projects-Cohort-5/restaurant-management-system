@@ -3,6 +3,7 @@ import * as inventoryService from "../../services/inventoryService.js";
 import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 
 const UNITS = [
   { id: "kg", name: "Kilograms" },
@@ -533,13 +534,7 @@ async function renderForm(el, itemId) {
     '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
   html += "</div>";
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="inv-active" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (!item || item.is_active ? "checked" : "") +
-    " />";
-  html += '<label for="inv-active" class="text-sm font-semibold text-secondary-700">Active</label>';
-  html += "</div>";
+  html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || item.is_active });
 
   html += "</div></div></div>";
 

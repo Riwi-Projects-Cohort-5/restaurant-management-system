@@ -1,3 +1,5 @@
+import CheckboxField from "../forms/CheckboxField.js";
+
 class FormModal {
   constructor() {
     this._resolve = null;
@@ -139,12 +141,10 @@ class FormModal {
     const fullClass = f.fullWidth ? "col-span-2" : "";
 
     if (f.type === "checkbox") {
-      const checked = val ? " checked" : "";
       return `
-        <label class="flex items-center gap-2 cursor-pointer ${fullClass}">
-          <input data-field="${f.id}" type="checkbox" ${checked} class="w-4 h-4 rounded border-brand-300 text-primary-600 focus:ring-brand-500 cursor-pointer" />
-          <span class="text-sm font-semibold text-brand-700">${f.label}</span>
-        </label>
+        <div class="${fullClass}">
+          ${CheckboxField({ id: f.id, label: f.label, checked: !!val, dataField: f.id })}
+        </div>
       `;
     }
 

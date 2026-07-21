@@ -2,6 +2,7 @@ function CheckboxField(opts) {
   const id = opts.id;
   const label = opts.label || "";
   const checked = opts.checked || false;
+  const dataField = opts.dataField || id;
 
   let html = '<label class="flex items-center gap-2 cursor-pointer" for="' + id + '">';
   html +=
@@ -9,6 +10,8 @@ function CheckboxField(opts) {
     id +
     '" name="' +
     id +
+    '" data-field="' +
+    dataField +
     '" class="sr-only peer"' +
     (checked ? " checked" : "") +
     ">";

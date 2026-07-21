@@ -6,6 +6,7 @@ import { hasAnyRole } from "../../utils/roleContext.js";
 import { productModal } from "../../components/ui/ProductModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 
 initMockCategories();
 initMockProducts();
@@ -384,14 +385,7 @@ async function renderForm(el, productId) {
     '" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
   html += "</div>";
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="product-available" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (product && product.available ? "checked" : "") +
-    " />";
-  html +=
-    '<label for="product-available" class="text-sm font-semibold text-secondary-700">Available</label>';
-  html += "</div>";
+  html += CheckboxField({ id: "product-available", label: "Available", checked: product && product.available });
 
   html += "</div></div></div>";
 
