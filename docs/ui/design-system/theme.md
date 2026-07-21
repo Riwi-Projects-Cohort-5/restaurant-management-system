@@ -2,30 +2,30 @@
 
 ## Overview
 
-El Fogón Caribeño tiene dos temas que reflejan la identidad visual del logo:
+El Fogón Caribeño ships with two themes that mirror the visual identity of the logo:
 
-| Tema | Selector | Inspiración |
+| Theme | Selector | Inspiration |
 |------|----------|-------------|
-| **Light** | default | Sol del Caribe, cobre/terracota del fogón, tonos cálidos |
-| **Dark** | `[data-theme="dark"]` | Luna creciente, vasija oxidada con pátina azulada, olas teal |
+| **Light** | default | Caribbean sun, copper/terracotta of the fogón, warm tones |
+| **Dark** | `[data-theme="dark"]` | Crescent moon, oxidized pot with bluish patina, teal waves |
 
-## Arquitectura
+## Architecture
 
 ```
 localStorage('fogon-theme') ──> theme.js ──> data-theme="dark" on <html> ──> CSS custom properties override ──> Tailwind utilities
 ```
 
-- Tema persistido en `localStorage` bajo key `fogon-theme`
-- `initTheme()` se ejecuta en `main.js` antes de `renderView()` para evitar flash
-- Toggle button en Login (esquina superior derecha) y AppShell topbar
+- Theme is persisted in `localStorage` under key `fogon-theme`.
+- `initTheme()` runs in `main.js` before `renderView()` to prevent a flash of un-themed content.
+- Toggle buttons live on the Login screen (top-right corner) and the AppShell top bar.
 
-## Assets — Logo y Scene Variants
+## Assets — Logo and Scene Variants
 
-Todos en `frontend/public/logos/`:
+All assets live in `frontend/public/logos/`:
 
 ### Logos
 
-| Archivo | Tema | Uso |
+| File | Theme | Usage |
 |---------|------|-----|
 | `logo-00.png` | Light | Login mobile |
 | `logo-00-night.png` | Dark | Login mobile |
@@ -33,47 +33,47 @@ Todos en `frontend/public/logos/`:
 | `logo-01-night.png` | Dark | Sidebar header, Login desktop |
 | `logo-02.png` | Light | Login brand panel (desktop) |
 | `logo-02-night.png` | Dark | Login brand panel (desktop) |
-| `logo-03.png` | Light | Sidebar header (nombre), Login tablet |
-| `logo-03-night.png` | Dark | Sidebar header (nombre), Login tablet |
+| `logo-03.png` | Light | Sidebar header (with name), Login tablet |
+| `logo-03-night.png` | Dark | Sidebar header (with name), Login tablet |
 
-### Scenes (fondos del brand panel en Login)
+### Scenes (Login brand panel backgrounds)
 
-| Archivo | Tema | Descripción |
+| File | Theme | Description |
 |---------|------|-------------|
-| `sun-scene.svg` | Light | Sol, cielo cálido, mar |
-| `moon-scene.svg` | Dark | Luna creciente, cielo nocturno, vasija azul oxidada, olas teal |
+| `sun-scene.svg` | Light | Sun, warm sky, sea |
+| `moon-scene.svg` | Dark | Crescent moon, night sky, oxidized blue pot, teal waves |
 
-### Nomenclatura
+### Naming convention
 
-Los logos night siguen el patrón `{basename}-night.png`. La utilidad `getLogoPath('logo-01')` resuelve automáticamente al archivo correcto según el tema activo.
+Night logos follow the `{basename}-night.png` pattern. The `getLogoPath('logo-01')` utility resolves to the correct file automatically based on the active theme.
 
 ## Theme Utility API
 
 `frontend/src/utils/theme.js`
 
-| Función | Retorno | Descripción |
+| Function | Returns | Description |
 |---------|---------|-------------|
-| `getTheme()` | `'light' \| 'dark'` | Lee el tema actual de localStorage |
-| `setTheme(theme)` | `void` | Persiste y aplica el tema |
-| `toggleTheme()` | `'light' \| 'dark'` | Cambia y retorna el nuevo tema |
-| `isDark()` | `boolean` | Shortcut para `getTheme() === 'dark'` |
-| `initTheme()` | `void` | Aplica el tema persisted al `<html>` en load |
-| `getLogoPath(basename)` | `string` | Retorna `/logos/{basename}[-night].png` |
-| `getScenePath()` | `string` | Retorna `/logos/{sun\|moon}-scene.svg` |
+| `getTheme()` | `'light' \| 'dark'` | Reads the current theme from localStorage. |
+| `setTheme(theme)` | `void` | Persists and applies the theme. |
+| `toggleTheme()` | `'light' \| 'dark'` | Toggles and returns the new theme. |
+| `isDark()` | `boolean` | Shortcut for `getTheme() === 'dark'`. |
+| `initTheme()` | `void` | Applies the persisted theme to `<html>` on load. |
+| `getLogoPath(basename)` | `string` | Returns `/logos/{basename}[-night].png`. |
+| `getScenePath()` | `string` | Returns `/logos/{sun\|moon}-scene.svg`. |
 
-## Dark Mode — Inversión de Escalas
+## Dark Mode — Scale Inversion
 
-El dark theme invierte la dirección de las escalas `brand`, `neutral`, `primary` y `secondary` para que las clases Tailwind existentes funcionen correctamente:
+The dark theme **inverts the direction** of the `brand`, `neutral`, `primary` and `secondary` scales so existing Tailwind utility classes keep working:
 
-- **Indices bajos (50–200)** → colores oscuros → fondos, inputs, superficies
-- **Indices medios (300–500)** → tonos medios → borders, sidebar bg
-- **Indices altos (600–900)** → colores claros → texto, headings, acentos
+- **Low indices (50–200)** → dark colors → backgrounds, inputs, surfaces.
+- **Mid indices (300–500)** → mid tones → borders, sidebar bg.
+- **High indices (600–900)** → light colors → text, headings, accents.
 
-Esto permite que `bg-brand-100` sea claro en light mode (`#fcedd7`) y oscuro en dark mode (`#132b35`) **sin cambiar los componentes**.
+This means `bg-brand-100` is light in light mode (`#fcedd7`) and dark in dark mode (`#132b35`) **without changing the components**.
 
-## CSS Variables de Efectos
+## Effects — CSS Variables
 
-Los ring/shadow usan CSS custom properties para evitar colores hardcodeados:
+Ring and shadow tokens use CSS custom properties to avoid hardcoding colors:
 
 | Variable | Light | Dark |
 |----------|-------|------|
@@ -82,14 +82,14 @@ Los ring/shadow usan CSS custom properties para evitar colores hardcodeados:
 | `--ring-primary` | `rgba(31,170,125,0.15)` | `rgba(56,186,219,0.3)` |
 | `--shadow-brand-hover` | `rgba(229,119,34,0.18)` | `rgba(74,125,141,0.25)` |
 
-**Regla:** nunca hardcodear `rgba()` de brand en componentes. Usar siempre `var(--ring-brand)` o `var(--shadow-brand-hover)`.
+**Rule:** never hardcode brand `rgba()` values in components. Always use `var(--ring-brand)` or `var(--shadow-brand-hover)`.
 
-## Inspiración Visual
+## Visual Inspiration
 
-| Elemento | Light | Dark |
+| Element | Light | Dark |
 |----------|-------|------|
-| Cielo | Sol radiante | Luna creciente con estrellas |
-| Vasija | Barro terracota brillante | Cerámica azul oscuro con pátina oxidada |
-| Olas | Azul turquesa brillante | Teal profundo con reflejos plateados |
-| Fuego | Naranja/cobre | Cyan/azul (llama fría) |
-| Paleta base | Cobre cálido (`#e57722`) | Teal oxidado (`#4a7d8d`) |
+| Sky | Radiant sun | Crescent moon with stars |
+| Pot | Shiny terracotta clay | Dark blue ceramic with oxidized patina |
+| Waves | Bright turquoise blue | Deep teal with silvery reflections |
+| Fire | Orange/copper | Cyan/blue (cold flame) |
+| Base palette | Warm copper (`#e57722`) | Oxidized teal (`#4a7d8d`) |

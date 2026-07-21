@@ -10,8 +10,8 @@ Two themes: **Light** (default) and **Dark** (`[data-theme="dark"]`). Dark overr
 
 ### brand
 
-**Light** — cobre/terracota (identidad cálida del fogón).
-**Dark** — vasija oxidada con pátina azulada del Caribe (brand-50..400 = fondos oscuros fríos, brand-500 = teal oxidado sidebar, brand-700..900 = texto claro).
+**Light** — copper/terracotta (the warm identity of the fogón).
+**Dark** — oxidized pot with bluish Caribbean patina (brand-50..400 = cool dark backgrounds, brand-500 = oxidized teal sidebar, brand-700..900 = light text).
 
 | Token | Light | Dark | Usage |
 |-------|-------|------|-------|
@@ -28,8 +28,8 @@ Two themes: **Light** (default) and **Dark** (`[data-theme="dark"]`). Dark overr
 
 ### primary
 
-**Light** — verde (acciones interactivas).
-**Dark** — Azul Caribe (olas brillantes sobre fondo oscuro). Invertido: low = oscuro, high = brillante.
+**Light** — green (interactive actions).
+**Dark** — Caribbean blue (bright waves on dark background). Inverted: low = dark, high = bright.
 
 | Token | Light | Dark |
 |-------|-------|------|
@@ -46,8 +46,8 @@ Two themes: **Light** (default) and **Dark** (`[data-theme="dark"]`). Dark overr
 
 ### neutral
 
-**Light** — grises estándar.
-**Dark** — grises azulados nocturnos. Invertido: low = oscuro, high = claro (texto).
+**Light** — standard grays.
+**Dark** — nocturnal bluish grays. Inverted: low = dark, high = light (text).
 
 | Token | Light | Dark | Usage |
 |-------|-------|------|-------|
@@ -67,7 +67,7 @@ Two themes: **Light** (default) and **Dark** (`[data-theme="dark"]`). Dark overr
 ### secondary
 
 **Light** — warm grays.
-**Dark** — Azul Petróleo (profundidad de la vasija).
+**Dark** — Petroleum blue (depth of the pot).
 
 | Token | Light | Dark |
 |-------|-------|------|
@@ -85,7 +85,7 @@ Two themes: **Light** (default) and **Dark** (`[data-theme="dark"]`). Dark overr
 ### accent
 
 **Light** — amber.
-**Dark** — Luz de la Luna (plateado nocturno).
+**Dark** — moonlight (nocturnal silver).
 
 | Token | Light | Dark |
 |-------|-------|------|
