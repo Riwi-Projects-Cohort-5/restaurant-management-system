@@ -302,14 +302,14 @@ function renderOrderDetail(container, orderId) {
   const canEditItems =
     isDraft &&
     (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
-    currentRole !== "cook";
+    currentRole !== "chef";
   const canDropDraft =
     isDraft &&
     (currentRole === "admin" || displayOrder.createdBy === currentRole) &&
-    currentRole !== "cook";
+    currentRole !== "chef";
   const canCancelOrder = isActive && !isDraft && currentRole === "admin";
   const canDelete = isClosed && currentRole === "admin";
-  const canEditNote = currentRole !== "cook";
+  const canEditNote = currentRole !== "chef";
 
   const lifecycleIdx = LIFECYCLE.indexOf(displayOrder.status);
 
@@ -342,15 +342,17 @@ function renderOrderDetail(container, orderId) {
         btnCls: "bg-error-600 text-white border border-error-600 hover:bg-error-700",
       });
     } else if (currentRole === "waiter") {
-      if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 0) {
+      const from = displayOrder.status;
+      const nextStatus = LIFECYCLE[lifecycleIdx + 1];
+      if (nextStatus && canTransition(currentRole, from, nextStatus)) {
         transitions.push({
-          to: LIFECYCLE[lifecycleIdx + 1],
-          label: lifecycleIdx === 0 ? "Send to Kitchen" : "Next \u2192",
+          to: nextStatus,
+          label: "Next \u2192",
           btnCls: "bg-primary-600 text-white border border-primary-600 hover:bg-primary-700",
         });
       }
-    } else if (currentRole === "cook") {
-      if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 4) {
+    } else if (currentRole === "chef") {
+      if (lifecycleIdx < LIFECYCLE.length - 1 && lifecycleIdx >= 1 && lifecycleIdx + 1 <= 3) {
         const tLabels = { 1: "Start Preparing", 2: "Mark Ready", 3: "Served" };
         transitions.push({
           to: LIFECYCLE[lifecycleIdx + 1],

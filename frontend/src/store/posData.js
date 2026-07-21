@@ -25,8 +25,8 @@ const STATUS_MAP_TO_BACKEND = {
   draft: null,
   new: "pending",
   preparing: "in_progress",
-  ready: "in_progress",
-  served: "completed",
+  ready: "ready",
+  served: "served",
   completed: "completed",
   cancelled: "cancelled",
 };
@@ -34,6 +34,8 @@ const STATUS_MAP_TO_BACKEND = {
 const STATUS_MAP_TO_FRONTEND = {
   pending: "new",
   in_progress: "preparing",
+  ready: "ready",
+  served: "served",
   completed: "completed",
   cancelled: "cancelled",
 };
@@ -118,9 +120,15 @@ export async function loadOrders() {
 export async function loadKitchenOrders() {
   try {
     const orders = await apiGet("/api/v1/kitchen/");
+    const parentStatuses = {};
+    allOrders.forEach(function (o) {
+      parentStatuses[o.fullId] = o.status;
+    });
     const grouped = {};
     orders.forEach(function (o) {
       const key = o.order_id;
+      const parentStatus = parentStatuses[key];
+      if (parentStatus === "cancelled" || parentStatus === "completed") return;
       if (!grouped[key]) {
         grouped[key] = {
           fullId: key,
@@ -348,7 +356,7 @@ export function canTransition(role, from, to) {
     const fi = LIFECYCLE.indexOf(from);
     const ti = LIFECYCLE.indexOf(to);
     if (fi === -1 || ti === -1) return false;
-    return ti === fi + 1 && fi >= 3;
+    return ti === fi + 1 && fi === 3;
   }
   if (role === "chef") {
     const fi2 = LIFECYCLE.indexOf(from);
