@@ -21,6 +21,8 @@ const FROM_STATUS_MAP = {
 };
 
 async function moveOrder(id, newStatus) {
+  if (newStatus === "served" && !hasAnyRole("admin", "waiter")) return;
+
   const order = kitchenOrders.find(function (o) {
     return o.id === id || o.fullId === id;
   });
@@ -115,7 +117,8 @@ function renderCard(order, col) {
     '<button data-kitchen-action="details" data-order-id="' +
     order.id +
     '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Details</button>';
-  if (hasAnyRole("admin", "chef")) {
+  const allowed = col.key === "ready" ? hasAnyRole("admin", "waiter") : hasAnyRole("admin", "chef");
+  if (allowed) {
     html +=
       '<button data-kitchen-action="move" data-order-id="' +
       order.id +
