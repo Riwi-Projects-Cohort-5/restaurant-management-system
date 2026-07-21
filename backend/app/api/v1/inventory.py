@@ -132,4 +132,20 @@ def registrar_movimiento(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Item con id {item_id} no encontrado"
         )
-    return movement
+        return movement
+
+
+@router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_item_inventario(
+    item_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Elimina un item del inventario. Requiere autenticación."""
+    service = InventoryService(db)
+    deleted = service.delete_item(item_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Item con id {item_id} no encontrado"
+        )

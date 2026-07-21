@@ -11,7 +11,7 @@ class OrderItem(Base):
     __tablename__ = "order_items"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id"), nullable=False)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
     menu_item_id = Column(UUID(as_uuid=True), ForeignKey("menu_items.id"), nullable=False)
     quantity = Column(Integer, nullable=False, default=1)
     unit_price = Column(Numeric(10, 2), nullable=False)

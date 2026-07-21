@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.db.models.table import Table, TableStatus
@@ -21,6 +22,24 @@ class TableRepository:
 
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Table]:
         return self.db.query(Table).offset(skip).limit(limit).all()
+
+    def get_status_summary(self) -> dict:
+        total = self.db.query(func.count(Table.id)).scalar() or 0
+        available = self.db.query(func.count(Table.id)).filter(
+            Table.status == TableStatus.AVAILABLE
+        ).scalar() or 0
+        occupied = self.db.query(func.count(Table.id)).filter(
+            Table.status == TableStatus.OCCUPIED
+        ).scalar() or 0
+        reserved = self.db.query(func.count(Table.id)).filter(
+            Table.status == TableStatus.RESERVED
+        ).scalar() or 0
+        return {
+            "available": available,
+            "occupied": occupied,
+            "reserved": reserved,
+            "total": total,
+        }
 
     def create(self, table: Table) -> Table:
         self.db.add(table)

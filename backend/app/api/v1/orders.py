@@ -74,10 +74,10 @@ def crear_orden(
     El user_id se extrae del token JWT del usuario autenticado.
     """
     service = OrderService(db)
-    # El user_id viene del token JWT, no del body de la petición
     return service.create(
-        user_id=UUID(current_user["sub"]),
-        table_id=data.table_id
+        waiter_id=current_user.id,
+        table_id=data.table_id,
+        reservation_id=data.reservation_id,
     )
 
 
@@ -97,7 +97,8 @@ def agregar_item_a_orden(
     updated = service.add_item(
         order_id=order_id,
         menu_item_id=data.menu_item_id,
-        quantity=data.quantity
+        quantity=data.quantity,
+        notes=data.notes,
     )
     if not updated:
         raise HTTPException(
@@ -126,3 +127,19 @@ def actualizar_estado_orden(
             detail=f"Orden con id {order_id} no encontrada"
         )
     return updated
+
+
+@router.delete("/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_orden(
+    order_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Elimina una orden por su ID. Requiere autenticación."""
+    service = OrderService(db)
+    deleted = service.delete(order_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Orden con id {order_id} no encontrada"
+        )

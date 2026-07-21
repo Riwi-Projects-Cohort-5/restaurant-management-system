@@ -2,25 +2,25 @@ import { createStore } from "./index.js";
 import * as menuService from "../services/menuService.js";
 
 const menuStore = createStore({
-  products: menuService.getAllProducts(),
-  categories: menuService.getAllCategories(),
-  filteredProducts: menuService.getAllProducts(),
+  products: [],
+  categories: [],
+  filteredProducts: [],
   filters: { category: "", available: "", search: "" },
   selectedProduct: null,
   error: null,
 });
 
-export function loadProducts() {
-  const all = menuService.getAllProducts();
+export async function loadProducts() {
+  const all = await menuService.getAllProducts();
   menuStore.setState({ products: all, filteredProducts: all });
 }
 
-export function loadCategories() {
-  const cats = menuService.getAllCategories();
+export async function loadCategories() {
+  const cats = await menuService.getAllCategories();
   menuStore.setState({ categories: cats });
 }
 
-export function applyFilters({ category, available, search } = {}) {
+export async function applyFilters({ category, available, search } = {}) {
   const current = menuStore.getState().filters;
   const filters = {
     category: category !== undefined ? category : current.category,
@@ -28,7 +28,7 @@ export function applyFilters({ category, available, search } = {}) {
     search: search !== undefined ? search : current.search,
   };
 
-  const filtered = menuService.filterProducts(filters);
+  const filtered = await menuService.filterProducts(filters);
   menuStore.setState({ filters, filteredProducts: filtered });
 }
 
@@ -44,14 +44,14 @@ export function getFilteredProducts() {
   return menuStore.getState().filteredProducts;
 }
 
-export function getProductById(id) {
-  return menuService.getProductById(id);
+export async function getProductById(id) {
+  return await menuService.getProductById(id);
 }
 
-export function refreshProducts() {
-  const all = menuService.getAllProducts();
+export async function refreshProducts() {
+  const all = await menuService.getAllProducts();
   const filters = menuStore.getState().filters;
-  const filtered = menuService.filterProducts(filters);
+  const filtered = await menuService.filterProducts(filters);
   menuStore.setState({ products: all, filteredProducts: filtered });
 }
 

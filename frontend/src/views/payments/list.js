@@ -1,19 +1,27 @@
 import * as paymentsStore from "../../store/payments.js";
 import * as paymentService from "../../services/paymentService.js";
-import {
-  STATUS_LABELS,
-  STATUS_COLORS,
-  PAYMENT_METHODS,
-  initMockPayments,
-} from "../../services/mockPayments.js";
-import { allOrders } from "../../store/posData.js";
+import { allOrders, loadOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
-import { toast } from "../../components/ui/ToastManager.js";
-import { confirmModal } from "../../components/ui/ConfirmModal.js";
-import InputField from "../../components/forms/InputField.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
 
-initMockPayments();
+const STATUS_LABELS = {
+  pending: "Pending",
+  completed: "Completed",
+  refunded: "Refunded",
+  failed: "Failed",
+};
+
+const STATUS_COLORS = {
+  pending:   { bg: "bg-info-100",    text: "text-info-700",    dot: "bg-info-500" },
+  completed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
+  refunded:  { bg: "bg-accent-100",  text: "text-accent-700",  dot: "bg-accent-500" },
+  failed:    { bg: "bg-error-100",   text: "text-error-700",   dot: "bg-error-500" },
+};
+
+const PAYMENT_METHODS = [
+  { id: "cash",     name: "Cash",     icon: "banknote" },
+  { id: "card",     name: "Card",     icon: "credit-card" },
+  { id: "transfer", name: "Transfer", icon: "banknote" },
+];
 
 let subView = "list";
 let selectedId = null;
@@ -23,9 +31,8 @@ let dateFilter = "";
 
 const enabledMethods = {
   cash: true,
-  credit_card: true,
-  debit_card: true,
-  mobile: true,
+  card: true,
+  transfer: true,
 };
 
 function statusBadge(status) {
@@ -61,7 +68,7 @@ function getFiltered() {
       return (
         p.id.toLowerCase().includes(q) ||
         String(p.order_id).includes(q) ||
-        (p.reference_number && p.reference_number.toLowerCase().includes(q))
+        (p.method && p.method.toLowerCase().includes(q))
       );
     });
   }
@@ -227,7 +234,7 @@ function renderList(el) {
       html += '<td class="px-5 py-3 font-semibold text-primary-700">' + payment.id + "</td>";
       html += '<td class="px-5 py-3">#' + payment.order_id + "</td>";
       html += '<td class="px-5 py-3">Table ' + table + "</td>";
-      html += '<td class="px-5 py-3">' + payment.cashier_id + "</td>";
+      html += '<td class="px-5 py-3">—</td>';
       html +=
         '<td class="px-5 py-3 font-semibold text-brand-900">$' +
         payment.amount.toFixed(2) +
@@ -273,8 +280,8 @@ function renderList(el) {
   window.createIcons();
 }
 
-function renderDetail(el, paymentId) {
-  const payment = paymentService.getPaymentById(paymentId);
+async function renderDetail(el, paymentId) {
+  const payment = await paymentService.getPaymentById(paymentId);
   if (!payment) {
     renderList(el);
     return;
@@ -325,7 +332,7 @@ function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Cashier</div>';
-  html += '<div class="text-lg font-bold text-brand-900">' + payment.cashier_id + "</div>";
+  html +=     '<div class="text-lg font-bold text-brand-900">—</div>';
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
@@ -350,7 +357,7 @@ function renderDetail(el, paymentId) {
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Reference</div>';
   html +=
     '<div class="text-sm font-semibold text-brand-900">' +
-    (payment.reference_number || "—") +
+    "—" +
     "</div>";
   html += "</div>";
 
@@ -426,7 +433,7 @@ function renderDetail(el, paymentId) {
 
 function renderNewPayment(el) {
   const unpaidOrders = allOrders.filter(function (o) {
-    return o.status === "served" || o.status === "completed";
+    return o.status === "completed";
   });
 
   let html = '<div class="space-y-5">';
@@ -453,7 +460,7 @@ function renderNewPayment(el) {
   unpaidOrders.forEach(function (order) {
     html +=
       '<option value="' +
-      order.id +
+      order.fullId +
       '" data-amount="' +
       order.total +
       '">Order #' +
@@ -480,20 +487,11 @@ function renderNewPayment(el) {
   html += "</select>";
   html += "</div>";
 
-  html += InputField({
-    id: "new-payment-amount",
-    label: "Amount *",
-    type: "number",
-    placeholder: "0.00",
-    step: "0.01",
-    min: "0.01",
-  });
-
-  html += InputField({
-    id: "new-payment-reference",
-    label: "Reference Number (Optional)",
-    placeholder: "e.g. TXN-123456",
-  });
+  html += "<div>";
+  html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Amount *</label>';
+  html +=
+    '<input type="number" id="new-payment-amount" step="0.01" min="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
+  html += "</div>";
 
   html += "</div></div></div>";
 
@@ -565,7 +563,7 @@ function renderConfig(el) {
 }
 
 function setupListEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) {
       const filterBtn = e.target.closest("[data-filter]");
@@ -581,57 +579,28 @@ function setupListEvents(el) {
 
     if (action === "new-payment") {
       subView = "new";
-      renderWithSkeleton(
-        el,
-        Skeletons.newPayment(),
-        function () {
-          renderNewPayment(el);
-        },
-        400
-      );
+      renderNewPayment(el);
     } else if (action === "config-methods") {
       subView = "config";
-      renderWithSkeleton(
-        el,
-        Skeletons.paymentConfig(),
-        function () {
-          renderConfig(el);
-        },
-        400
-      );
+      renderConfig(el);
     } else if (action === "view-detail") {
       selectedId = btn.dataset.paymentId;
       subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.paymentDetail(),
-        function () {
-          renderDetail(el, selectedId);
-        },
-        400
-      );
+      await renderDetail(el, selectedId);
     } else if (action === "refund-payment") {
       e.stopPropagation();
       const refundId = btn.dataset.paymentId;
-      paymentService.refundPayment(refundId);
-      paymentsStore.refreshPayments();
+      await paymentService.refundPayment(refundId);
+      await paymentsStore.refreshPayments();
       renderList(el);
     } else if (action === "delete-payment") {
       e.stopPropagation();
       const deleteId = btn.dataset.paymentId;
-      confirmModal
-        .show({
-          title: "Delete Payment",
-          message: "Are you sure you want to delete this payment? This action cannot be undone.",
-          confirmText: "Delete",
-        })
-        .then((confirmed) => {
-          if (confirmed) {
-            paymentService.deletePayment(deleteId);
-            paymentsStore.refreshPayments();
-            renderList(el);
-          }
-        });
+      if (confirm("Are you sure you want to delete this payment?")) {
+        await paymentService.deletePayment(deleteId);
+        await paymentsStore.refreshPayments();
+        renderList(el);
+      }
     } else if (action === "clear-search") {
       searchQuery = "";
       dateFilter = "";
@@ -662,7 +631,7 @@ function setupListEvents(el) {
 }
 
 function setupDetailEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
@@ -674,32 +643,24 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "refund-payment") {
       const refundId = btn.dataset.paymentId;
-      paymentService.refundPayment(refundId);
-      paymentsStore.refreshPayments();
+      await paymentService.refundPayment(refundId);
+      await paymentsStore.refreshPayments();
       renderList(el);
     } else if (action === "delete-payment") {
       const deleteId = btn.dataset.paymentId;
-      confirmModal
-        .show({
-          title: "Delete Payment",
-          message: "Are you sure you want to delete this payment? This action cannot be undone.",
-          confirmText: "Delete",
-        })
-        .then((confirmed) => {
-          if (confirmed) {
-            paymentService.deletePayment(deleteId);
-            paymentsStore.refreshPayments();
-            subView = "list";
-            selectedId = null;
-            renderList(el);
-          }
-        });
+      if (confirm("Are you sure you want to delete this payment?")) {
+        await paymentService.deletePayment(deleteId);
+        await paymentsStore.refreshPayments();
+        subView = "list";
+        selectedId = null;
+        renderList(el);
+      }
     }
   });
 }
 
 function setupNewPaymentEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
@@ -712,38 +673,38 @@ function setupNewPaymentEvents(el) {
       const orderSelect = el.querySelector("#new-payment-order");
       const methodSelect = el.querySelector("#new-payment-method");
       const amountInput = el.querySelector("#new-payment-amount");
-      const referenceInput = el.querySelector("#new-payment-reference");
 
-      const orderId = parseInt(orderSelect.value);
+      const orderId = orderSelect.value;
       const method = methodSelect.value;
       const amount = parseFloat(amountInput.value);
-      const reference = referenceInput.value.trim();
 
       if (!orderId) {
-        toast.warning("Validation", "Please select an order");
+        alert("Please select an order");
         return;
       }
       if (!method) {
-        toast.warning("Validation", "Please select a payment method");
+        alert("Please select a payment method");
         return;
       }
       if (!amount || amount <= 0) {
-        toast.warning("Validation", "Please enter a valid amount");
+        alert("Please enter a valid amount");
         return;
       }
 
       const user = currentUser || { username: "guest" };
-      paymentService.createPayment({
+      const result = await paymentService.createPayment({
         order_id: orderId,
-        cashier_id: user.username,
-        payment_method: method,
         amount: amount,
-        reference_number: reference || null,
+        method: method,
       });
 
-      paymentsStore.refreshPayments();
-      subView = "list";
-      renderList(el);
+      if (result.success) {
+        await paymentsStore.refreshPayments();
+        subView = "list";
+        renderList(el);
+      } else {
+        alert(result.error || "Error creating payment");
+      }
     }
   });
 
@@ -779,44 +740,19 @@ function setupConfigEvents(el) {
   });
 }
 
-export function renderPayments(el) {
-  paymentsStore.loadPayments();
+export async function renderPayments(el) {
+  await Promise.all([paymentsStore.loadPayments(), loadOrders()]);
 
   if (subView === "detail" && selectedId) {
-    renderWithSkeleton(
-      el,
-      Skeletons.paymentDetail(),
-      function () {
-        renderDetail(el, selectedId);
-      },
-      400
-    );
+    await renderDetail(el, selectedId);
   } else if (subView === "new") {
-    renderWithSkeleton(
-      el,
-      Skeletons.newPayment(),
-      function () {
-        renderNewPayment(el);
-      },
-      400
-    );
+    renderNewPayment(el);
   } else if (subView === "config") {
-    renderWithSkeleton(
-      el,
-      Skeletons.paymentConfig(),
-      function () {
-        renderConfig(el);
-      },
-      400
-    );
+    renderConfig(el);
   } else {
     subView = "list";
     renderList(el);
   }
 }
 
-export default withLoading(
-  { render: renderPayments, init: function () {}, destroy: function () {} },
-  Skeletons.paymentsTable(),
-  800
-);
+export default { render: renderPayments, init: function () {}, destroy: function () {} };

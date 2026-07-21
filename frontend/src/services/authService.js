@@ -1,22 +1,47 @@
-import {
-  getUsers,
-  saveUsers,
-  generateId,
-  saveSession,
-  getSession,
-  clearSession,
-} from "./mockUsers.js";
+import { apiLogin, apiGet, apiPost, apiDelete, apiPut, getToken, removeToken } from "./api.js";
 
-export function login(username, password) {
-  const users = getUsers();
-  const user = users.find((u) => u.username === username && u.password === password);
+const SESSION_KEY = "rms_session";
 
-  if (!user) {
-    return { success: false, error: "Invalid username or password" };
+function mapBackendUser(u) {
+  return {
+    id: u.id,
+    username: u.username,
+    email: u.email,
+    name: u.full_name || u.username,
+    role: u.role,
+    is_active: u.is_active,
+    createdAt: u.created_at,
+  };
+}
+
+function saveSession(user) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+}
+
+function getSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
   }
+}
 
-  saveSession(user);
-  return { success: true, user: { ...user, password: undefined } };
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+  removeToken();
+}
+
+export async function login(username, password) {
+  try {
+    await apiLogin(username, password);
+    const me = await apiGet("/api/v1/users/me");
+    const user = mapBackendUser(me);
+    saveSession(user);
+    return { success: true, user };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export function logout() {
@@ -27,72 +52,56 @@ export function getCurrentUser() {
   return getSession();
 }
 
-export function createUser({ username, email, password, role }) {
-  const users = getUsers();
-
-  if (users.find((u) => u.username === username)) {
-    return { success: false, error: "Username already exists" };
+export async function createUser({ username, email, password, role, full_name }) {
+  try {
+    const data = await apiPost("/api/v1/auth/register", {
+      username,
+      email,
+      password,
+      full_name: full_name || username,
+      role: role || "waiter",
+    });
+    return { success: true, user: mapBackendUser(data) };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  if (users.find((u) => u.email === email)) {
-    return { success: false, error: "Email already exists" };
-  }
-
-  const newUser = {
-    id: generateId(),
-    username,
-    email,
-    password,
-    role,
-    createdAt: new Date().toISOString(),
-  };
-
-  users.push(newUser);
-  saveUsers(users);
-
-  return { success: true, user: { ...newUser, password: undefined } };
 }
 
-export function deleteUser(userId) {
-  const users = getUsers();
-  const target = users.find((u) => u.id === userId);
-
-  if (!target) {
-    return { success: false, error: "User not found" };
+export async function deleteUser(userId) {
+  try {
+    await apiDelete(`/api/v1/users/${userId}`);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  if (target.role === "admin") {
-    const adminCount = users.filter((u) => u.role === "admin").length;
-    if (adminCount <= 1) {
-      return { success: false, error: "Cannot delete the last admin" };
-    }
-  }
-
-  const filtered = users.filter((u) => u.id !== userId);
-  saveUsers(filtered);
-  return { success: true };
 }
 
-export function updateUserRole(userId, newRole) {
-  const users = getUsers();
-  const index = users.findIndex((u) => u.id === userId);
-
-  if (index === -1) {
-    return { success: false, error: "User not found" };
+export async function updateUserRole(userId, newRole) {
+  try {
+    const data = await apiPut(`/api/v1/users/${userId}`, { role: newRole });
+    return { success: true, user: mapBackendUser(data) };
+  } catch (err) {
+    return { success: false, error: err.message };
   }
-
-  if (users[index].role === "admin") {
-    const adminCount = users.filter((u) => u.role === "admin").length;
-    if (adminCount <= 1) {
-      return { success: false, error: "Cannot change the last admin's role" };
-    }
-  }
-
-  users[index].role = newRole;
-  saveUsers(users);
-  return { success: true, user: { ...users[index], password: undefined } };
 }
 
-export function getAllUsersSafe() {
-  return getUsers().map(({ password: _password, ...u }) => u);
+export async function getAllUsersSafe() {
+  try {
+    const users = await apiGet("/api/v1/users/");
+    return users.map(mapBackendUser);
+  } catch {
+    return [];
+  }
+}
+
+export async function refreshCurrentUser() {
+  try {
+    const me = await apiGet("/api/v1/users/me");
+    const user = mapBackendUser(me);
+    saveSession(user);
+    return user;
+  } catch {
+    clearSession();
+    return null;
+  }
 }

@@ -1,4 +1,4 @@
-import { allOrders, recalcOrder } from "../../store/posData.js";
+import { allOrders, recalcOrder, createOrder, addOrderItem, saveDraft } from "../../store/posData.js";
 
 let cartItems = [];
 
@@ -69,7 +69,11 @@ function CartPanel() {
     "</span></div>";
   html += "</div>";
 
-  html += '<div class="flex gap-2 mt-4">';
+  html += '<div class="mt-3">';
+  html += '<textarea id="cart-kitchen-note" rows="2" placeholder="Kitchen note (allergy, substitution...)" class="w-full border border-brand-300 rounded-md p-2 text-xs text-neutral-700 resize-none focus:outline-none focus:border-brand-500"></textarea>';
+  html += "</div>";
+
+  html += '<div class="flex gap-2 mt-2">';
   html +=
     '<button id="cart-save-draft" class="flex-1 h-10 px-4 text-sm font-semibold rounded-md bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer transition-colors">Save Draft</button>';
   html +=
@@ -121,54 +125,50 @@ function setupCartEvents() {
     refreshCart();
   });
 
-  document.addEventListener("click", function (e) {
-    if (e.target.id === "cart-send-kitchen") {
+  document.addEventListener("click", async function (e) {
+    const sendBtn = e.target.closest("#cart-send-kitchen");
+    if (sendBtn) {
       if (cartItems.length === 0) return;
-      const maxId = allOrders.reduce(function (m, o) {
-        return Math.max(m, o.id);
-      }, 1034);
-      const newOrder = {
-        id: maxId + 1,
-        table: Math.floor(Math.random() * 12) + 1,
-        items: cartItems.map(function (c) {
-          return { name: c.name, qty: c.qty, price: c.price };
-        }),
-        total: 0,
-        status: "new",
-        time: "Just now",
-        note: null,
-        server: (window.userData || {}).name || "Admin",
-        createdBy: window.currentRole || "admin",
-        placedAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-      };
-      recalcOrder(newOrder);
-      allOrders.unshift(newOrder);
-      cartItems = [];
-      refreshCart();
+      const tableSelect = document.getElementById("table-select");
+      const tableId = tableSelect ? tableSelect.value : null;
+      if (!tableId) {
+        alert("Please select a table before sending to kitchen");
+        return;
+      }
+      const noteInput = document.getElementById("cart-kitchen-note");
+      const kitchenNote = noteInput ? noteInput.value.trim() : "";
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Sending...";
+      try {
+        const reservationId = window._pendingReservationId || null;
+        window._pendingReservationId = null;
+        const result = await createOrder(tableId, reservationId);
+        if (result.success && result.order) {
+          const orderId = result.order.id;
+          for (const cartItem of cartItems) {
+            await addOrderItem(orderId, cartItem.id, cartItem.qty, kitchenNote || undefined);
+          }
+          cartItems = [];
+          refreshCart();
+          window.dispatchEvent(new CustomEvent("cart:sent"));
+        } else {
+          alert("Failed to create order: " + (result.error || "Unknown error"));
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Send to Kitchen";
+        }
+      } catch (err) {
+        alert("Error sending to kitchen: " + err.message);
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send to Kitchen";
+      }
       return;
     }
 
-    if (e.target.id === "cart-save-draft") {
+    if (e.target.closest("#cart-save-draft")) {
       if (cartItems.length === 0) return;
-      const maxId2 = allOrders.reduce(function (m, o) {
-        return Math.max(m, o.id);
-      }, 1034);
-      const draft = {
-        id: maxId2 + 1,
-        table: 0,
-        items: cartItems.map(function (c) {
-          return { name: c.name, qty: c.qty, price: c.price };
-        }),
-        total: 0,
-        status: "draft",
-        time: "Just now",
-        note: null,
-        server: (window.userData || {}).name || "Admin",
-        createdBy: window.currentRole || "admin",
-        placedAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-      };
-      recalcOrder(draft);
-      allOrders.unshift(draft);
+      const tableSelect = document.getElementById("table-select");
+      const tableId = tableSelect ? tableSelect.value : null;
+      saveDraft(cartItems, tableId);
       cartItems = [];
       refreshCart();
       return;
@@ -186,5 +186,12 @@ function refreshCart() {
 }
 
 setupCartEvents();
+
+export function loadDraftItems(draftItems) {
+  cartItems = draftItems.map(function (d) {
+    return { id: d.id, name: d.name, price: d.price, qty: d.qty, emoji: null };
+  });
+  refreshCart();
+}
 
 export default CartPanel;

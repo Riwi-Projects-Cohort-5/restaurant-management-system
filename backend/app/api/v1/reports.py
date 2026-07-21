@@ -68,3 +68,34 @@ def reporte_productos_mas_vendidos(
         end_date=end_date,
         limit=limit
     )
+
+
+@router.get("/daily-sales")
+def reporte_ventas_diarias(
+    start_date: datetime = Query(..., description="Fecha de inicio (ISO format)"),
+    end_date: datetime = Query(..., description="Fecha de fin (ISO format)"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """
+    Retorna ventas agrupadas por día en un rango de fechas.
+    Requiere autenticación.
+
+    Retorna lista con: date, revenue, orders.
+    """
+    service = ReportService(db)
+    return service.get_daily_sales(start_date=start_date, end_date=end_date)
+
+
+@router.get("/today-stats")
+def estadisticas_hoy(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """
+    Retorna estadísticas del día actual: revenue, órdenes,
+    mesas activas, total mesas, reservaciones.
+    Requiere autenticación.
+    """
+    service = ReportService(db)
+    return service.get_today_stats()

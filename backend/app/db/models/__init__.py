@@ -12,6 +12,7 @@ from app.db.models.purchase import Purchase
 from app.db.models.purchase_detail import PurchaseDetail
 from app.db.models.recipe import Recipe
 from app.db.models.reservation import Reservation
+from app.db.models.setting import Setting
 from app.db.models.supplier import Supplier
 from app.db.models.table import Table
 from app.db.models.user import User
@@ -34,4 +35,5 @@ __all__ = [
     "Supplier",
     "Purchase",
     "PurchaseDetail",
+    "Setting",
 ]

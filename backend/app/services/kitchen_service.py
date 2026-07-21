@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.db.models.kitchen_order import KitchenOrder, KitchenOrderStatus
+from app.db.models.order import Order, OrderStatus
 from app.repositories.kitchen_repository import KitchenRepository
 
 
@@ -27,6 +28,9 @@ class KitchenService:
     def get_in_progress(self) -> list[KitchenOrder]:
         return self.repo.get_in_progress()
 
+    def get_ready(self) -> list[KitchenOrder]:
+        return self.repo.get_ready()
+
     def create(self, order_id: UUID, menu_item_name: str, quantity: int,
             notes: Optional[str] = None, priority: int = 0) -> KitchenOrder:
         kitchen_order = KitchenOrder(
@@ -34,6 +38,26 @@ class KitchenService:
             quantity=quantity, notes=notes, priority=priority,
         )
         return self.repo.create(kitchen_order)
+
+    def _sync_parent_order_status(self, order_id: UUID) -> None:
+        order = self.repo.db.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            return
+        kitchen_orders = self.repo.get_by_order(order_id)
+        if not kitchen_orders:
+            return
+        statuses = [ko.status for ko in kitchen_orders]
+        if any(s == KitchenOrderStatus.PREPARING for s in statuses):
+            new_status = OrderStatus.IN_PROGRESS
+        elif all(s in (KitchenOrderStatus.READY, KitchenOrderStatus.DELIVERED) for s in statuses):
+            new_status = OrderStatus.COMPLETED
+        elif all(s == KitchenOrderStatus.PENDING for s in statuses):
+            new_status = OrderStatus.PENDING
+        else:
+            return
+        if order.status != new_status:
+            order.status = new_status
+            self.repo.db.commit()
 
     def update_status(self, kitchen_order_id: UUID, status: str,
                       notes: Optional[str] = None) -> Optional[KitchenOrder]:
@@ -46,4 +70,6 @@ class KitchenService:
             raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in KitchenOrderStatus]}")
         if notes:
             kitchen_order.notes = notes
-        return self.repo.update(kitchen_order)
+        result = self.repo.update(kitchen_order)
+        self._sync_parent_order_status(kitchen_order.order_id)
+        return result

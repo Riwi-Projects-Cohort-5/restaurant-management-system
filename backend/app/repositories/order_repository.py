@@ -29,7 +29,11 @@ class OrderRepository:
 
     def create(self, order: Order) -> Order:
         self.db.add(order)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
         self.db.refresh(order)
         return order
 

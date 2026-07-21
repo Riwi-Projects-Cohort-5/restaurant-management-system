@@ -1,264 +1,17 @@
 import {
-  getAllProducts,
-  getAllCategories,
-  initMockProducts,
-  initMockCategories,
-} from "../services/menuService.js";
+  apiGet,
+  apiPost,
+  apiPut,
+  apiDelete,
+} from "../services/api.js";
+import * as menuService from "../services/menuService.js";
+import * as locationService from "../services/locationService.js";
 
-initMockCategories();
-initMockProducts();
-
-export const menuItems = getAllProducts()
-  .map(function (product) {
-    const category = getAllCategories().find(function (c) {
-      return c.id === product.category_id;
-    });
-    return {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      available: product.available,
-      cat: category ? category.name : "Other",
-      emoji: product.image_url || null,
-    };
-  })
-  .filter(function (item) {
-    return item.available;
-  });
-
-export const allOrders = [
-  {
-    id: 1043,
-    table: 3,
-    items: [
-      { name: "Margherita Pizza", qty: 1, price: 14.0 },
-      { name: "Caesar Salad", qty: 1, price: 12.0 },
-      { name: "Iced Tea", qty: 2, price: 4.0 },
-    ],
-    total: 38.5,
-    status: "draft",
-    time: "1 min ago",
-    note: "Sin camareros \u2014 cocinero pide no usar camareros en la pizza",
-    server: "Maria C.",
-    createdBy: "waiter",
-    placedAt: "8:42 PM",
-  },
-  {
-    id: 1042,
-    table: 5,
-    items: [
-      { name: "Grilled Chicken", qty: 2, price: 18.5 },
-      { name: "Caesar Salad", qty: 1, price: 12.0 },
-    ],
-    total: 49.3,
-    status: "completed",
-    time: "2 min ago",
-    note: null,
-    server: "Juan R.",
-    createdBy: "waiter",
-    placedAt: "8:30 PM",
-  },
-  {
-    id: 1041,
-    table: 2,
-    items: [
-      { name: "Ribeye Steak", qty: 1, price: 32.0 },
-      { name: "Grilled Salmon", qty: 1, price: 24.0 },
-      { name: "House Wine", qty: 2, price: 8.0 },
-    ],
-    total: 79.2,
-    status: "preparing",
-    time: "8 min ago",
-    note: "Allergy: shellfish",
-    server: "Maria C.",
-    createdBy: "admin",
-    placedAt: "8:22 PM",
-  },
-  {
-    id: 1040,
-    table: 8,
-    items: [
-      { name: "Classic Burger", qty: 1, price: 15.0 },
-      { name: "French Fries", qty: 1, price: 5.0 },
-    ],
-    total: 22.0,
-    status: "new",
-    time: "12 min ago",
-    note: null,
-    server: "Juan R.",
-    createdBy: "waiter",
-    placedAt: "8:18 PM",
-  },
-  {
-    id: 1039,
-    table: 1,
-    items: [
-      { name: "Fish Tacos", qty: 2, price: 13.5 },
-      { name: "Guacamole", qty: 1, price: 8.0 },
-    ],
-    total: 37.4,
-    status: "completed",
-    time: "18 min ago",
-    note: null,
-    server: "Maria C.",
-    createdBy: "waiter",
-    placedAt: "8:10 PM",
-  },
-  {
-    id: 1038,
-    table: 10,
-    items: [
-      { name: "Pasta Carbonara", qty: 2, price: 16.0 },
-      { name: "Bruschetta", qty: 1, price: 8.0 },
-      { name: "Tiramisu", qty: 1, price: 9.0 },
-      { name: "House Wine", qty: 2, price: 8.0 },
-    ],
-    total: 64.9,
-    status: "cancelled",
-    time: "25 min ago",
-    note: "Cliente se fue",
-    server: "Juan R.",
-    createdBy: "admin",
-    placedAt: "7:55 PM",
-  },
-  {
-    id: 1037,
-    table: 6,
-    items: [
-      { name: "Margherita Pizza", qty: 2, price: 14.0 },
-      { name: "Sparkling Water", qty: 2, price: 3.0 },
-    ],
-    total: 37.4,
-    status: "completed",
-    time: "35 min ago",
-    note: null,
-    server: "Maria C.",
-    createdBy: "waiter",
-    placedAt: "7:45 PM",
-  },
-  {
-    id: 1036,
-    table: 3,
-    items: [
-      { name: "Club Sandwich", qty: 1, price: 11.0 },
-      { name: "Onion Rings", qty: 1, price: 6.5 },
-      { name: "Iced Tea", qty: 1, price: 4.0 },
-    ],
-    total: 23.65,
-    status: "completed",
-    time: "42 min ago",
-    note: null,
-    server: "Juan R.",
-    createdBy: "waiter",
-    placedAt: "7:38 PM",
-  },
-  {
-    id: 1035,
-    table: 9,
-    items: [
-      { name: "Ribeye Steak", qty: 2, price: 32.0 },
-      { name: "Caesar Salad", qty: 2, price: 12.0 },
-      { name: "House Wine", qty: 2, price: 8.0 },
-    ],
-    total: 118.8,
-    status: "completed",
-    time: "50 min ago",
-    note: null,
-    server: "Maria C.",
-    createdBy: "admin",
-    placedAt: "7:30 PM",
-  },
-];
-
-export const kitchenOrders = [
-  {
-    id: 1039,
-    table: 8,
-    status: "new",
-    time: 2,
-    items: [
-      { qty: 2, name: "Grilled Chicken" },
-      { qty: 1, name: "Caesar Salad" },
-    ],
-    note: null,
-  },
-  {
-    id: 1044,
-    table: 3,
-    status: "new",
-    time: 5,
-    items: [
-      { qty: 1, name: "Margherita Pizza" },
-      { qty: 2, name: "Sparkling Water" },
-      { qty: 1, name: "Tiramisu" },
-    ],
-    note: "No olives on pizza",
-  },
-  {
-    id: 1045,
-    table: 11,
-    status: "new",
-    time: 1,
-    items: [
-      { qty: 3, name: "Classic Burger" },
-      { qty: 3, name: "French Fries" },
-    ],
-    note: null,
-  },
-  {
-    id: 1041,
-    table: 2,
-    status: "preparing",
-    time: 18,
-    items: [
-      { qty: 1, name: "Ribeye Steak (medium-rare)" },
-      { qty: 1, name: "Grilled Salmon" },
-      { qty: 2, name: "House Wine" },
-    ],
-    note: "Allergy: shellfish",
-  },
-  {
-    id: 1037,
-    table: 6,
-    status: "preparing",
-    time: 8,
-    items: [
-      { qty: 2, name: "Pasta Carbonara" },
-      { qty: 1, name: "Bruschetta" },
-    ],
-    note: null,
-  },
-  {
-    id: 1042,
-    table: 5,
-    status: "ready",
-    time: 4,
-    items: [
-      { qty: 1, name: "Club Sandwich" },
-      { qty: 1, name: "Onion Rings" },
-      { qty: 1, name: "Iced Tea" },
-    ],
-    note: null,
-  },
-  {
-    id: 1043,
-    table: 1,
-    status: "ready",
-    time: 1,
-    items: [
-      { qty: 2, name: "Fish Tacos" },
-      { qty: 1, name: "Guacamole" },
-    ],
-    note: null,
-  },
-];
-
-export function setKitchenOrders(arr) {
-  kitchenOrders.length = 0;
-  arr.forEach(function (o) {
-    kitchenOrders.push(o);
-  });
-}
+export let menuItems = [];
+export let allOrders = [];
+export let kitchenOrders = [];
+export let draftOrders = [];
+let draftCounter = 1;
 
 export const areas = [
   { id: 1, name: "Main Hall", icon: "home" },
@@ -266,22 +19,287 @@ export const areas = [
   { id: 3, name: "Seaside Pier", icon: "waves" },
 ];
 
-export const tables = [
-  { id: 1, seats: 4, area: 1, status: "available", info: "Free", timer: null },
-  { id: 2, seats: 6, area: 1, status: "occupied", info: "Order #1041", timer: "24 min" },
-  { id: 3, seats: 2, area: 1, status: "occupied", info: "Order #1043", timer: "0 min" },
-  { id: 4, seats: 4, area: 1, status: "available", info: "Free", timer: null },
-  { id: 5, seats: 4, area: 2, status: "occupied", info: "Order #1042", timer: "6 min" },
-  { id: 6, seats: 8, area: 2, status: "occupied", info: "Order #1037", timer: "32 min" },
-  { id: 7, seats: 2, area: 2, status: "reserved", info: "7:30 PM", timer: null },
-  { id: 8, seats: 4, area: 3, status: "occupied", info: "Order #1040", timer: "12 min" },
-  { id: 9, seats: 6, area: 3, status: "available", info: "Free", timer: null },
-  { id: 10, seats: 4, area: 3, status: "reserved", info: "8:00 PM", timer: null },
-  { id: 11, seats: 2, area: 1, status: "available", info: "Free", timer: null },
-  { id: 12, seats: 6, area: 2, status: "available", info: "Free", timer: null },
-];
+export let tables = [];
 
 export const LIFECYCLE = ["draft", "new", "preparing", "ready", "served", "completed"];
+
+const STATUS_MAP_TO_BACKEND = {
+  draft: null,
+  new: "pending",
+  preparing: "in_progress",
+  ready: "in_progress",
+  served: "completed",
+  completed: "completed",
+  cancelled: "cancelled",
+};
+
+const STATUS_MAP_TO_FRONTEND = {
+  pending: "new",
+  in_progress: "preparing",
+  completed: "completed",
+  cancelled: "cancelled",
+};
+
+export async function loadMenuItems() {
+  const products = await menuService.getAllProducts();
+  const categories = await menuService.getAllCategories();
+  menuItems = products
+    .map(function (product) {
+      const category = categories.find(function (c) {
+        return c.id === product.category_id;
+      });
+      return {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        available: product.available,
+        cat: category ? category.name : "Other",
+        emoji: product.image_url || null,
+      };
+    })
+    .filter(function (item) {
+      return item.available;
+    });
+}
+
+export async function loadOrders() {
+  try {
+    const orders = await apiGet("/api/v1/orders/?limit=50");
+    allOrders = orders.map(function (o) {
+      return {
+        id: typeof o.id === "string" ? o.id.slice(0, 8) : o.id,
+        fullId: o.id,
+        table: o.table_id,
+        items: (o.order_items || []).map(function (oi) {
+          var matched = menuItems.find(function (m) { return String(m.id) === String(oi.menu_item_id); });
+          return { name: matched ? matched.name : oi.menu_item_id, qty: oi.quantity, price: parseFloat(oi.unit_price) };
+        }),
+        total: parseFloat(o.total),
+        status: STATUS_MAP_TO_FRONTEND[o.status] || o.status,
+        time: formatTimeAgo(o.created_at),
+        note: null,
+        server: o.waiter_id || "",
+        createdBy: "waiter",
+        reservationId: o.reservation_id || null,
+        placedAt: o.created_at ? new Date(o.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "",
+      };
+    });
+  } catch {
+    allOrders = [];
+  }
+}
+
+const KITCHEN_STATUS_MAP_TO_FRONTEND = {
+  pending: "new",
+  preparing: "preparing",
+  ready: "ready",
+  delivered: "served",
+};
+
+export async function loadKitchenOrders() {
+  try {
+    const orders = await apiGet("/api/v1/kitchen/");
+    const grouped = {};
+    orders.forEach(function (o) {
+      const key = o.order_id;
+      if (!grouped[key]) {
+        grouped[key] = { fullId: key, kitchenIds: [], items: [], statuses: [], created_at: o.created_at, notes: null };
+      }
+      grouped[key].kitchenIds.push(o.id);
+      grouped[key].items.push({ name: o.menu_item_name, qty: o.quantity });
+      grouped[key].statuses.push(o.status);
+      if (o.notes) grouped[key].notes = o.notes;
+      if (o.created_at && (!grouped[key].created_at || o.created_at < grouped[key].created_at)) {
+        grouped[key].created_at = o.created_at;
+      }
+    });
+    kitchenOrders = Object.keys(grouped).map(function (key) {
+      const g = grouped[key];
+      const matchedOrder = allOrders.find(function (o) { return o.fullId === key; });
+      const tableNum = matchedOrder ? matchedOrder.table : 0;
+      let status = "new";
+      if (g.statuses.indexOf("preparing") !== -1) status = "preparing";
+      if (g.statuses.every(function (s) { return s === "ready"; })) status = "ready";
+      return {
+        id: typeof key === "string" ? key.slice(0, 8) : key,
+        fullId: g.fullId,
+        kitchenIds: g.kitchenIds,
+        table: tableNum,
+        status: status,
+        time: g.created_at ? Math.floor((Date.now() - new Date(g.created_at).getTime()) / 60000) : 0,
+        items: g.items,
+        note: g.notes,
+      };
+    });
+  } catch {
+    kitchenOrders = [];
+  }
+}
+
+export async function loadTables() {
+  try {
+    const items = await apiGet("/api/v1/tables/");
+    tables = items.map(function (t, index) {
+      return {
+        id: t.id,
+        number: t.number || index + 1,
+        seats: t.capacity,
+        area: t.location_id || null,
+        areaName: t.location_ref ? t.location_ref.name : "",
+        status: t.status || "available",
+        info: t.status === "available" ? "Free" : t.status === "reserved" ? "Reserved" : "Occupied",
+        timer: null,
+      };
+    });
+  } catch {
+    tables = [];
+  }
+}
+
+export async function loadAreas() {
+  const locs = await locationService.getAllLocations();
+  areas.length = 0;
+  locs.forEach(function (loc, i) {
+    areas.push({ id: loc.id, name: loc.name, icon: "map-pin" });
+  });
+}
+
+export async function createTable(tableData) {
+  try {
+    const result = await apiPost("/api/v1/tables/", {
+      number: tableData.number,
+      capacity: tableData.capacity,
+      location_id: tableData.location_id || null,
+    });
+    await loadTables();
+    return { success: true, table: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function updateTable(tableId, data) {
+  try {
+    const result = await apiPut("/api/v1/tables/" + tableId, {
+      capacity: data.capacity,
+      status: data.status,
+      location_id: data.location_id,
+    });
+    await loadTables();
+    return { success: true, table: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function deleteTable(tableId) {
+  try {
+    await apiDelete("/api/v1/tables/" + tableId);
+    await loadTables();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function createArea(areaData) {
+  return locationService.createLocation(areaData);
+}
+
+export async function updateArea(areaId, areaData) {
+  return locationService.updateLocation(areaId, areaData);
+}
+
+export async function deleteArea(areaId) {
+  return locationService.deleteLocation(areaId);
+}
+
+export async function createOrder(tableId, reservationId) {
+  try {
+    const body = { table_id: tableId };
+    if (reservationId) body.reservation_id = reservationId;
+    const result = await apiPost("/api/v1/orders/", body);
+    await loadOrders();
+    return { success: true, order: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function addOrderItem(orderId, menuItemId, quantity, notes) {
+  try {
+    const body = {
+      menu_item_id: menuItemId,
+      quantity: quantity || 1,
+    };
+    if (notes) body.notes = notes;
+    const result = await apiPost("/api/v1/orders/" + orderId + "/items", body);
+    await loadOrders();
+    return { success: true, order: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function updateOrderStatus(orderId, frontendStatus) {
+  const backendStatus = STATUS_MAP_TO_BACKEND[frontendStatus];
+  if (!backendStatus) return { success: false, error: "Cannot persist status: " + frontendStatus };
+  try {
+    const result = await apiPut("/api/v1/orders/" + orderId + "/status", { status: backendStatus });
+    await loadOrders();
+    await loadKitchenOrders();
+    return { success: true, order: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function deleteOrder(orderId) {
+  try {
+    await apiDelete("/api/v1/orders/" + orderId);
+    await loadOrders();
+    await loadKitchenOrders();
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
+  try {
+    const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", { status: newStatus });
+    await loadOrders();
+    await loadKitchenOrders();
+    return { success: true, order: result };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus) {
+  let lastResult;
+  for (const kid of kitchenIds) {
+    lastResult = await updateKitchenOrderStatus(kid, newStatus);
+  }
+  return lastResult || { success: false, error: "No kitchen order IDs provided" };
+}
+
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return mins + " min ago";
+  const hours = Math.floor(mins / 60);
+  return hours + "h ago";
+}
+
+export function setKitchenOrders(arr) {
+  kitchenOrders.length = 0;
+  arr.forEach(function (o) {
+    kitchenOrders.push(o);
+  });
+}
 
 export function canTransition(role, from, to) {
   if (to === "cancelled") return role === "admin";
@@ -292,7 +310,7 @@ export function canTransition(role, from, to) {
     if (fi === -1 || ti === -1) return false;
     return ti === fi + 1;
   }
-  if (role === "cook") {
+  if (role === "chef") {
     const fi2 = LIFECYCLE.indexOf(from);
     const ti2 = LIFECYCLE.indexOf(to);
     if (fi2 === -1 || ti2 === -1) return false;
@@ -312,4 +330,32 @@ export let currentRole = "admin";
 
 export function setCurrentRole(role) {
   currentRole = role;
+}
+
+export function saveDraft(cartItems, tableId) {
+  const draft = {
+    id: "draft-" + draftCounter++,
+    table: tableId || null,
+    items: cartItems.map(function (c) {
+      return { name: c.name, qty: c.qty, price: c.price, id: c.id };
+    }),
+    total: 0,
+    status: "draft",
+    time: "Just now",
+    note: null,
+    server: "Admin",
+    createdBy: "admin",
+    placedAt: new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
+  };
+  recalcOrder(draft);
+  draftOrders.unshift(draft);
+  return draft;
+}
+
+export function deleteDraft(draftId) {
+  draftOrders = draftOrders.filter(function (d) { return d.id !== draftId; });
+}
+
+export function getDraftById(draftId) {
+  return draftOrders.find(function (d) { return d.id === draftId; }) || null;
 }

@@ -34,10 +34,10 @@ def obtener_ordenes_cocina(
 ):
     """Retorna todas las órdenes de cocina. Requiere autenticación."""
     service = KitchenService(db)
-    # get_pending retorna las pendientes; combinamos con get_in_progress
     pending = service.get_pending()
     in_progress = service.get_in_progress()
-    return pending + in_progress
+    ready = service.get_ready()
+    return pending + in_progress + ready
 
 
 @router.get("/pending", response_model=List[KitchenOrderOut])

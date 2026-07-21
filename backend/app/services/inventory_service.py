@@ -62,3 +62,10 @@ class InventoryService:
 
     def get_movements(self, item_id: UUID) -> list[InventoryMovement]:
         return self.repo.get_movements_by_item(item_id)
+
+    def delete_item(self, item_id: UUID) -> bool:
+        item = self.repo.get_item_by_id(item_id)
+        if not item:
+            return False
+        self.repo.delete_item(item)
+        return True

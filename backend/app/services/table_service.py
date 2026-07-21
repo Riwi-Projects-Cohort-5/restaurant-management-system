@@ -24,6 +24,9 @@ class TableService:
     def get_all(self, skip: int = 0, limit: int = 100) -> list[Table]:
         return self.repo.get_all(skip, limit)
 
+    def get_status_summary(self) -> dict:
+        return self.repo.get_status_summary()
+
     def create(self, number: int, capacity: int, location_id: Optional[UUID] = None) -> Table:
         table = Table(number=number, capacity=capacity, location_id=location_id)
         return self.repo.create(table)

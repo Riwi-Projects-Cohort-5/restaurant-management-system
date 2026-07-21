@@ -1,15 +1,16 @@
 import { createStore } from "./index.js";
 import * as auth from "../services/authService.js";
-import { ROLES } from "../services/mockUsers.js";
+
+const savedUser = auth.getCurrentUser();
 
 const authStore = createStore({
-  user: auth.getCurrentUser(),
-  isAuthenticated: !!auth.getCurrentUser(),
+  user: savedUser,
+  isAuthenticated: !!savedUser,
   error: null,
 });
 
-export function login(username, password) {
-  const result = auth.login(username, password);
+export async function login(username, password) {
+  const result = await auth.login(username, password);
 
   if (result.success) {
     authStore.setState({
@@ -57,26 +58,24 @@ export function canAccess(allowedRoles) {
   return allowedRoles.includes(user.role);
 }
 
-export function addUser(userData) {
-  const currentUser = authStore.getState().user;
-
-  if (!currentUser || currentUser.role !== ROLES.ADMIN) {
+export async function addUser(userData) {
+  const u = authStore.getState().user;
+  if (!u || u.role !== "admin") {
     return { success: false, error: "Only admins can create users" };
   }
-
-  return auth.createUser(userData);
+  return await auth.createUser(userData);
 }
 
-export function removeUser(userId) {
-  return auth.deleteUser(userId);
+export async function removeUser(userId) {
+  return await auth.deleteUser(userId);
 }
 
-export function changeUserRole(userId, newRole) {
-  return auth.updateUserRole(userId, newRole);
+export async function changeUserRole(userId, newRole) {
+  return await auth.updateUserRole(userId, newRole);
 }
 
-export function listUsers() {
-  return auth.getAllUsersSafe();
+export async function listUsers() {
+  return await auth.getAllUsersSafe();
 }
 
 export function subscribe(listener) {

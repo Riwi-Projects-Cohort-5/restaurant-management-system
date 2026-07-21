@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
-from app.db.schemas.reservation import ReservationCreate, ReservationOut, ReservationUpdate
+from app.db.schemas.reservation import ReservationConfirm, ReservationCreate, ReservationOut, ReservationUpdate
 from app.services.reservation_service import ReservationService
 
 router = APIRouter(prefix="/reservations", tags=["Reservations"])
@@ -39,7 +39,7 @@ def obtener_todas_las_reservaciones(
 
 @router.get("/{reservation_id}", response_model=ReservationOut)
 def obtener_reservacion_por_id(
-    reservation_id: UUID,
+    reservation_id: str,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
@@ -65,19 +65,47 @@ def crear_reservacion(
     El user_id se extrae del token JWT del usuario autenticado.
     """
     service = ReservationService(db)
-    # create recibe parámetros separados; user_id viene del token
     return service.create(
-        user_id=UUID(current_user["sub"]),
+        customer_id=None,
         table_id=data.table_id,
         reservation_date=data.reservation_date,
         guest_count=data.guest_count,
+        guest_name=data.guest_name,
+        guest_phone=data.guest_phone,
         notes=data.notes
     )
 
 
+@router.put("/confirm/{reservation_id}", response_model=ReservationOut)
+def confirmar_reservacion(
+    reservation_id: str,
+    data: ReservationConfirm,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """
+    Confirma una reservación y la asocia a una mesa.
+    Cambia la reserva a CONFIRMED y la mesa a RESERVED.
+    """
+    service = ReservationService(db)
+    try:
+        confirmed = service.confirm_with_table(reservation_id, data.table_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
+    if not confirmed:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Reservación con id {reservation_id} no encontrada"
+        )
+    return confirmed
+
+
 @router.put("/{reservation_id}", response_model=ReservationOut)
 def actualizar_reservacion(
-    reservation_id: UUID,
+    reservation_id: str,
     data: ReservationUpdate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
@@ -96,20 +124,24 @@ def actualizar_reservacion(
 
 
 @router.delete("/{reservation_id}", status_code=status.HTTP_204_NO_CONTENT)
-def cancelar_reservacion(
-    reservation_id: UUID,
+def eliminar_reservacion(
+    reservation_id: str,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
     """
-    Cancela una reservación. Requiere autenticación.
-    No elimina el registro — cambia el estado a CANCELLED.
-    Esto preserva el historial de reservaciones.
+    Elimina una reservación permanentemente. Requiere autenticación.
+    Libera la mesa asignada si estaba reservada.
     """
     service = ReservationService(db)
-    # El service usa cancel() en lugar de delete()
-    cancelled = service.cancel(reservation_id)
-    if not cancelled:
+    try:
+        deleted = service.delete(reservation_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
+    if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Reservación con id {reservation_id} no encontrada"

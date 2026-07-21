@@ -1,6 +1,20 @@
-import { tables, areas, allOrders } from "../../store/posData.js";
-import InputField from "../../components/forms/InputField.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
+import {
+  tables,
+  areas,
+  allOrders,
+  loadTables,
+  loadAreas,
+  loadOrders,
+  createOrder,
+  createTable as apiCreateTable,
+  deleteTable as apiDeleteTable,
+  updateTable as apiUpdateTable,
+  createArea as apiCreateArea,
+  deleteArea as apiDeleteArea,
+  updateArea as apiUpdateArea,
+} from "../../store/posData.js";
+import { createReservation } from "../../services/reservationService.js";
+import { getState as getReservationState, loadReservations } from "../../store/reservations.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -23,9 +37,30 @@ const ICON_LIST = [
   "building",
 ];
 
+function getAreaName(areaId) {
+  const a = areas.find(function (x) {
+    return x.id === areaId;
+  });
+  return a ? a.name : "";
+}
+
+function getAreaIcon(areaId) {
+  const a = areas.find(function (x) {
+    return x.id === areaId;
+  });
+  return a ? a.icon : "home";
+}
+
 function getActiveOrderForTable(tableId) {
   return allOrders.find(function (o) {
     return o.table === tableId && o.status !== "completed" && o.status !== "cancelled";
+  });
+}
+
+function getReservationForTable(tableId) {
+  const allRes = getReservationState().reservations || [];
+  return allRes.find(function (r) {
+    return r.tableId === tableId && (r.status === "confirmed" || r.status === "pending");
   });
 }
 
@@ -66,13 +101,18 @@ function renderMain(el) {
     ")</span>";
   html += "</div>";
 
-  html += "</div>";
+  if (selectedTableId) {
+    const st = tables.find(function (t) {
+      return t.id === selectedTableId;
+    });
+    if (st) html += renderTableDetailCard(st);
+  }
 
   const areasToShow =
     currentAreaFilter === "all"
       ? areas
       : areas.filter(function (a) {
-          return a.id === parseInt(currentAreaFilter);
+          return a.id === currentAreaFilter;
         });
   areasToShow.forEach(function (area) {
     html += renderAreaSection(area);
@@ -202,8 +242,14 @@ function renderTableShape(table) {
     " " +
     (statusStyles[table.status] || "") +
     '">';
-  html += '<span class="font-display text-2xl font-bold">' + table.id + "</span>";
+  html += '<span class="font-display text-2xl font-bold">' + table.number + "</span>";
   html += '<span class="text-xs font-semibold">' + table.info + "</span>";
+  if (table.status === "reserved") {
+    const res = getReservationForTable(table.id);
+    if (res && res.guestName) {
+      html += '<span class="text-[11px] font-semibold opacity-80">' + res.guestName + "</span>";
+    }
+  }
   html += '<span class="text-[11px] opacity-70">' + table.seats + " seats</span>";
   if (table.timer) {
     html +=
@@ -215,33 +261,25 @@ function renderTableShape(table) {
   return html;
 }
 
-/* ── Table Detail Sub-view ── */
+/* ── Table Detail Card (inline overlay in main view) ── */
 
-function renderDetail(el, tableId) {
-  const t = tables.find(function (x) {
-    return x.id === tableId;
-  });
-  if (!t) {
-    subView = "main";
-    selectedTableId = null;
-    renderMain(el);
-    return;
-  }
-
+function renderTableDetailCard(t) {
   const order = getActiveOrderForTable(t.id);
+  const badgeHtml = renderBadge(t.status);
 
-  let html = '<div class="space-y-5">';
-
-  html += '<div class="flex items-center justify-between">';
-  html += '<div class="flex items-center gap-3">';
+  let html =
+    '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
   html +=
-    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
-  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.id + "</h2>";
-  html += "</div>";
-  html += renderBadge(t.status);
-  html += "</div>";
+    '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
+  html += '<h3 class="text-base font-semibold text-brand-900 font-display">Table ' + t.number + "</h3>";
+  html += '<div class="flex items-center gap-2">' + badgeHtml;
+  html +=
+    '<button data-action="close-detail" class="w-8 h-8 border border-brand-300 rounded-lg flex items-center justify-center text-brand-500 hover:bg-brand-50 cursor-pointer bg-white"><i data-lucide="x" class="w-4 h-4"></i></button>';
+  html += "</div></div>";
 
-  html += '<div class="grid grid-cols-3 gap-3">';
+  html += '<div class="px-5 py-4">';
+
+  html += '<div class="grid grid-cols-3 gap-3 mb-4">';
   html +=
     '<div class="bg-brand-50 rounded-lg p-3 text-center"><span class="block text-[10px] font-bold text-brand-500 uppercase">Seats</span><span class="text-lg font-bold text-primary-800">' +
     t.seats +
@@ -256,21 +294,180 @@ function renderDetail(el, tableId) {
     "</span></div>";
   html += "</div>";
 
+  if (t.status === "occupied" && order) {
+    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
+    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Active Order #' + order.id + "</h4>";
+    html += '<div class="grid grid-cols-3 gap-3 mb-4">';
+    html +=
+      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Items</div><div class="text-xl font-bold text-brand-900">' +
+      order.items.length +
+      "</div></div>";
+    html +=
+      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Total</div><div class="text-xl font-bold text-brand-900">$' +
+      order.total.toFixed(2) +
+      "</div></div>";
+    html +=
+      '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Time</div><div class="text-xl font-bold text-brand-900">' +
+      (order.time || "\u2014") +
+      "</div></div>";
+    html += "</div>";
+    html += '<div class="flex gap-2 mt-3">';
+    html +=
+      '<button data-action="view-order" data-order-id="' +
+      order.id +
+      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
+    html +=
+      '<button data-action="free-table" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+    html += "</div></div>";
+  } else if (t.status === "occupied") {
+    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
+    html += '<p class="text-center text-neutral-500 text-sm mb-3">No active order found for this table.</p>';
+    html += '<div class="flex gap-2">';
+    html +=
+      '<button data-action="free-table" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+    html += "</div></div>";
+  } else if (t.status === "reserved") {
+    const res = getReservationForTable(t.id);
+    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
+    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Reservation</h4>';
+    if (res) {
+      html += '<div class="bg-accent-50 border border-accent-200 rounded-lg p-3 space-y-1">';
+      html += '<div class="text-sm font-semibold text-accent-800">' + (res.guestName || "Guest") + "</div>";
+      if (res.guestPhone) html += '<div class="text-xs text-accent-600">' + res.guestPhone + "</div>";
+      html += '<div class="text-xs text-accent-600">' + res.date + " at " + res.time + " &middot; " + res.partySize + " guests</div>";
+      html += "</div>";
+      html += '<div class="flex gap-2 mt-3">';
+      html +=
+        '<button data-action="seat-reservation" data-table-id="' + t.id + '" data-reservation-id="' + res.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+      html +=
+        '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+      html += "</div>";
+    } else {
+      html +=
+        '<div class="bg-info-50 border border-info-200 rounded-lg p-3 text-sm text-info-700">Reserved for ' +
+        t.info +
+        "</div>";
+      html += '<div class="flex gap-2 mt-3">';
+      html +=
+        '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+      html +=
+        '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+      html += "</div>";
+    }
+    html += "</div>";
+  } else {
+    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
+    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
+    html += '<div class="flex gap-2">';
+    html +=
+      '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
+    html +=
+      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
+    html +=
+      '<button data-action="reserve" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
+    html += "</div></div>";
+  }
+
+  html += "</div></div>";
+  return html;
+}
+
+function renderBadge(status) {
+  let cls = "bg-secondary-100 text-secondary-700";
+  let dotCls = "bg-secondary-500";
+  let label = status;
+  if (status === "available") {
+    cls = "bg-success-100 text-success-700";
+    dotCls = "bg-success-500";
+    label = "Free";
+  } else if (status === "occupied") {
+    cls = "bg-brand-100 text-brand-700";
+    dotCls = "bg-brand-500";
+    label = "Occupied";
+  } else if (status === "reserved") {
+    cls = "bg-accent-100 text-accent-700";
+    dotCls = "bg-accent-500";
+    label = "Reserved";
+  }
+  return (
+    '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ' +
+    cls +
+    '"><span class="w-1.5 h-1.5 rounded-full ' +
+    dotCls +
+    '"></span> ' +
+    label +
+    "</span>"
+  );
+}
+
+/* ── Table Detail Sub-view ── */
+
+function renderDetail(el) {
+  const t = tables.find(function (x) {
+    return x.id === selectedTableId;
+  });
+  if (!t) {
+    subView = "main";
+    selectedTableId = null;
+    renderMain(el);
+    return;
+  }
+
+  const order = getActiveOrderForTable(t.id);
+
+  let html = "";
+
+  html += '<div class="flex items-center justify-between mb-5">';
+  html += '<div class="flex items-center gap-3">';
+  html +=
+    '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
+  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.number + "</h2>";
+  html += "</div>";
+  html += renderBadge(t.status);
+  html += "</div>";
+
+  const gridCols = t.timer ? "grid-cols-5" : "grid-cols-4";
+  html += '<div class="grid ' + gridCols + ' gap-4 mb-5">';
+  html += renderInfoCard(
+    "Table",
+    '<span class="text-2xl font-bold text-brand-900">' + t.number + "</span>"
+  );
+  html += renderInfoCard(
+    "Area",
+    '<span class="flex items-center justify-center gap-2 text-sm font-semibold text-brand-900"><i data-lucide="' +
+      getAreaIcon(t.area) +
+      '" class="w-4 h-4"></i> ' +
+      getAreaName(t.area) +
+      "</span>"
+  );
+  html += renderInfoCard(
+    "Seats",
+    '<span class="text-2xl font-bold text-brand-900">' + t.seats + "</span>"
+  );
+  html += renderInfoCard(
+    "Status",
+    '<span class="text-2xl font-bold text-brand-900 capitalize">' + t.status + "</span>"
+  );
+  if (t.timer) {
+    html += renderInfoCard(
+      "Time",
+      '<span class="text-2xl font-bold text-brand-900">' + t.timer + "</span>"
+    );
+  }
+  html += "</div>";
+
   if (t.status === "available") {
     html += '<div class="text-center py-10">';
     html +=
       '<div class="w-16 h-16 rounded-full bg-success-100 text-success-600 inline-flex items-center justify-center mb-4"><i data-lucide="check-circle" class="w-8 h-8"></i></div>';
     html += '<h3 class="text-lg text-neutral-800 mb-2">Table is free</h3>';
     html += '<p class="text-neutral-500 mb-6">Ready for new guests</p>';
-    html += '<div class="flex justify-center gap-3">';
     html +=
-      '<button data-action="open-order" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
-    html +=
-      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Reserve</button>';
-    html += "</div></div>";
+      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+    html += "</div>";
   } else if (t.status === "occupied" && order) {
     html +=
-      '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden">';
+      '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
     html +=
       '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
     html += '<h3 class="text-sm font-bold text-brand-800">Active Order #' + order.id + "</h3>";
@@ -312,14 +509,6 @@ function renderDetail(el, tableId) {
         "</td></tr>";
     });
     html += "</tbody></table>";
-    html += '<div class="flex gap-2 mt-4">';
-    html +=
-      '<button data-action="view-order" data-order-id="' +
-      order.id +
-      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
-    html +=
-      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Seat New</button>';
-    html += "</div>";
     html += "</div></div>";
   } else if (t.status === "occupied") {
     html +=
@@ -329,45 +518,45 @@ function renderDetail(el, tableId) {
     html +=
       '<div class="w-16 h-16 rounded-full bg-accent-100 text-accent-600 inline-flex items-center justify-center mb-4"><i data-lucide="clock" class="w-8 h-8"></i></div>';
     html += '<h3 class="text-lg text-neutral-800 mb-2">Reservation at ' + t.info + "</h3>";
-    html += '<p class="text-neutral-500 mb-6">' + t.seats + " seats reserved</p>";
-    html += '<div class="flex justify-center gap-3">';
-    html +=
-      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
-    html +=
-      '<button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
-    html += "</div></div>";
+    html += '<p class="text-neutral-500">' + t.seats + " seats reserved</p>";
+    html += "</div>";
   }
 
-  html += "</div>";
+  let actions = "";
+  if (t.status === "occupied" && order) {
+    actions =
+      '<button data-action="view-order" data-order-id="' +
+      order.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
+  } else if (t.status === "occupied" && !order) {
+    actions =
+      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+  } else if (t.status === "reserved") {
+    actions =
+      '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>';
+    actions +=
+      '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Seat Guests</button>';
+  }
+
+  if (actions) {
+    html +=
+      '<div class="flex gap-5 p-5 bg-brand-50 border-t border-brand-200 rounded-b-xl">' +
+      actions +
+      "</div>";
+  }
+
   el.innerHTML = html;
   window.createIcons();
 }
 
-function renderBadge(status) {
-  let cls = "bg-secondary-100 text-secondary-700";
-  let dotCls = "bg-secondary-500";
-  let label = status;
-  if (status === "available") {
-    cls = "bg-success-100 text-success-700";
-    dotCls = "bg-success-500";
-    label = "Free";
-  } else if (status === "occupied") {
-    cls = "bg-brand-100 text-brand-700";
-    dotCls = "bg-brand-500";
-    label = "Occupied";
-  } else if (status === "reserved") {
-    cls = "bg-accent-100 text-accent-700";
-    dotCls = "bg-accent-500";
-    label = "Reserved";
-  }
+function renderInfoCard(label, valueHtml) {
   return (
-    '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ' +
-    cls +
-    '"><span class="w-1.5 h-1.5 rounded-full ' +
-    dotCls +
-    '"></span> ' +
+    '<div class="bg-white border border-brand-200 rounded-lg p-4 text-center">' +
+    '<div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">' +
     label +
-    "</span>"
+    "</div>" +
+    valueHtml +
+    "</div>"
   );
 }
 
@@ -460,7 +649,7 @@ function renderManageAreas(el) {
             '<span class="inline-flex items-center justify-center w-9 h-9 rounded-md text-[13px] font-bold cursor-default border-2 border-solid ' +
             getTableStatusClasses(t.status) +
             '">' +
-            t.id +
+            t.number +
             "</span>";
           html +=
             '<span class="flex-1 text-sm font-medium text-neutral-700">' +
@@ -509,14 +698,8 @@ function renderManageAreas(el) {
     html += '<option value="' + a.id + '">' + a.name + "</option>";
   });
   html += "</select></label>";
-  html += InputField({
-    id: "new-table-seats",
-    label: "Seats",
-    type: "number",
-    value: "4",
-    min: "1",
-    max: "20",
-  });
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Seats<input type="number" id="new-table-seats" min="1" max="20" value="4" class="w-full border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
     '<button data-action="create-table" class="flex items-center justify-center gap-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Add Table</button>';
   html += "</div></div>";
@@ -525,7 +708,8 @@ function renderManageAreas(el) {
   html +=
     '<div class="px-4 py-3 bg-neutral-50 border-b border-brand-100"><span class="text-xs font-bold text-secondary-600">Add New Area</span></div>';
   html += '<div class="flex flex-col gap-3 p-4">';
-  html += InputField({ id: "new-area-name", label: "Area Name", placeholder: "e.g. Rooftop" });
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Area Name<input type="text" id="new-area-name" placeholder="e.g. Rooftop" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-new-area-icon-picker" class="w-10 h-10 rounded-lg border border-brand-200 flex items-center justify-center cursor-pointer bg-white hover:bg-brand-50"><i data-lucide="' +
     (editingAreaIcon || "home") +
@@ -597,14 +781,46 @@ function renderIconPickerPopup(targetEl, iconName, context, areaId) {
   document.body.appendChild(popup);
   window.createIcons();
 
+  function closePopup() {
+    popup.remove();
+    openPickerAreaId = null;
+    document.removeEventListener("click", closeHandler);
+  }
+
+  var closeHandler = function (e) {
+    if (!popup.contains(e.target)) {
+      closePopup();
+    }
+  };
+
+  popup.addEventListener("click", function (e) {
+    var iconBtn = e.target.closest("[data-icon-pick]");
+    if (!iconBtn) return;
+    e.stopPropagation();
+
+    var iconName2 = iconBtn.getAttribute("data-icon-pick");
+    var pickerCtx = iconBtn.getAttribute("data-picker-context");
+    var ipaid2 = iconBtn.getAttribute("data-area-id");
+
+    closePopup();
+
+    if (pickerCtx === "area" && ipaid2) {
+      var ipa = areas.find(function (a) { return a.id === ipaid2; });
+      if (ipa) ipa.icon = iconName2;
+      editingAreaIcon = iconName2;
+      renderManageAreas(document.getElementById("current-view"));
+    } else if (pickerCtx === "inline" && ipaid2) {
+      var ipa2 = areas.find(function (a) { return a.id === ipaid2; });
+      if (ipa2) ipa2.icon = iconName2;
+      renderInlineAreaForm(ipaid2, "edit");
+    } else if (pickerCtx === "new-area") {
+      editingAreaIcon = iconName2;
+      renderManageAreas(document.getElementById("current-view"));
+    }
+  });
+
   setTimeout(function () {
-    document.addEventListener("click", function closeHandler(e) {
-      if (!popup.contains(e.target)) {
-        popup.remove();
-        openPickerAreaId = null;
-        document.removeEventListener("click", closeHandler);
-      }
-    });
+    document.addEventListener("click", closeHandler);
   }, 0);
 }
 
@@ -628,7 +844,10 @@ function renderInlineAreaForm(areaId, mode) {
 
   let html =
     '<div class="flex gap-3 items-end bg-white border border-brand-300 rounded-xl p-4 shadow-sm mb-4">';
-  html += InputField({ id: "inline-area-name", label: "Name", value: area.name });
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Name<input type="text" id="inline-area-name" value="' +
+    area.name +
+    '" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white" /></label>';
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Icon<button type="button" data-action="open-inline-icon-picker" data-area-id="' +
     areaId +
@@ -653,11 +872,15 @@ function renderInlineAreaForm(areaId, mode) {
 /* ── Event Handling ── */
 
 let eventsAttached = false;
+let _clickHandler = null;
+let _changeHandler = null;
+let _keydownHandler = null;
 
 function setupEvents(el) {
   if (eventsAttached) return;
   eventsAttached = true;
-  el.addEventListener("click", function (e) {
+
+  _clickHandler = async function (e) {
     const target = e.target;
 
     const areaFilter = target.closest("[data-area-filter]");
@@ -672,20 +895,21 @@ function setupEvents(el) {
     }
 
     const tableEl = target.closest("[data-table-id]");
-    if (tableEl && !target.closest('[class*="px-5 pb-5"]')) {
+    if (tableEl && !target.closest('[data-action]') && !target.closest('[class*="px-5 pb-5"]')) {
       e.stopPropagation();
-      const tid = parseInt(tableEl.getAttribute("data-table-id"));
+      const tid = tableEl.getAttribute("data-table-id");
       selectedTableId = tid;
       expandedAreaId = null;
-      subView = "detail";
-      renderWithSkeleton(
-        el,
-        Skeletons.tablesDetail(),
-        function () {
-          renderDetail(el, selectedTableId);
-        },
-        400
-      );
+      subView = "main";
+      renderMain(el);
+      return;
+    }
+
+    const closeDetail = target.closest('[data-action="close-detail"]');
+    if (closeDetail) {
+      e.stopPropagation();
+      selectedTableId = null;
+      renderMain(el);
       return;
     }
 
@@ -708,7 +932,7 @@ function setupEvents(el) {
     const toggleArea = target.closest('[data-action="toggle-area"]');
     if (toggleArea) {
       e.stopPropagation();
-      const aid = parseInt(toggleArea.getAttribute("data-area-id"));
+      const aid = toggleArea.getAttribute("data-area-id");
       expandedAreaId = expandedAreaId === aid ? null : aid;
       renderMain(el);
       return;
@@ -717,7 +941,7 @@ function setupEvents(el) {
     const editInline = target.closest('[data-action="edit-area-inline"]');
     if (editInline) {
       e.stopPropagation();
-      const eaid = parseInt(editInline.getAttribute("data-area-id"));
+      const eaid = editInline.getAttribute("data-area-id");
       renderInlineAreaForm(eaid, "edit");
       return;
     }
@@ -725,7 +949,7 @@ function setupEvents(el) {
     const saveInline = target.closest('[data-action="save-inline-area"]');
     if (saveInline) {
       e.stopPropagation();
-      const said = parseInt(saveInline.getAttribute("data-area-id"));
+      const said = saveInline.getAttribute("data-area-id");
       const sa = areas.find(function (a) {
         return a.id === said;
       });
@@ -751,40 +975,32 @@ function setupEvents(el) {
     const deleteAreaBtn = target.closest('[data-action="delete-area"]');
     if (deleteAreaBtn) {
       e.stopPropagation();
-      const daid = parseInt(deleteAreaBtn.getAttribute("data-area-id"));
+      const daid = deleteAreaBtn.getAttribute("data-area-id");
       const daTables = tables.filter(function (t) {
         return t.area === daid;
       });
       if (daTables.length > 0) return;
-      const daidx = areas.findIndex(function (a) {
-        return a.id === daid;
+      await apiDeleteArea(daid);
+      await loadAreas();
+      currentAreaFilter = "all";
+      expandedAreaId = null;
+      editingAreaId = null;
+      editingAreaIcon = null;
+      openPickerAreaId = null;
+      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
+        p.remove();
       });
-      if (daidx > -1) {
-        areas.splice(daidx, 1);
-        currentAreaFilter = "all";
-        expandedAreaId = null;
-        editingAreaId = null;
-        editingAreaIcon = null;
-        openPickerAreaId = null;
-        document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-          p.remove();
-        });
-        renderManageAreas(el);
-      }
+      renderManageAreas(el);
       return;
     }
 
     const deleteTable = target.closest('[data-action="delete-table"]');
     if (deleteTable) {
       e.stopPropagation();
-      const dtid = parseInt(deleteTable.getAttribute("data-table-id"));
-      const dtidx = tables.findIndex(function (t) {
-        return t.id === dtid;
-      });
-      if (dtidx > -1) {
-        tables.splice(dtidx, 1);
-        renderManageAreas(el);
-      }
+      const dtid = deleteTable.getAttribute("data-table-id");
+      await apiDeleteTable(dtid);
+      await loadTables();
+      renderManageAreas(el);
       return;
     }
 
@@ -799,28 +1015,117 @@ function setupEvents(el) {
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
       });
-      renderWithSkeleton(
-        el,
-        Skeletons.tablesManageAreas(),
-        function () {
-          renderManageAreas(el);
-        },
-        400
-      );
+      renderManageAreas(el);
       return;
     }
 
     const viewOrder = target.closest('[data-action="view-order"]');
     if (viewOrder) {
       e.stopPropagation();
-      document.querySelector('[data-view="pos"]');
+      subView = "detail";
+      renderDetail(el);
+      return;
+    }
+
+    const openOrder = target.closest('[data-action="open-order"]');
+    if (openOrder) {
+      e.stopPropagation();
+      const ooid = openOrder.getAttribute("data-table-id");
+      if (ooid) {
+        await apiUpdateTable(ooid, { status: "occupied" });
+        await loadTables();
+        window._openOrderTableId = ooid;
+      }
+      window.navigate("/pos");
+      return;
+    }
+
+    const seatGuests = target.closest('[data-action="seat-guests"]');
+    if (seatGuests) {
+      e.stopPropagation();
+      const sgid = seatGuests.getAttribute("data-table-id");
+      if (sgid) {
+        await apiUpdateTable(sgid, { status: "occupied" });
+        await loadTables();
+        selectedTableId = sgid;
+        subView = "main";
+        renderMain(el);
+      }
+      return;
+    }
+
+    const seatReservation = target.closest('[data-action="seat-reservation"]');
+    if (seatReservation) {
+      e.stopPropagation();
+      const srid = seatReservation.getAttribute("data-table-id");
+      const sresid = seatReservation.getAttribute("data-reservation-id");
+      if (srid) {
+        await apiUpdateTable(srid, { status: "occupied" });
+        await loadTables();
+        selectedTableId = srid;
+        subView = "main";
+        renderMain(el);
+      }
+      return;
+    }
+
+    const reserveBtn = target.closest('[data-action="reserve"]');
+    if (reserveBtn) {
+      e.stopPropagation();
+      const rid = reserveBtn.getAttribute("data-table-id");
+      if (rid) {
+        const name = prompt("Reservation name:");
+        if (name && name.trim()) {
+          const rt = tables.find(function (tbl) { return tbl.id === rid; });
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const timeStr = now.toTimeString().slice(0, 5);
+          await createReservation({
+            table_id: rid,
+            date: dateStr,
+            time: timeStr,
+            partySize: rt ? rt.seats : 4,
+            notes: "Reserved by " + name.trim(),
+          });
+          await apiUpdateTable(rid, { status: "reserved" });
+          await loadTables();
+          selectedTableId = null;
+          renderMain(el);
+        }
+      }
+      return;
+    }
+
+    const cancelRes = target.closest('[data-action="cancel-reservation"]');
+    if (cancelRes) {
+      e.stopPropagation();
+      const crid = cancelRes.getAttribute("data-table-id");
+      if (crid) {
+        await apiUpdateTable(crid, { status: "available" });
+        await loadTables();
+        selectedTableId = null;
+        renderMain(el);
+      }
+      return;
+    }
+
+    const freeTable = target.closest('[data-action="free-table"]');
+    if (freeTable) {
+      e.stopPropagation();
+      const ftid = freeTable.getAttribute("data-table-id");
+      if (ftid) {
+        await apiUpdateTable(ftid, { status: "available" });
+        await loadTables();
+        selectedTableId = null;
+        renderMain(el);
+      }
       return;
     }
 
     const renameArea = target.closest('[data-action="rename-area"]');
     if (renameArea) {
       e.stopPropagation();
-      const raid = parseInt(renameArea.getAttribute("data-area-id"));
+      const raid = renameArea.getAttribute("data-area-id");
       editingAreaId = raid;
       openPickerAreaId = null;
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
@@ -833,7 +1138,7 @@ function setupEvents(el) {
     const changeIcon = target.closest('[data-action="change-area-icon"]');
     if (changeIcon) {
       e.stopPropagation();
-      const ciid = parseInt(changeIcon.getAttribute("data-area-id"));
+      const ciid = changeIcon.getAttribute("data-area-id");
       const cia = areas.find(function (a) {
         return a.id === ciid;
       });
@@ -856,7 +1161,7 @@ function setupEvents(el) {
     const saveAreaName = target.closest('[data-action="save-area-name"]');
     if (saveAreaName) {
       e.stopPropagation();
-      const said2 = parseInt(saveAreaName.getAttribute("data-area-id"));
+      const said2 = saveAreaName.getAttribute("data-area-id");
       const sa2 = areas.find(function (a) {
         return a.id === said2;
       });
@@ -880,7 +1185,7 @@ function setupEvents(el) {
         return;
       }
       e.stopPropagation();
-      const maid = parseInt(toggleManageArea.getAttribute("data-area-id"));
+      const maid = toggleManageArea.getAttribute("data-area-id");
       expandedAreaId = expandedAreaId === maid ? null : maid;
       editingAreaId = null;
       editingAreaIcon = null;
@@ -895,7 +1200,7 @@ function setupEvents(el) {
     const openInlineIconPicker = target.closest('[data-action="open-inline-icon-picker"]');
     if (openInlineIconPicker) {
       e.stopPropagation();
-      const iiaid = parseInt(openInlineIconPicker.getAttribute("data-area-id"));
+      const iiaid = openInlineIconPicker.getAttribute("data-area-id");
       const iia = areas.find(function (a) {
         return a.id === iiaid;
       });
@@ -921,7 +1226,7 @@ function setupEvents(el) {
       e.stopPropagation();
       const iconName = iconPick.getAttribute("data-icon-pick");
       const pickerContext = iconPick.getAttribute("data-picker-context");
-      const ipaid = parseInt(iconPick.getAttribute("data-area-id"));
+      const ipaid = iconPick.getAttribute("data-area-id");
 
       document.querySelectorAll(".fixed.z-100").forEach(function (p) {
         p.remove();
@@ -951,7 +1256,7 @@ function setupEvents(el) {
     const addTableBtn = target.closest('[data-action="add-table-to-area"]');
     if (addTableBtn) {
       e.stopPropagation();
-      const ataid = parseInt(addTableBtn.getAttribute("data-area-id"));
+      const ataid = addTableBtn.getAttribute("data-area-id");
       const maxTableId = tables.reduce(function (m, t) {
         return Math.max(m, t.id);
       }, 0);
@@ -972,19 +1277,17 @@ function setupEvents(el) {
       e.stopPropagation();
       const areaSelect = document.getElementById("new-table-area");
       const seatsInput = document.getElementById("new-table-seats");
-      const newAreaId = parseInt(areaSelect.value);
+      const newAreaId = areaSelect ? areaSelect.value : null;
       const newSeats = parseInt(seatsInput.value) || 4;
-      const maxId = tables.reduce(function (m, t) {
-        return Math.max(m, t.id);
+      const maxNumber = tables.reduce(function (m, t) {
+        return Math.max(m, t.number || 0);
       }, 0);
-      tables.push({
-        id: maxId + 1,
-        seats: newSeats,
-        area: newAreaId,
-        status: "available",
-        info: "Free",
-        timer: null,
+      await apiCreateTable({
+        number: maxNumber + 1,
+        capacity: newSeats,
+        location_id: newAreaId || null,
       });
+      await loadTables();
       renderManageAreas(el);
       return;
     }
@@ -998,32 +1301,30 @@ function setupEvents(el) {
         if (nameEl) nameEl.focus();
         return;
       }
-      const maxAreaId = areas.reduce(function (m, a) {
-        return Math.max(m, a.id);
-      }, 0);
-      areas.push({ id: maxAreaId + 1, name: name, icon: editingAreaIcon || "home" });
+      await apiCreateArea({ name: name });
+      await loadAreas();
       editingAreaIcon = null;
       renderManageAreas(el);
       return;
     }
-  });
+  };
 
-  el.addEventListener("change", function (e) {
+  el.addEventListener("click", _clickHandler);
+
+  _changeHandler = async function (e) {
     const target = e.target;
     if (target.matches('[data-action="reassign-table"]')) {
-      const tid = parseInt(target.getAttribute("data-table-id"));
-      const newAreaId = parseInt(target.value);
-      const table = tables.find(function (t) {
-        return t.id === tid;
-      });
-      if (table) {
-        table.area = newAreaId;
-        renderManageAreas(el);
-      }
+      const tid = target.getAttribute("data-table-id");
+      const newAreaId = target.value;
+      await apiUpdateTable(tid, { location_id: newAreaId || null });
+      await loadTables();
+      renderManageAreas(el);
     }
-  });
+  };
 
-  el.addEventListener("keydown", function (e) {
+  el.addEventListener("change", _changeHandler);
+
+  _keydownHandler = function (e) {
     if (e.key === "Enter" && e.target.id === "area-name-input") {
       const saveBtn = el.querySelector('[data-action="save-area-name"]');
       if (saveBtn) saveBtn.click();
@@ -1036,32 +1337,24 @@ function setupEvents(el) {
       });
       renderManageAreas(el);
     }
-  });
+  };
+
+  el.addEventListener("keydown", _keydownHandler);
 }
 
 /* ── Export ── */
 
 const TablesView = {
-  render: function (el) {
+  render: async function (el) {
+    await loadAreas();
+    await loadTables();
+    await loadReservations();
+    await loadOrders();
     setupEvents(el);
-    if (subView === "detail" && selectedTableId) {
-      renderWithSkeleton(
-        el,
-        Skeletons.tablesDetail(),
-        function () {
-          renderDetail(el, selectedTableId);
-        },
-        400
-      );
+    if (subView === "detail") {
+      renderDetail(el);
     } else if (subView === "manage-areas") {
-      renderWithSkeleton(
-        el,
-        Skeletons.tablesManageAreas(),
-        function () {
-          renderManageAreas(el);
-        },
-        400
-      );
+      renderManageAreas(el);
     } else {
       renderMain(el);
     }
@@ -1077,7 +1370,16 @@ const TablesView = {
     editingAreaIcon = null;
     openPickerAreaId = null;
     eventsAttached = false;
+    const el = document.getElementById("current-view");
+    if (el) {
+      if (_clickHandler) el.removeEventListener("click", _clickHandler);
+      if (_changeHandler) el.removeEventListener("change", _changeHandler);
+      if (_keydownHandler) el.removeEventListener("keydown", _keydownHandler);
+    }
+    _clickHandler = null;
+    _changeHandler = null;
+    _keydownHandler = null;
   },
 };
 
-export default withLoading(TablesView, Skeletons.tables(), 800);
+export default TablesView;

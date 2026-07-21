@@ -2,19 +2,19 @@ import { createStore } from "./index.js";
 import * as paymentService from "../services/paymentService.js";
 
 const paymentsStore = createStore({
-  payments: paymentService.getAllPayments(),
-  filteredPayments: paymentService.getAllPayments(),
+  payments: [],
+  filteredPayments: [],
   filters: { status: "", search: "", date: "" },
   selectedPayment: null,
   error: null,
 });
 
-export function loadPayments() {
-  const all = paymentService.getAllPayments();
+export async function loadPayments() {
+  const all = await paymentService.getAllPayments();
   paymentsStore.setState({ payments: all, filteredPayments: all });
 }
 
-export function applyFilters({ status, search, date } = {}) {
+export async function applyFilters({ status, search, date } = {}) {
   const current = paymentsStore.getState().filters;
   const filters = {
     status: status !== undefined ? status : current.status,
@@ -22,7 +22,7 @@ export function applyFilters({ status, search, date } = {}) {
     date: date !== undefined ? date : current.date,
   };
 
-  const filtered = paymentService.filterPayments(filters);
+  const filtered = await paymentService.filterPayments(filters);
   paymentsStore.setState({ filters, filteredPayments: filtered });
 }
 
@@ -38,14 +38,14 @@ export function getFilteredPayments() {
   return paymentsStore.getState().filteredPayments;
 }
 
-export function getPaymentById(id) {
-  return paymentService.getPaymentById(id);
+export async function getPaymentById(id) {
+  return await paymentService.getPaymentById(id);
 }
 
-export function refreshPayments() {
-  const all = paymentService.getAllPayments();
+export async function refreshPayments() {
+  const all = await paymentService.getAllPayments();
   const filters = paymentsStore.getState().filters;
-  const filtered = paymentService.filterPayments(filters);
+  const filtered = await paymentService.filterPayments(filters);
   paymentsStore.setState({ payments: all, filteredPayments: filtered });
 }
 

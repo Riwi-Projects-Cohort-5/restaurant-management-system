@@ -1,18 +1,30 @@
 import {
   allOrders,
   menuItems,
+  tables,
+  draftOrders,
+  deleteDraft,
+  getDraftById,
   LIFECYCLE,
   canTransition,
   recalcOrder,
   currentRole,
+  loadOrders,
+  loadMenuItems,
+  loadTables,
+  createOrder,
+  addOrderItem,
+  updateOrderStatus,
+  deleteOrder,
 } from "../../store/posData.js";
-import CartPanel from "../../components/pos/CartPanel.js";
-import { withLoading, renderWithSkeleton, Skeletons } from "../../utils/withLoading.js";
+import CartPanel, { loadDraftItems } from "../../components/pos/CartPanel.js";
+import { exportToCSV } from "../../utils/csvExport.js";
 
 let subView = "orders";
 let activeFilter = "all";
 let selectedOrderId = null;
 let editingOrder = null;
+let _lastContainer = null;
 
 function getFilteredOrders() {
   if (activeFilter === "active")
@@ -65,9 +77,11 @@ function renderOrderList(container) {
 
   html += '<div class="flex items-center justify-between mb-6">';
   html += '<h2 class="text-xl font-bold text-brand-900">Orders</h2>';
-  html +=
-    '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
+  html += '<div class="flex gap-2">';
+  html += '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
+  html += '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
   html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  html += "</div>";
   html += "</div>";
 
   html += '<div class="flex gap-2 mb-5">';
@@ -95,6 +109,26 @@ function renderOrderList(container) {
     '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th><th class="px-4 py-3">Actions</th>';
   html += '</tr></thead><tbody class="divide-y divide-brand-200">';
 
+  draftOrders.forEach(function (draft, i) {
+    const st = statusBadge("draft");
+    const tableNum = draft.table ? tables.find(function(t){ return t.id === draft.table; }) : null;
+    const tableLabel = tableNum ? "Table " + tableNum.number : "No table";
+    html += '<tr class="bg-neutral-50/80 hover:bg-neutral-100 transition-colors">';
+    html += '<td class="px-4 py-3 font-semibold text-neutral-600">#' + draft.id + "</td>";
+    html += '<td class="px-4 py-3">' + tableLabel + "</td>";
+    html += '<td class="px-4 py-3">' + (draft.server || "—") + "</td>";
+    html += '<td class="px-4 py-3">' + draft.items.length + " items</td>";
+    html += '<td class="px-4 py-3 font-semibold text-neutral-700">$' + draft.total.toFixed(2) + "</td>";
+    html += '<td class="px-4 py-3">' + st + "</td>";
+    html += '<td class="px-4 py-3 text-secondary-500">' + draft.time + "</td>";
+    html += '<td class="px-4 py-3"><div class="flex items-center gap-2">';
+    html += '<button data-action="edit-draft" data-draft-id="' + draft.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 hover:text-brand-700 border-0 cursor-pointer" title="Edit"><i data-lucide="pencil" class="w-4 h-4"></i></button>';
+    html += '<button data-action="send-draft" data-draft-id="' + draft.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-success-600 hover:bg-success-50 hover:text-success-700 border-0 cursor-pointer" title="Send to Kitchen"><i data-lucide="send" class="w-4 h-4"></i></button>';
+    html += '<button data-action="delete-draft" data-draft-id="' + draft.id + '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-error-600 hover:text-error-800 hover:bg-error-50 border-0 cursor-pointer" title="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>';
+    html += "</div></td>";
+    html += "</tr>";
+  });
+
   orders.forEach(function (order, i) {
     const bg = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
     const st = statusBadge(order.status);
@@ -105,7 +139,8 @@ function renderOrderList(container) {
       order.status === "draft" && (currentRole === "admin" || order.createdBy === currentRole);
     html += '<tr class="' + bg + ' hover:bg-brand-50 transition-colors">';
     html += '<td class="px-4 py-3 font-semibold text-primary-700">#' + order.id + "</td>";
-    html += '<td class="px-4 py-3">Table ' + order.table + "</td>";
+    var orderTable = order.table ? tables.find(function (t) { return String(t.id) === String(order.table); }) : null;
+    html += '<td class="px-4 py-3">' + (orderTable ? "Table " + orderTable.number : "—") + "</td>";
     html += '<td class="px-4 py-3">' + (order.server || "—") + "</td>";
     html += '<td class="px-4 py-3">' + order.items.length + " items</td>";
     html +=
@@ -160,8 +195,12 @@ function renderNewOrder(container) {
   html += '<h2 class="text-xl font-bold text-brand-900">New Order</h2>';
   html += '<div class="flex items-center gap-3">';
   html += '<span class="text-sm text-secondary-600">Table:</span>';
-  html +=
-    '<button class="inline-flex items-center gap-2 h-8 px-3 rounded-md bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 text-sm font-semibold cursor-pointer"><i data-lucide="square" class="w-4 h-4"></i> Table 5 <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>';
+  html += '<select id="table-select" class="inline-flex items-center gap-2 h-8 px-3 rounded-md bg-white text-brand-700 border border-brand-300 hover:bg-brand-50 text-sm font-semibold cursor-pointer">';
+  html += '<option value="">-- Select Table --</option>';
+  tables.forEach(function (t) {
+    html += '<option value="' + t.id + '">Table ' + t.number + '</option>';
+  });
+  html += '</select>';
   html += "</div></div>";
 
   html += '<div class="flex gap-6 flex-1 min-h-0">';
@@ -308,7 +347,7 @@ function renderOrderDetail(container, orderId) {
 
   html += '<div class="grid grid-cols-3 gap-4 mb-6">';
   const summaryCells = [
-    { label: "Table", value: "Table " + displayOrder.table },
+    { label: "Table", value: (function () { var ot = displayOrder.table ? tables.find(function (t) { return String(t.id) === String(displayOrder.table); }) : null; return ot ? "Table " + ot.number : "—"; })() },
     { label: "Server", value: displayOrder.server || "\u2014" },
     { label: "Placed", value: displayOrder.placedAt || displayOrder.time },
     { label: "Items", value: displayOrder.items.length },
@@ -581,7 +620,7 @@ function renderOrderDetail(container, orderId) {
 }
 
 function setupOrderListEvents(container) {
-  container.addEventListener("click", function (e) {
+  container.addEventListener("click", async function (e) {
     const filterBtn = e.target.closest("[data-filter]");
     if (filterBtn) {
       activeFilter = filterBtn.getAttribute("data-filter");
@@ -594,42 +633,34 @@ function setupOrderListEvents(container) {
     if (newBtn) {
       subView = "new";
       editingOrder = null;
-      renderWithSkeleton(
-        container,
-        Skeletons.newOrder(),
-        function () {
-          renderNewOrder(container);
-        },
-        400
-      );
+      renderNewOrder(container);
+      window.createIcons();
       return;
     }
 
     const detailBtn = e.target.closest('[data-action="view-detail"]');
     if (detailBtn) {
-      const id = parseInt(detailBtn.getAttribute("data-order-id"));
+      const id = detailBtn.getAttribute("data-order-id");
       selectedOrderId = id;
       subView = "detail";
       editingOrder = null;
-      renderWithSkeleton(
-        container,
-        Skeletons.orderDetail(),
-        function () {
-          renderOrderDetail(container, id);
-        },
-        400
-      );
+      renderOrderDetail(container, id);
+      window.createIcons();
       return;
     }
 
     const cancelBtn = e.target.closest('[data-action="cancel-order"]');
     if (cancelBtn) {
-      const cid = parseInt(cancelBtn.getAttribute("data-order-id"));
+      const cid = cancelBtn.getAttribute("data-order-id");
       const order = allOrders.find(function (o) {
         return o.id === cid;
       });
       if (order && canTransition(currentRole, order.status, "cancelled")) {
-        order.status = "cancelled";
+        if (order.fullId) {
+          await updateOrderStatus(order.fullId, "cancelled");
+        } else {
+          order.status = "cancelled";
+        }
         renderOrderList(container);
         window.createIcons();
       }
@@ -638,15 +669,93 @@ function setupOrderListEvents(container) {
 
     const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
-      const did = parseInt(delBtn.getAttribute("data-order-id"));
-      const idx = allOrders.findIndex(function (o) {
-        return o.id === did;
-      });
-      if (idx > -1 && currentRole === "admin") {
-        allOrders.splice(idx, 1);
+      const did = delBtn.getAttribute("data-order-id");
+      if (currentRole === "admin") {
+        const order = allOrders.find(function (o) { return o.id === did; });
+        if (order) {
+          deleteOrder(order.fullId).then(function () {
+            renderOrderList(container);
+            window.createIcons();
+          });
+        }
+      }
+      return;
+    }
+
+    const editDraftBtn = e.target.closest('[data-action="edit-draft"]');
+    if (editDraftBtn) {
+      const draftId = editDraftBtn.getAttribute("data-draft-id");
+      const draft = getDraftById(draftId);
+      if (draft) {
+        deleteDraft(draftId);
+        subView = "new";
+        editingOrder = null;
+        renderNewOrder(container);
+        loadDraftItems(draft.items);
+        if (draft.table) {
+          var tableSelect = document.getElementById("table-select");
+          if (tableSelect) tableSelect.value = draft.table;
+        }
+        window.createIcons();
+      }
+      return;
+    }
+
+    const sendDraftBtn = e.target.closest('[data-action="send-draft"]');
+    if (sendDraftBtn) {
+      const draftId = sendDraftBtn.getAttribute("data-draft-id");
+      const draft = getDraftById(draftId);
+      if (draft && draft.table) {
+        const result = await createOrder(draft.table);
+        if (result.success && result.order) {
+          const orderId = result.order.id;
+          for (const item of draft.items) {
+            await addOrderItem(orderId, item.id, item.qty);
+          }
+        }
+        deleteDraft(draftId);
+        renderOrderList(container);
+        window.createIcons();
+      } else {
+        alert("Draft has no table assigned. Edit it first to assign a table.");
+      }
+      return;
+    }
+
+    const deleteDraftBtn = e.target.closest('[data-action="delete-draft"]');
+    if (deleteDraftBtn) {
+      const draftId = deleteDraftBtn.getAttribute("data-draft-id");
+      if (confirm("Delete this draft?")) {
+        deleteDraft(draftId);
         renderOrderList(container);
         window.createIcons();
       }
+      return;
+    }
+
+    const exportBtn = e.target.closest('[data-action="export-orders-csv"]');
+    if (exportBtn) {
+      const orders = getFilteredOrders();
+      const csvData = orders.map(function (o) {
+        return {
+          "Order ID": "#" + o.id,
+          Table: "Table " + o.table,
+          Server: o.server || "",
+          Items: o.items.length,
+          Total: o.total.toFixed(2),
+          Status: o.status,
+          Time: o.time,
+        };
+      });
+      exportToCSV(csvData, "orders-" + activeFilter, [
+        { key: "Order ID", label: "Order ID" },
+        { key: "Table", label: "Table" },
+        { key: "Server", label: "Server" },
+        { key: "Items", label: "Items" },
+        { key: "Total", label: "Total" },
+        { key: "Status", label: "Status" },
+        { key: "Time", label: "Time" },
+      ]);
       return;
     }
   });
@@ -656,7 +765,7 @@ function setupNewOrderEvents(container) {
   container.addEventListener("click", function (e) {
     const addBtn = e.target.closest('[data-action="add-to-cart"]');
     if (addBtn) {
-      const itemId = parseInt(addBtn.getAttribute("data-item-id"));
+      const itemId = addBtn.getAttribute("data-item-id");
       const item = menuItems.find(function (m) {
         return m.id === itemId;
       });
@@ -700,7 +809,7 @@ function setupNewOrderEvents(container) {
 }
 
 function setupOrderDetailEvents(container, order) {
-  container.addEventListener("click", function (e) {
+  container.addEventListener("click", async function (e) {
     const backBtn = e.target.closest('[data-action="back-to-orders"]');
     if (backBtn) {
       subView = "orders";
@@ -713,12 +822,16 @@ function setupOrderDetailEvents(container, order) {
     const transBtn = e.target.closest('[data-action="transition"]');
     if (transBtn) {
       const target = transBtn.getAttribute("data-target");
-      const oid = parseInt(transBtn.getAttribute("data-order-id"));
+      const oid = transBtn.getAttribute("data-order-id");
       const o = allOrders.find(function (ord) {
         return ord.id === oid;
       });
       if (o && canTransition(currentRole, o.status, target)) {
-        o.status = target;
+        if (o.fullId) {
+          await updateOrderStatus(o.fullId, target);
+        } else {
+          o.status = target;
+        }
         renderOrderDetail(container, oid);
         window.createIcons();
       }
@@ -727,12 +840,16 @@ function setupOrderDetailEvents(container, order) {
 
     const cancelBtn = e.target.closest('[data-action="cancel-order"]');
     if (cancelBtn) {
-      const cid = parseInt(cancelBtn.getAttribute("data-order-id"));
+      const cid = cancelBtn.getAttribute("data-order-id");
       const co = allOrders.find(function (ord) {
         return ord.id === cid;
       });
       if (co && canTransition(currentRole, co.status, "cancelled")) {
-        co.status = "cancelled";
+        if (co.fullId) {
+          await updateOrderStatus(co.fullId, "cancelled");
+        } else {
+          co.status = "cancelled";
+        }
         renderOrderDetail(container, cid);
         window.createIcons();
       }
@@ -741,7 +858,7 @@ function setupOrderDetailEvents(container, order) {
 
     const dropBtn = e.target.closest('[data-action="drop-draft"]');
     if (dropBtn) {
-      const did = parseInt(dropBtn.getAttribute("data-order-id"));
+      const did = dropBtn.getAttribute("data-order-id");
       const didx = allOrders.findIndex(function (o) {
         return o.id === did;
       });
@@ -756,22 +873,23 @@ function setupOrderDetailEvents(container, order) {
 
     const delBtn = e.target.closest('[data-action="delete-order"]');
     if (delBtn) {
-      const delId = parseInt(delBtn.getAttribute("data-order-id"));
-      const delIdx = allOrders.findIndex(function (o) {
-        return o.id === delId;
-      });
-      if (delIdx > -1 && currentRole === "admin") {
-        allOrders.splice(delIdx, 1);
-        subView = "orders";
-        renderOrderList(container);
-        window.createIcons();
+      const delId = delBtn.getAttribute("data-order-id");
+      if (currentRole === "admin") {
+        const order = allOrders.find(function (o) { return o.id === delId; });
+        if (order) {
+          deleteOrder(order.fullId).then(function () {
+            subView = "orders";
+            renderOrderList(container);
+            window.createIcons();
+          });
+        }
       }
       return;
     }
 
     const editBtn = e.target.closest('[data-action="start-edit"]');
     if (editBtn) {
-      const eid = parseInt(editBtn.getAttribute("data-order-id"));
+      const eid = editBtn.getAttribute("data-order-id");
       const eo = allOrders.find(function (o) {
         return o.id === eid;
       });
@@ -833,7 +951,7 @@ function setupOrderDetailEvents(container, order) {
 
     const addEditBtn = e.target.closest('[data-action="add-to-edit-order"]');
     if (addEditBtn && editingOrder) {
-      const itemId = parseInt(addEditBtn.getAttribute("data-item-id"));
+      const itemId = addEditBtn.getAttribute("data-item-id");
       const menuItem = menuItems.find(function (m) {
         return m.id === itemId;
       });
@@ -883,7 +1001,7 @@ function setupOrderDetailEvents(container, order) {
 
     const saveNoteBtn = e.target.closest('[data-action="save-note"]');
     if (saveNoteBtn) {
-      const noteId = parseInt(saveNoteBtn.getAttribute("data-order-id"));
+      const noteId = saveNoteBtn.getAttribute("data-order-id");
       const noteOrder = allOrders.find(function (o) {
         return o.id === noteId;
       });
@@ -899,25 +1017,29 @@ function setupOrderDetailEvents(container, order) {
 }
 
 const PosView = {
-  render: function (el) {
+  render: async function (el) {
+    _lastContainer = el;
+    await loadOrders();
+    await loadMenuItems();
+    await loadTables();
+    const openTableId = window._openOrderTableId;
+    if (openTableId) {
+      window._openOrderTableId = null;
+      subView = "new";
+      editingOrder = null;
+      selectedOrderId = null;
+      renderNewOrder(el);
+      const tableSelect = document.getElementById("table-select");
+      if (tableSelect) {
+        tableSelect.value = openTableId;
+      }
+      window.createIcons();
+      return;
+    }
     if (subView === "new") {
-      renderWithSkeleton(
-        el,
-        Skeletons.newOrder(),
-        function () {
-          renderNewOrder(el);
-        },
-        400
-      );
+      renderNewOrder(el);
     } else if (subView === "detail" && selectedOrderId) {
-      renderWithSkeleton(
-        el,
-        Skeletons.orderDetail(),
-        function () {
-          renderOrderDetail(el, selectedOrderId);
-        },
-        400
-      );
+      renderOrderDetail(el, selectedOrderId);
     } else {
       subView = "orders";
       renderOrderList(el);
@@ -925,10 +1047,23 @@ const PosView = {
   },
   init: function () {
     window.createIcons();
+    this._onCartSent = async function () {
+      if (_lastContainer) {
+        subView = "orders";
+        await loadOrders();
+        renderOrderList(_lastContainer);
+        window.createIcons();
+      }
+    };
+    window.addEventListener("cart:sent", this._onCartSent);
   },
   destroy: function () {
     editingOrder = null;
+    if (this._onCartSent) {
+      window.removeEventListener("cart:sent", this._onCartSent);
+      this._onCartSent = null;
+    }
   },
 };
 
-export default withLoading(PosView, Skeletons.ordersTable(), 800);
+export default PosView;

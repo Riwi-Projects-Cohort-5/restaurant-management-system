@@ -1,54 +1,56 @@
 import { createStore } from "./index.js";
+import { apiGet, apiPut } from "../services/api.js";
 
-const STORAGE_KEY = "restaurant_settings";
-
-const defaults = {
+var defaults = {
   restaurant_name: "El Fogon Caribeno",
-  address: "123 Main Street, San Juan, PR 00901",
-  phone: "+1 787-555-0123",
-  email: "info@elfogon.com",
+  address: "",
+  phone: "",
+  email: "",
   tax_rate: 11.5,
-  currency_symbol: "$",
-  currency_code: "USD",
+  currency: "USD",
 };
 
-function loadFromStorage() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch {
-    // ignore
-  }
-  return null;
-}
-
-function saveToStorage(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-const settingsStore = createStore({
-  settings: loadFromStorage() || defaults,
+var settingsStore = createStore({
+  settings: defaults,
+  loaded: false,
 });
+
+function mapSetting(s) {
+  return {
+    restaurant_name: s.restaurant_name || defaults.restaurant_name,
+    address: s.address || defaults.address,
+    phone: s.phone || defaults.phone,
+    email: s.email || defaults.email,
+    tax_rate: s.tax_rate || defaults.tax_rate,
+    currency: s.currency || defaults.currency,
+  };
+}
+
+export async function loadSettings() {
+  try {
+    const data = await apiGet("/api/v1/settings/");
+    settingsStore.setState({ settings: mapSetting(data), loaded: true });
+  } catch {
+    settingsStore.setState({ loaded: true });
+  }
+}
 
 export function getSettings() {
   return settingsStore.getState().settings;
 }
 
-export function updateSettings(data) {
-  const current = settingsStore.getState().settings;
-  const updated = {};
-  Object.keys(current).forEach(function (key) {
-    updated[key] = data[key] !== undefined ? data[key] : current[key];
-  });
-  settingsStore.setState({ settings: updated });
-  saveToStorage(updated);
+export async function updateSettings(data) {
+  try {
+    const result = await apiPut("/api/v1/settings/", data);
+    settingsStore.setState({ settings: mapSetting(result) });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }
 
 export function resetSettings() {
   settingsStore.setState({ settings: defaults });
-  saveToStorage(defaults);
 }
 
 export function getState() {
