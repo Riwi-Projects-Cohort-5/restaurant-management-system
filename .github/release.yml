@@ -1,24 +1,53 @@
-name-template: "v$RESOLVED_VERSION"
-tag-template: "v$RESOLVED_VERSION"
+# Auto-generated release notes configuration.
+# Used by `release-drafter/release-drafter` in `.github/workflows/release.yml`
+# to classify merged pull requests into categories when publishing a GitHub
+# Release on push to `main`.
+
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+      - docs
+      - dependency
+    authors:
+      - dependabot
+      - renovate-bot
 
 categories:
-  - title: "Bug Fixes"
+  - title: 🚀 Features
     labels:
-      - "fix"
-  - title: "Features"
+      - feature
+      - enhancement
+  - title: 🐛 Bug Fixes
     labels:
-      - "feat"
-  - title: "Chores"
+      - bug
+      - fix
+  - title: 🎨 UI / UX
     labels:
-      - "chore"
-      - "docs"
-      - "style"
-      - "refactor"
-      - "ci"
+      - ui
+      - design
+  - title: ⚡ Performance
+    labels:
+      - performance
+      - perf
+  - title: 📚 Documentation
+    labels:
+      - documentation
+  - title: 🧹 Chores & Refactor
+    labels:
+      - chore
+      - refactor
+      - dependencies
+  - title: 🔒 Security
+    labels:
+      - security
 
+# Default PR label → "Chores & Refactor" bucket when no explicit label is set.
 template: |
-  ## What's Changed
+  ## Changes
 
   $CHANGES
 
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+  ## What's new in $PREVIOUS_TAG
+
+  See the diff between [$PREVIOUS_TAG and $RESOLVED_VERSION](https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION).
