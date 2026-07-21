@@ -655,7 +655,12 @@ function setupDetailEvents(el, itemId) {
       await inventoryStore.refreshItems();
       await renderDetail(el, itemId);
     } else if (action === "delete-item") {
-      if (await confirmModal.show({ title: "Delete Item", message: "Are you sure you want to delete this item?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Item",
+          message: "Are you sure you want to delete this item?",
+        })
+      ) {
         await inventoryService.deleteItem(itemId);
         await inventoryStore.refreshItems();
         subView = "list";

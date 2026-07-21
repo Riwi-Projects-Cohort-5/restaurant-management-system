@@ -712,7 +712,13 @@ function setupOrderListEvents(container) {
         const order = allOrders.find(function (o) {
           return o.id === did;
         });
-        if (order && await confirmModal.show({ title: "Delete Order", message: "Are you sure you want to delete this order?" })) {
+        if (
+          order &&
+          (await confirmModal.show({
+            title: "Delete Order",
+            message: "Are you sure you want to delete this order?",
+          }))
+        ) {
           deleteOrder(order.fullId).then(function () {
             renderOrderList(container);
             window.createIcons();
@@ -918,7 +924,13 @@ function setupOrderDetailEvents(container, order) {
         const order = allOrders.find(function (o) {
           return o.id === delId;
         });
-        if (order && await confirmModal.show({ title: "Delete Order", message: "Are you sure you want to delete this order?" })) {
+        if (
+          order &&
+          (await confirmModal.show({
+            title: "Delete Order",
+            message: "Are you sure you want to delete this order?",
+          }))
+        ) {
           deleteOrder(order.fullId).then(function () {
             subView = "orders";
             renderOrderList(container);

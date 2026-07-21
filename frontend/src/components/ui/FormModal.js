@@ -6,7 +6,13 @@ class FormModal {
     this._container = null;
   }
 
-  show({ title = "Form", fields = [], confirmText = "Save", cancelText = "Cancel", width = 420 } = {}) {
+  show({
+    title = "Form",
+    fields = [],
+    confirmText = "Save",
+    cancelText = "Cancel",
+    width = 420,
+  } = {}) {
     return new Promise((resolve) => {
       this._resolve = resolve;
 

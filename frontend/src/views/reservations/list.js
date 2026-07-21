@@ -556,7 +556,12 @@ function setupEvents(el) {
     if (deleteBtn) {
       e.stopPropagation();
       const deleteId = deleteBtn.getAttribute("data-id");
-      if (await confirmModal.show({ title: "Delete Reservation", message: "Delete this reservation permanently?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Reservation",
+          message: "Delete this reservation permanently?",
+        })
+      ) {
         const result = await reservationService.deleteReservation(deleteId);
         if (result.success) {
           await reservationStore.refreshReservations();
@@ -601,8 +606,7 @@ function setupEvents(el) {
       renderDetail(el);
       return;
     }
-
-    });
+  });
 
   el.addEventListener("input", function (e) {
     if (e.target.id === "res-search") {

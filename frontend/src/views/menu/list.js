@@ -385,7 +385,11 @@ async function renderForm(el, productId) {
     '" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
   html += "</div>";
 
-  html += CheckboxField({ id: "product-available", label: "Available", checked: product && product.available });
+  html += CheckboxField({
+    id: "product-available",
+    label: "Available",
+    checked: product && product.available,
+  });
 
   html += "</div></div></div>";
 
@@ -492,7 +496,12 @@ function setupDetailEvents(el) {
       await menuStore.refreshProducts();
       renderDetail(el, selectedId);
     } else if (action === "delete-product") {
-      if (await confirmModal.show({ title: "Delete Product", message: "Are you sure you want to delete this product?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Product",
+          message: "Are you sure you want to delete this product?",
+        })
+      ) {
         await menuService.deleteProduct(selectedId);
         await menuStore.refreshProducts();
         subView = "list";

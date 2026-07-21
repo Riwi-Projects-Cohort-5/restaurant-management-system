@@ -536,7 +536,12 @@ function setupListEvents(el) {
     } else if (action === "delete-payment") {
       e.stopPropagation();
       const deleteId = btn.dataset.paymentId;
-      if (await confirmModal.show({ title: "Delete Payment", message: "Are you sure you want to delete this payment?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment?",
+        })
+      ) {
         await paymentService.deletePayment(deleteId);
         await paymentsStore.refreshPayments();
         renderList(el);
@@ -588,7 +593,12 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "delete-payment") {
       const deleteId = btn.dataset.paymentId;
-      if (await confirmModal.show({ title: "Delete Payment", message: "Are you sure you want to delete this payment?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Payment",
+          message: "Are you sure you want to delete this payment?",
+        })
+      ) {
         await paymentService.deletePayment(deleteId);
         await paymentsStore.refreshPayments();
         subView = "list";

@@ -154,7 +154,10 @@ function setupCartEvents() {
           refreshCart();
           window.dispatchEvent(new CustomEvent("cart:sent"));
         } else {
-          toast.error("Order Failed", "Failed to create order: " + (result.error || "Unknown error"));
+          toast.error(
+            "Order Failed",
+            "Failed to create order: " + (result.error || "Unknown error")
+          );
           sendBtn.disabled = false;
           sendBtn.textContent = "Send to Kitchen";
         }

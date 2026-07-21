@@ -1046,7 +1046,12 @@ function setupEvents(el) {
         toast.warning("Cannot Delete", "Area has tables. Remove them first.");
         return;
       }
-      if (await confirmModal.show({ title: "Delete Area", message: "Are you sure you want to delete this area?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Area",
+          message: "Are you sure you want to delete this area?",
+        })
+      ) {
         await apiDeleteArea(daid);
         await loadAreas();
         currentAreaFilter = "all";
@@ -1066,7 +1071,12 @@ function setupEvents(el) {
     if (deleteTable) {
       e.stopPropagation();
       const dtid = deleteTable.getAttribute("data-table-id");
-      if (await confirmModal.show({ title: "Delete Table", message: "Are you sure you want to delete this table?" })) {
+      if (
+        await confirmModal.show({
+          title: "Delete Table",
+          message: "Are you sure you want to delete this table?",
+        })
+      ) {
         await apiDeleteTable(dtid);
         await loadTables();
         renderManageAreas(el);
