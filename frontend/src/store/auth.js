@@ -58,6 +58,13 @@ export function canAccess(allowedRoles) {
   return allowedRoles.includes(user.role);
 }
 
+export function setRole(newRole) {
+  const user = authStore.getState().user;
+  if (!user) return;
+  user.role = newRole;
+  authStore.setState({ user: user });
+}
+
 export async function addUser(userData) {
   const u = authStore.getState().user;
   if (!u || u.role !== "admin") {

@@ -14,6 +14,7 @@ import Menu from "./views/menu/list.js";
 import Inventory from "./views/inventory/Inventory.js";
 import Reports from "./views/reports/Reports.js";
 import Settings from "./views/settings/Settings.js";
+import { initRoleSwitcher } from "./components/dev/RoleSwitcher.js";
 
 window.createIcons = function () {
   createIcons({ icons });
@@ -173,7 +174,14 @@ window.navigate = function (path) {
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
     renderView();
+    initRoleSwitcher(authStore);
   });
 } else {
   renderView();
+  initRoleSwitcher(authStore);
 }
+
+window.addEventListener("dev-role-changed", function () {
+  renderView();
+  window.createIcons();
+});
