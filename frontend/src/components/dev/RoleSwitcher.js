@@ -80,20 +80,23 @@ function renderFloatingButton() {
   } else {
     const toggleBtn = document.getElementById("dev-role-toggle");
     if (toggleBtn) {
-      toggleBtn.addEventListener("click", function () {
+      toggleBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
         expanded = true;
         renderFloatingButton();
       });
     }
   }
 
-  document.addEventListener("click", function handleOutside(e) {
-    if (!wrapper.contains(e.target)) {
-      expanded = false;
-      renderFloatingButton();
-      document.removeEventListener("click", handleOutside);
-    }
-  });
+  setTimeout(function () {
+    document.addEventListener("click", function handleOutside(e) {
+      if (!wrapper.contains(e.target)) {
+        expanded = false;
+        renderFloatingButton();
+        document.removeEventListener("click", handleOutside);
+      }
+    });
+  }, 0);
 }
 
 function switchRole(newRole) {
