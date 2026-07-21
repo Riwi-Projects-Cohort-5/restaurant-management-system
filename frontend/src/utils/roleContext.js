@@ -4,6 +4,7 @@ const ROLE_PERMISSIONS = {
   admin: [
     "view:dashboard",
     "view:pos",
+    "view:orders",
     "view:kitchen",
     "view:tables",
     "view:reservations",
@@ -25,12 +26,13 @@ const ROLE_PERMISSIONS = {
   waiter: [
     "view:dashboard",
     "view:pos",
+    "view:orders",
     "view:tables",
     "view:menu",
     "manage:orders",
     "manage:tables",
   ],
-  chef: ["view:kitchen", "view:pos", "view:menu", "manage:orders"],
+  chef: ["view:kitchen", "view:pos", "view:orders", "view:menu", "manage:orders"],
   cashier: ["view:dashboard", "view:payments", "view:menu", "manage:payments"],
 };
 

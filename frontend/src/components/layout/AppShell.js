@@ -57,7 +57,7 @@ const AppShell = {
             label: "POS / Orders",
             path: "/pos",
             badge: "3",
-            roles: ["admin", "waiter"],
+            roles: ["admin", "waiter", "chef"],
           },
           {
             icon: "chef-hat",
