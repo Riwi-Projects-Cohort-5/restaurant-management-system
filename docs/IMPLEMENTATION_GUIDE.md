@@ -1,472 +1,269 @@
-# Guia de Implementacion - Restaurant Management System
+# Frontend Implementation Guide
 
-## Tabla de Contenidos
+How to build and extend a view/module in the SPA. For the architecture overview see [frontend-overview.md](frontend-overview.md). For styling tokens see [ui/design-system/README.md](ui/design-system/README.md).
 
-1. [Arquitectura del Proyecto](#1-arquitectura-del-proyecto)
-2. [Configuracion Inicial](#2-configuracion-inicial)
-3. [Sistema de Autenticacion](#3-sistema-de-autenticacion)
-4. [Sistema de Roles y Permisos](#4-sistema-de-roles-y-permisos)
-5. [Enrutamiento (Router)](#5-enrutamiento-router)
-6. [Crear Nuevas Vistas/Modulos](#6-crear-nuevas-vistasmodulos)
-7. [Estado Global (Store)](#6-estado-global-store)
-8. [Endpoints para Backend](#7-endpoints-para-backend)
+Back to [docs/README.md](README.md).
 
----
-
-## 1. Arquitectura del Proyecto
+## 1. Project architecture
 
 ```
 frontend/
 ├── src/
-│   ├── main.js              # Punto de entrada, enrutador principal
-│   ├── App.js               # (Reservado para configuracion futura)
+│   ├── main.js              # entry — hash router, view map
 │   ├── services/
-│   │   ├── mockUsers.js     # Usuarios demo + localStorage
-│   │   └── authService.js   # Logica de autenticacion
+│   │   ├── api.js           # fetch wrapper, JWT, form-urlencoded login
+│   │   ├── authService.js    # login / register / currentUser / users CRUD
+│   │   └── ...Service.js     # one per backend module
 │   ├── store/
-│   │   ├── index.js         # Sistema de estado reactivo (createStore)
-│   │   └── auth.js          # Estado de autenticacion
+│   │   ├── index.js          # createStore() factory
+│   │   ├── auth.js           # auth state + actions
+│   │   └── posData.js, reservations.js, payments.js, ...
 │   ├── utils/
-│   │   └── routeGuard.js    # Proteccion de rutas por rol
+│   │   ├── routeGuard.js     # ROLE_ACCESS map, isRouteAllowed
+│   │   ├── theme.js          # fogon-theme toggle
+│   │   └── withLoading.js    # skeleton wrapper
+│   ├── components/
+│   │   ├── layout/           # AppShell, Sidebar, Topbar
+│   │   ├── ui/               # Toast, Spinner, Skeleton, modals
+│   │   └── forms/            # InputField, SubmitButton, ...
 │   ├── views/
-│   │   ├── auth/            # Login y Registro
-│   │   ├── dashboard/       # Panel principal
-│   │   ├── inventory/       # Inventario
-│   │   ├── kitchen/         # Cocina
-│   │   ├── menu/            # Menu
-│   │   ├── orders/          # Pedidos
-│   │   ├── payments/        # Pagos
-│   │   ├── reports/         # Reportes
-│   │   ├── reservations/    # Reservaciones
-│   │   ├── settings/        # Configuracion
-│   │   └── tables/          # Mesas
-│   ├── components/          # Componentes reutilizables
-│   ├── router/              # Router (futuro)
-│   └── styles/              # Estilos CSS
-├── package.json
-└── vite.config.js
+│   │   ├── auth/             # Login
+│   │   ├── dashboard/        # Dashboard
+│   │   ├── orders/           # PosView  ← /pos and /orders
+│   │   ├── kitchen/          # Kitchen
+│   │   ├── tables/           # Tables
+│   │   ├── reservations/     # list
+│   │   ├── menu/             # list
+│   │   ├── inventory/        # Inventory
+│   │   ├── payments/         # list
+│   │   ├── reports/          # Reports
+│   │   └── settings/         # Settings
+│   └── styles/app.css        # @theme tokens (light + dark)
+├── package.json              # pnpm, scripts: dev / build / lint / format
+└── vite.config.js            # :3000, /api proxy to :8000
 ```
 
----
+## 2. Run the project
 
-## 2. Configuracion Inicial
-
-### Ejutar el proyecto
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install                 # package manager pinned to pnpm 11.3.0
+pnpm dev                     # http://localhost:3000
+pnpm build
+pnpm preview
 ```
 
-### Dependencias
-- **Vite** ^5.0.0 - Bundler
-- **Tailwind CSS** ^3.4.0 - Estilos
-- No usa frameworks (Vanilla JS + Tailwind)
+### Dependencies
 
----
+- **Vite** 8 — bundler.
+- **Tailwind CSS** 4 — via `@tailwindcss/vite`, CSS-first config.
+- **lucide** 1 — icon set.
+- **chart.js** 4 — used by Reports.
+- No UI framework — Vanilla JS + ES modules.
 
-## 3. Sistema de Autenticacion
+## 3. Roles & permissions
 
-### Flujo de Login
+The backend and the SPA agree on **four roles**:
 
-```
-Usuario ingresa credenciales
-        ↓
-authService.login() busca en localStorage
-        ↓
-Si existe: guarda sesion + retorna usuario
-Si no existe: retorna error
-        ↓
-Store auth.js actualiza estado
-        ↓
-Redirige a ruta segun rol
-```
+| Role | Code | Default route | Routes reachable |
+|---|---|---|---|
+| Administrator | `admin` | `/admin` | all |
+| Waiter | `waiter` | `/orders` | `/orders`, `/pos`, `/tables`, `/menu` |
+| Chef | `chef` | `/kitchen` | `/kitchen`, `/orders`, `/pos`, `/menu` |
+| Cashier | `cashier` | `/payments` | `/payments`, `/menu` |
 
-### Codigo clave
+There is **no `client` role**. Authoritative map lives in `src/utils/routeGuard.js` (`ROLES` and `ROLE_ACCESS`).
 
-**Para hacer login:**
-```javascript
-import * as authStore from './store/auth.js';
+### Login flow
 
-const result = authStore.login(username, password);
-if (result.success) {
-  // Redirigir segun rol
-  window.location.hash = `#${getHomeRoute(result.user.role)}`;
-}
-```
+1. User submits credentials in `views/auth/Login.js`.
+2. `store/auth.js#\`login()\`` calls `services/authService.js#\`login()\`` → `apiLogin` (form-urlencoded) on `POST /api/v1/auth/login`.
+3. Backend returns `{ access_token, token_type }`. Token stored in `localStorage["rms_token"]`.
+4. `authService.login` then calls `GET /api/v1/users/me` and stores the mapped user in `localStorage["rms_session"]` and the `auth` store.
+5. SPA redirects to `getHomeRoute(user.role)`.
 
-**Para verificar sesion:**
-```javascript
+### Usage in components
+
+```js
+import * as authStore from "../store/auth.js";
+
 if (authStore.isAuthenticated()) {
   const user = authStore.currentUser();
   console.log(user.username, user.role);
 }
 ```
 
-**Para cerrar sesion:**
-```javascript
-authStore.logout();
-window.location.hash = '#/login';
-```
+### Role-guard a view
 
----
-
-## 4. Sistema de Roles y Permisos
-
-### Roles disponibles
-
-| Rol | Codigo | Ruta por defecto | Permisos |
-|-----|--------|------------------|----------|
-| Administrador | `admin` | `/admin` | Acceso total, crear usuarios |
-| Cliente | `client` | `/dashboard` | Ver menu, hacer pedidos |
-| Mesero | `waiter` | `/orders` | Gestionar pedidos |
-| Cocinero | `chef` | `/kitchen` | Ver pedidos de cocina |
-| Cajero | `cashier` | `/payments` | Procesar pagos |
-
-### Proteger vistas por rol
-
-**En la vista:**
-```javascript
-import { ROLES } from '../services/mockUsers.js';
+```js
+import { guardRole, ROLES } from "../utils/routeGuard.js";
 
 const user = authStore.currentUser();
-if (user.role !== ROLES.ADMIN) {
-  // Mostrar error de acceso
-  return;
-}
+if (!guardRole(user, [ROLES.ADMIN, ROLES.WAITER])) return; // auto-redirects
 ```
 
-**Usando routeGuard:**
-```javascript
-import { guardRole } from '../utils/routeGuard.js';
+### Logout
 
-const user = authStore.currentUser();
-if (!guardRole(user, [ROLES.ADMIN, ROLES.WAITER])) {
-  return; // Redirige automaticamente si no tiene permiso
-}
+```js
+authStore.logout();           // clears token + session + store
+window.location.hash = "#/login";
 ```
 
-### Acceso a rutas (configurado en routeGuard.js)
+## 4. Routing
 
-```javascript
-const ROLE_ACCESS = {
-  "/admin": [ROLES.ADMIN],
-  "/dashboard": [ROLES.ADMIN, ROLES.CLIENT],
-  "/orders": [ROLES.ADMIN, ROLES.WAITER],
-  "/kitchen": [ROLES.ADMIN, ROLES.CHEF],
-  "/payments": [ROLES.ADMIN, ROLES.CASHIER],
-  "/menu": ["*"],  // Todos los roles
+`main.js` keeps a `routes` object — **not a switch** — and listens to `hashchange`:
+
+```js
+const routes = {
+  "/login":     { view: Login,        shell: false, auth: false },
+  "/dashboard": { view: Dashboard,    shell: true,  auth: true },
+  "/pos":       { view: PosView,      shell: true,  auth: true },
+  // ...
 };
 ```
 
----
+- `shell: true` renders the AppShell first; the view mounts inside `#main-content`.
+- View modules expose `render(el)` (may return a Promise) and optionally `init()` and `destroy()`.
 
-## 5. Enrutamiento (Router)
+### Add a new route
 
-### Como funciona
+1. Create `src/views/new-page/NewPage.js` exporting `render`, `init`, `destroy`.
+2. Import the module in `main.js`.
+3. Add a row to `routes`.
+4. Add the path to `ROLE_ACCESS` in `routeGuard.js` so the guard knows who can see it.
+5. Add the menu item to `NAV_SECTIONS` in `components/layout/AppShell.js` if it should appear in the sidebar.
 
-El sistema usa **hash routing** (`#/login`, `#/dashboard`, etc.)
+```js
+// main.js
+import NewPage from "./views/new-page/NewPage.js";
 
-**Archivo:** `src/main.js`
-
-```javascript
-function route() {
-  const hash = window.location.hash || "#/login";
-  const path = hash.replace("#", "");
-  
-  // Si no esta autenticado y no es login, ir a login
-  if (!authStore.isAuthenticated() && path !== "/login") {
-    window.location.hash = "#/login";
-    return;
-  }
-  
-  // Switch con las rutas
-  switch (path) {
-    case "/login":
-      renderLogin(app);
-      break;
-    case "/admin":
-      renderRegister(app);
-      break;
-    // ... mas rutas
-  }
-}
-
-window.addEventListener("hashchange", route);
-route(); // Ejecutar al cargar
+const routes = {
+  // ...
+  "/new-page": { view: NewPage, shell: true, auth: true },
+};
 ```
 
-### Agregar una ruta nueva
-
-1. Crear la vista en `views/nueva-vista/`
-2. Importar en `main.js`
-3. Agregar case en el switch
-
-```javascript
-// En main.js
-import { renderNuevaVista } from './views/nueva-vista/index.js';
-
-// Dentro del switch
-case "/nueva-vista":
-  renderNuevaVista(app);
-  break;
+```js
+// routeGuard.js
+const ROLE_ACCESS = {
+  // ...
+  "/new-page": [ROLES.ADMIN, ROLES.WAITER],
+};
 ```
 
----
+## 5. Views — minimal template
 
-## 6. Crear Nuevas Vistas/Modulos
+`src/views/my-module/MyModule.js`:
 
-### Plantilla basica de vista
+```js
+import * as authStore from "../../store/auth.js";
+import { guardRole, ROLES } from "../../utils/routeGuard.js";
+import { showToast } from "../../components/ui/ToastManager.js";
+import { Skeletons, withLoading } from "../../utils/withLoading.js";
 
-Crear archivo: `src/views/mi-modulo/index.js`
-
-```javascript
-import * as authStore from '../../store/auth.js';
-import { ROLES } from '../../services/mockUsers.js';
-
-export function renderMiModulo(container) {
-  // 1. Verificar permisos
+export async function render(container) {
   const user = authStore.currentUser();
-  if (!user) {
-    window.location.hash = '#/login';
-    return;
-  }
-  
-  // 2. Renderizar HTML
-  container.innerHTML = `
-    <div class="min-h-screen bg-gray-50">
-      <nav class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between h-16">
-            <div class="flex items-center">
-              <h1 class="text-xl font-bold text-gray-900">Mi Modulo</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm text-gray-600">
-                ${user.username}
-                <span class="ml-1 inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
-                  ${user.role}
-                </span>
-              </span>
-              <button id="logout-btn" class="rounded-md bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200">
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-      <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <!-- CONTENIDO AQUI -->
-        <div id="content">
-          <!-- Formularios, tablas, etc. -->
-        </div>
-      </main>
-    </div>
-  `;
-  
-  // 3. Agregar event listeners
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    authStore.logout();
-    window.location.hash = '#/login';
-  });
+  if (!guardRole(user, [ROLES.ADMIN])) return;
+
+  container.innerHTML = Skeletons.list({ title: "My module" });
+
+  // fetch data...
+  // container.innerHTML = real markup
+  // attach event listeners
+}
+
+export function init() {
+  // runs after render(); good place to bind DOM events
+}
+
+export function destroy() {
+  // runs before the view unmounts; remove listeners and timers
 }
 ```
 
-### Registrar en el router
+## 6. State store
 
-**En `src/main.js`:**
+A tiny observable factory in `store/index.js`:
 
-```javascript
-// Arriba del archivo, importar
-import { renderMiModulo } from './views/mi-modulo/index.js';
+```js
+import { createStore } from "../store/index.js";
 
-// En el switch de la funcion route()
-case "/mi-modulo":
-  renderMiModulo(app);
-  break;
+const store = createStore({ items: [], loading: false, error: null });
+store.getState();
+store.setState({ loading: true });                 // merge
+store.setState((s) => ({ items: [...s.items, x] }));
+const off = store.subscribe((next, prev) => { /* ... */ });
+off();
 ```
 
----
+Existing module stores: `auth`, `posData`, `reservations`, `payments`, `reports`, `inventory`, `menu`, `settings`.
 
-## 7. Estado Global (Store)
+## 7. Services → backend
 
-### Como funciona el store
+All HTTP calls go through `services/api.js`:
 
-El store es un sistema reactivo simple:
+| Export | Use |
+|---|---|
+| `apiGet(path)` | GET `/api/v1/...` with Bearer auto-attached. |
+| `apiPost(path, body)` | JSON POST. |
+| `apiPut(path, body)` | JSON PUT. |
+| `apiDelete(path)` | DELETE. |
+| `apiLogin(username, password)` | `application/x-www-form-urlencoded` POST to `/api/v1/auth/login`. |
+| `getToken / setToken / removeToken` | low-level token access. |
 
-```javascript
-import { createStore } from './store/index.js';
+401 responses auto-clear the token and redirect to `#/login`. Non-2xx responses throw an `Error` with the backend's `detail` message (the SPA surfaces it via toast).
 
-// Crear store
-const miStore = createStore({
-  items: [],
-  loading: false,
-  error: null
-});
+Create new service modules as thin wrappers — never call `fetch` directly from components.
 
-// Obtener estado
-const state = miStore.getState();
+## 8. Forms & feedback
 
-// Actualizar estado
-miStore.setState({ loading: true });
+| What | Where | How |
+|---|---|---|
+| Input field | `components/forms/InputField.js` | `inputField({ id, label, type, value, ... })`. |
+| Password input | `components/forms/PasswordToggle.js` | adds show/hide toggle. |
+| Checkbox | `components/forms/CheckboxField.js` | |
+| Submit button (with spinner) | `components/forms/SubmitButton.js` | `initSubmitButton(form, onSubmit)`. |
+| Toast | `components/ui/ToastManager.js` | `showToast({ type, message })`. Types: `success / error / warning / info`. |
+| Skeleton on view load | `utils/withLoading.js` | `withLoading(renderFn, Skeletons.xxx)` or `renderWithSkeleton()`. |
+| Dev role switcher | `components/dev/RoleSwitcher.js` | dev-only, convenient for testing role guard. |
 
-// Suscribirse a cambios
-const unsubscribe = miStore.subscribe((newState, prevState) => {
-  console.log('Estado cambio:', newState);
-});
+## 9. Adding a module end-to-end
 
-// Cancelar suscripcion
-unsubscribe();
-```
+| Step | Where |
+|---|---|
+| 1. Backend model + migration | `backend/app/db/models/*.py`, `alembic/versions/00N_*.py` |
+| 2. Backend schemas | `backend/app/db/schemas/*.py` |
+| 3. Backend repository | `backend/app/repositories/*.py` |
+| 4. Backend service | `backend/app/services/*.py` |
+| 5. Backend router | `backend/app/api/v1/*.py`, register in `router.py` |
+| 6. Frontend service | `frontend/src/services/newThingService.js` |
+| 7. Frontend store (if needed) | `frontend/src/store/newThing.js` |
+| 8. Frontend view | `frontend/src/views/new-thing/NewThing.js` |
+| 9. Register route | `main.js` (import + `routes`) |
+| 10. Guard it | `routeGuard.js` (`ROLE_ACCESS`) |
+| 11. Sidebar entry | `AppShell.js` (`NAV_SECTIONS`) |
+| 12. (optional) Modal/skeleton | `components/ui/*` or `utils/withLoading.js` |
 
-### Store de autenticacion (referencia)
+## 10. Demo users — gone
 
-**Ubicacion:** `src/store/auth.js`
+The old `{role}123` hardcoded users (`usr_001 admin`, etc.) were used by the mock-only prototype. They do **not** exist against the live backend. Create the first admin through `POST /api/v1/auth/register` (currently public) and additional users through the same endpoint (when called by an authenticated admin) or via the Users view reachable from `/admin`. Demo seed users may be added via `python -m app.db.seed` on the backend; see [USER_CREDENTIALS.md](USER_CREDENTIALS.md).
 
-Funciones disponibles:
-- `login(username, password)` - Iniciar sesion
-- `logout()` - Cerrar sesion
-- `currentUser()` - Obtener usuario actual
-- `isAuthenticated()` - Verificar si esta autenticado
-- `hasRole(...roles)` - Verificar roles
-- `canAccess(allowedRoles)` - Verificar acceso a ruta
-- `addUser(userData)` - Crear usuario (solo admin)
-- `removeUser(userId)` - Eliminar usuario
-- `changeUserRole(userId, newRole)` - Cambiar rol
-- `listUsers()` - Listar usuarios (sin passwords)
-- `subscribe(listener)` - Suscribirse a cambios
-
----
-
-## 8. Endpoints para Backend
-
-Cuando se implemente el backend, estos son los endpoints necesarios:
-
-### Autenticacion
-
-```javascript
-// POST /auth/login
-// Body: { username: string, password: string }
-// Response: { success: boolean, user?: object, error?: string }
-
-// POST /auth/logout
-// Response: { success: boolean }
-
-// GET /auth/me
-// Response: { user: object } (requiere token)
-```
-
-### Usuarios (solo admin)
-
-```javascript
-// GET /auth/users
-// Response: { users: array } (sin passwords)
-
-// POST /auth/register
-// Body: { username, email, password, role }
-// Response: { success: boolean, user?: object, error?: string }
-
-// PUT /auth/users/:id
-// Body: { role?: string }
-// Response: { success: boolean, user?: object, error?: string }
-
-// DELETE /auth/users/:id
-// Response: { success: boolean, error?: string }
-```
-
-### Modelo de Usuario
-
-```javascript
-{
-  id: "usr_001",           // string unico
-  username: "admin",       // string unico
-  email: "admin@restaurant.com",  // string unico
-  password: "hashed...",   // NUNCA en texto plano en BD
-  role: "admin",           // enum: admin|client|waiter|chef|cashier
-  createdAt: "ISO8601",    // fecha creacion
-  updatedAt: "ISO8601"     // fecha actualizacion (opcional)
-}
-```
-
-### Reglas de negocio
-
-1. **Username unico** - No duplicados
-2. **Email unico** - No duplicados
-3. **Minimo 1 admin** - No se puede eliminar el ultimo admin
-4. **Password minimo 6 caracteres**
-5. **Solo admin puede crear usuarios**
-6. **Password hasheado** - Usar bcrypt o argon2
-
----
-
-## 9. Modulos Pendientes de Implementar
-
-Cada modulo sigue la misma estructura:
-
-| Modulo | Ruta | Rol Principal | Descripcion |
-|--------|------|---------------|-------------|
-| Menu | `/menu` | Todos | Ver/ gestionar platos |
-| Mesas | `/tables` | admin, waiter | Estado de mesas |
-| Pedidos | `/orders` | admin, waiter | Crear/gestionar pedidos |
-| Cocina | `/kitchen` | admin, chef | Ver pedidos pendientes |
-| Pagos | `/payments` | admin, cashier | Procesar cobros |
-| Inventario | `/inventory` | admin | Stock de ingredientes |
-| Reservaciones | `/reservations` | admin, client | Reservar mesas |
-| Reportes | `/reports` | admin | Estadisticas |
-| Configuracion | `/settings` | admin | Ajustes del sistema |
-
----
-
-## 10. Checklist para Implementar un Modulo
-
-- [ ] Crear carpeta en `views/nombre-modulo/`
-- [ ] Crear archivo `index.js` con funcion `renderNombreModulo(container)`
-- [ ] Verificar autenticacion al inicio de la vista
-- [ ] Verificar permisos/roles si es necesario
-- [ ] Usar Tailwind CSS para estilos
-- [ ] Agregar ruta en `main.js` (import + switch case)
-- [ ] Agregar acceso en `routeGuard.js` (si es necesario)
-- [ ] Crear servicio en `services/` si necesita llamadas API
-- [ ] Crear store en `store/` si necesita estado local
-
----
-
-## 11. Usuarios Demo
-
-| Usuario | Contrasena | Rol |
-|---------|------------|-----|
-| admin | admin123 | admin |
-| client | client123 | client |
-| waiter | waiter123 | waiter |
-| chef | chef123 | chef |
-| cashier | cashier123 | cashier |
-
-**Nota:** Los passwords son `{rol}123` - Solo para desarrollo.
-
----
-
-## 12. Comandos Utiles
+## 11. Useful commands
 
 ```bash
-# Instalar dependencias
-npm install
-
-# Ejecutar en desarrollo
-npm run dev
-
-# Build para produccion
-npm run build
-
-# Preview de produccion
-npm run preview
+pnpm install          # install deps
+pnpm dev              # dev server with HMR
+pnpm build            # production bundle in dist/
+pnpm preview          # serve dist/
+pnpm lint             # eslint src/
+pnpm lint:fix         # eslint --fix
+pnpm format           # prettier write
+pnpm format:check     # prettier check
 ```
 
----
+## 12. Security notes for contributors
 
-## Notas para el Equipo Backend
-
-1. **Sesiones:** Actualmente usa localStorage. En produccion usar JWT
-2. **Passwords:** Siempre hashear con bcrypt/argon2
-3. **Rate limiting:** Implementar en endpoint de login
-4. **CORS:** Configurar para el dominio del frontend
-5. **Validaciones:** Replicar las validaciones del frontend en el backend
+- JWT token lives in `localStorage` (XS-leak risk in production — track future migration to `HttpOnly` cookies).
+- Never write passwords back into `mock*.js` or any service file.
+- `Register` is open today only so the first admin can boot — flag this before going to production.
+- Enforce role checks at the backend (`Depends(get_current_user)` + role guard) too — the frontend guard is UX only.

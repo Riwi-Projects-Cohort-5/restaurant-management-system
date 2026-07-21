@@ -1,190 +1,199 @@
-# Documentación Técnica — Backend
-## Restaurant Management System
+# Backend Technical Documentation — Restaurant Management System
 
-**Responsable del módulo:** Diego  
-**Fecha:** Julio 2026  
-**Versión:** 1.1.0
+Back to [docs/README.md](../README.md).
 
----
-
-## 1. Descripción General
-
-El backend del **Restaurant Management System** es una API REST que gestiona la operación completa de un restaurante. Cubre desde la gestión de mesas y reservaciones, hasta el procesamiento de pedidos, cocina, inventario, pagos y reportes.
-
-La API está construida siguiendo una arquitectura en capas que separa responsabilidades: presentación (endpoints), lógica de negocio (services), acceso a datos (repositories) y modelos de base de datos.
+**Module owner:** Diego  
+**Updated:** July 2026  
+**Version:** 1.2.0
 
 ---
 
-## 2. Tecnologías Utilizadas
+## 1. Overview
 
-| Tecnología | Versión | Propósito |
+The backend of the **Restaurant Management System** is a REST API built with FastAPI that manages the full restaurant operation: tables and reservations, ordering, kitchen workflow, payments, inventory, reports, and system settings.
+
+The API follows a four-layer architecture separating presentation (endpoints), business logic (services), data access (repositories) and persistence (models + database).
+
+> For the canonical, compact endpoint table see [api-reference.md](../api-reference.md). For architecture diagrams see [architecture.md](../architecture.md). This document focuses on narrative + examples.
+
+---
+
+## 2. Tech stack
+
+| Technology | Version | Purpose |
 |---|---|---|
-| **Python** | 3.13 | Lenguaje principal del backend |
-| **FastAPI** | 0.139.0 | Framework para construir la API REST |
-| **SQLAlchemy** | 2.0.48 | ORM para interactuar con la base de datos |
-| **PostgreSQL** | — | Base de datos relacional principal |
-| **Pydantic** | 2.13.3 | Validación de datos de entrada y salida |
-| **Alembic** | 1.18.4 | Migraciones de base de datos |
-| **JWT (python-jose)** | 3.5.0 | Autenticación mediante tokens |
-| **Passlib + bcrypt** | 1.7.4 / 4.0.1 | Hash seguro de contraseñas |
-| **Docker + Compose** | — | Contenedorización y orquestación de servicios |
-| **Uvicorn** | 0.51.0 | Servidor ASGI para correr FastAPI |
+| Python | 3.13 | Main language |
+| FastAPI | 0.139.0 | REST framework |
+| SQLAlchemy | 2.0.48 | ORM |
+| PostgreSQL | 16 | Relational database |
+| Pydantic | 2.13.3 (v2) | Validation |
+| Alembic | 1.18.4 | Migrations |
+| python-jose | 3.5.0 | JWT |
+| Passlib + bcrypt | 1.7.4 / 4.0.1 | Password hashing |
+| Docker + Compose | — | Containerization |
+| Uvicorn | 0.51.0 | ASGI server |
 
-### ¿Por qué FastAPI?
+### Why FastAPI
 
-FastAPI fue elegido por tres razones principales:
+1. Performance — among the fastest Python frameworks.
+2. Automatic OpenAPI documentation at `/docs`.
+3. Integrated Pydantic validation.
 
-1. **Rendimiento:** Es uno de los frameworks Python más rápidos disponibles, comparable a Node.js.
-2. **Documentación automática:** Genera una interfaz Swagger UI en `/docs` que permite probar todos los endpoints sin herramientas externas.
-3. **Validación integrada:** Usa Pydantic para validar automáticamente los datos de entrada, reduciendo código repetitivo.
+### Why PostgreSQL
 
-### ¿Por qué PostgreSQL?
-
-PostgreSQL fue elegido porque el sistema maneja relaciones complejas entre entidades (mesas → reservaciones → pedidos → pagos), y su soporte robusto para llaves foráneas, transacciones y tipos de datos avanzados lo hace ideal para este caso de uso.
+The system models complex relations (tables → reservations → orders → payments → reporting) and benefits from PostgreSQL's strong foreign keys, transactions and Date/Time types.
 
 ---
 
-## 3. Arquitectura del Proyecto
-
-El backend sigue una arquitectura de **4 capas desacopladas**:
+## 3. Project architecture
 
 ```
-Cliente (HTTP Request)
+Client (HTTP request)
         ↓
 ┌─────────────────────┐
-│   API / Endpoints   │  ← Recibe la petición, valida con schemas
+│   API / Endpoints   │  ← validates input via Pydantic schemas
 │   (app/api/v1/)     │
 └─────────────────────┘
         ↓
 ┌─────────────────────┐
-│      Services       │  ← Aplica la lógica de negocio
+│      Services       │  ← business rules
 │   (app/services/)   │
 └─────────────────────┘
         ↓
 ┌─────────────────────┐
-│    Repositories     │  ← Consulta la base de datos
+│    Repositories     │  ← SQLAlchemy queries
 │  (app/repositories/)│
 └─────────────────────┘
         ↓
 ┌─────────────────────┐
-│   Models / DB       │  ← Tablas de PostgreSQL via SQLAlchemy
+│   Models / DB       │  ← PostgreSQL tables
 │   (app/db/)         │
 └─────────────────────┘
 ```
 
-Esta separación permite que cada capa pueda modificarse sin afectar a las demás.
+Each layer can evolve without leaking into the others.
 
 ---
 
-## 4. Instalación y Ejecución
+## 4. Installation
 
-### Requisitos previos
+### Requirements
 
 - Python 3.13+
-- Docker Desktop instalado y en ejecución
+- Docker Desktop running
 - Git
 
-### Pasos
+### Steps
 
-**1. Clonar el repositorio:**
 ```bash
-git clone <url-del-repositorio>
-cd restaurant-management-system-1
-```
+# 1. Clone
+git clone <repo-url>
+cd restaurant-management-system
 
-**2. Levantar la base de datos con Docker:**
-```bash
+# 2. Start PostgreSQL
 docker-compose up -d
-```
 
-**3. Instalar dependencias:**
-```bash
+# 3. Backend
 cd backend
 pip install -r requirements.txt
-```
+cp .env.example .env       # set SECRET_KEY
+alembic upgrade head        # apply migrations
 
-**4. Iniciar el servidor:**
-```bash
+# 4. Run
 python -m uvicorn app.main:app --reload
-```
 
-**5. Acceder a la documentación interactiva:**
-```
-http://127.0.0.1:8000/docs
+# 5. Swagger UI
+open http://127.0.0.1:8000/docs
 ```
 
 ---
 
-## 5. Autenticación
+## 5. Authentication
 
-La API usa autenticación basada en **JWT (JSON Web Tokens)**.
+JWT (JSON Web Tokens) using the OAuth2 password flow with HS256. Tokens last 30 minutes (configurable via `ACCESS_TOKEN_EXPIRE_MINUTES`).
 
-### Flujo de autenticación
+### Flow
 
-1. El cliente registra un usuario en `POST /api/v1/auth/register`
-2. El cliente inicia sesión en `POST /api/v1/auth/login` y recibe un `access_token`
-3. Para acceder a endpoints protegidos, el token debe enviarse en el header:
+1. Client registers a user via `POST /api/v1/auth/register` (currently public — used to bootstrap the first admin).
+2. Client logs in via `POST /api/v1/auth/login` and receives `access_token`.
+3. Subsequent requests include the header `Authorization: Bearer <access_token>`.
 
+Endpoints marked 🔒 need this header. Public endpoints ignore it.
+
+### Login request — **form-urlencoded**
+
+The login endpoint uses FastAPI's `OAuth2PasswordRequestForm`, NOT a JSON body. Send the credentials as `application/x-www-form-urlencoded`:
+
+```http
+POST /api/v1/auth/login HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+
+username=admin&password=your-strong-password
 ```
-Authorization: Bearer <access_token>
-```
 
-Los endpoints marcados con 🔒 requieren este token. Los endpoints públicos no requieren autenticación.
+Response:
 
----
-
-## 6. Endpoints
-
-Todos los endpoints están bajo el prefijo `/api/v1/`.
-
----
-
-### 🔐 Auth — Autenticación
-
-| Método | Ruta | Descripción | Auth |
-|---|---|---|---|
-| POST | `/api/v1/auth/register` | Registra un nuevo usuario | Público |
-| POST | `/api/v1/auth/login` | Inicia sesión y retorna token JWT | Público |
-
-**Ejemplo — Registro:**
 ```json
-POST /api/v1/auth/register
+{ "access_token": "eyJhbGciOi...", "token_type": "bearer" }
+```
+
+### Register request — JSON
+
+```http
+POST /api/v1/auth/register HTTP/1.1
+Content-Type: application/json
+
 {
   "username": "diego",
   "email": "diego@restaurante.com",
-  "password": "contraseña123",
+  "password": "password123",
   "full_name": "Diego Pérez",
   "role": "waiter"
 }
 ```
 
-**Roles disponibles:** `waiter`, `admin`, `kitchen`
+### Roles
+
+Four roles, enforced by SQLAlchemy enum on the `users` table:
+
+| Code | Role |
+|---|---|
+| `admin` | Administrator — full access, can create users. |
+| `waiter` | Takes orders, manages assigned tables. |
+| `chef` | Kitchen visibility and status updates. |
+| `cashier` | Processes payments. |
+
+> There is **no `client` or `kitchen` role** in the backend. Customers do not authenticate during the MVP.
 
 ---
 
-### 👤 Users — Usuarios
+## 6. Endpoints
 
-| Método | Ruta | Descripción | Auth |
+All endpoints are under `/api/v1/`. The complete table is in [api-reference.md](../api-reference.md). Below are the highlights with examples.
+
+### Auth
+
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/users/` | Lista todos los usuarios | 🔒 |
-| GET | `/api/v1/users/me` | Retorna el usuario autenticado actual | 🔒 |
-| GET | `/api/v1/users/{user_id}` | Retorna un usuario por ID | 🔒 |
-| PUT | `/api/v1/users/{user_id}` | Actualiza datos de un usuario | 🔒 |
-| DELETE | `/api/v1/users/{user_id}` | Elimina un usuario | 🔒 |
+| POST | `/auth/login` | public | Authenticate, get JWT (form-urlencoded). |
+| POST | `/auth/register` | public | Register a user (JSON). |
 
----
+### Users
 
-### 🏷️ Categories — Categorías
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/categories/` | Lista todas las categorías | Público |
-| GET | `/api/v1/categories/{category_id}` | Retorna una categoría por ID | Público |
-| POST | `/api/v1/categories/` | Crea una nueva categoría | 🔒 |
-| PUT | `/api/v1/categories/{category_id}` | Actualiza una categoría | 🔒 |
-| DELETE | `/api/v1/categories/{category_id}` | Elimina una categoría | 🔒 |
+| GET | `/users/` | 🔒 | List all users. |
+| GET | `/users/me` | 🔒 | Current authenticated user. |
+| GET | `/users/{user_id}` | 🔒 | Get one. |
+| PUT | `/users/{user_id}` | 🔒 | Update a user. |
+| DELETE | `/users/{user_id}` | 🔒 | Delete a user. |
 
-**Ejemplo — Crear categoría:**
+### Categories
+
+Full CRUD. `GET /` and `GET /{id}` are public; writes require 🔒.
+
+Example — create:
+
 ```json
 POST /api/v1/categories/
 {
@@ -193,200 +202,218 @@ POST /api/v1/categories/
 }
 ```
 
----
+### Locations
 
-### 🪑 Tables — Mesas
+Full CRUD. Provides physical zones to group tables (Terraza, Interior, VIP, …).
 
-| Método | Ruta | Descripción | Auth |
+### Tables
+
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/tables/` | Lista todas las mesas | Público |
-| GET | `/api/v1/tables/available` | Lista mesas disponibles | Público |
-| GET | `/api/v1/tables/{table_id}` | Retorna una mesa por ID | Público |
-| POST | `/api/v1/tables/` | Crea una nueva mesa | 🔒 |
-| PUT | `/api/v1/tables/{table_id}` | Actualiza datos o estado de una mesa | 🔒 |
-| DELETE | `/api/v1/tables/{table_id}` | Elimina una mesa | 🔒 |
+| GET | `/tables/` | public | List. |
+| GET | `/tables/available` | public | Available only. |
+| GET | `/tables/status` | public | Aggregated status summary. |
+| GET | `/tables/{table_id}` | public | Get one. |
+| POST | `/tables/` | 🔒 | Create. |
+| PUT | `/tables/{table_id}` | 🔒 | Update data or status. |
+| DELETE | `/tables/{table_id}` | 🔒 | Delete. |
 
-**Estados de mesa:** `available`, `reserved`, `occupied`
+Table statuses: `available`, `occupied`, `reserved`, `maintenance`.
 
----
+### Reservations
 
-### 📅 Reservations — Reservaciones
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/reservations/` | Lista todas las reservaciones | 🔒 |
-| GET | `/api/v1/reservations/{reservation_id}` | Retorna una reservación por ID | 🔒 |
-| POST | `/api/v1/reservations/` | Crea una nueva reservación | 🔒 |
-| PUT | `/api/v1/reservations/{reservation_id}` | Actualiza una reservación | 🔒 |
-| DELETE | `/api/v1/reservations/{reservation_id}` | Cancela una reservación | 🔒 |
+| GET | `/reservations/` | 🔒 | List. |
+| GET | `/reservations/{id}` | 🔒 | Get one. |
+| POST | `/reservations/` | 🔒 | Create. |
+| PUT | `/reservations/{id}` | 🔒 | Update. |
+| PUT | `/reservations/confirm/{id}` | 🔒 | Confirm a pending reservation. |
+| DELETE | `/reservations/{id}` | 🔒 | Cancel. |
 
-**Estados de reservación:** `pending`, `confirmed`, `cancelled`
+Reservation statuses: `pending`, `confirmed`, `cancelled`, `completed`. Reservations support walk-in guests via `guest_name` / `guest_phone` (no `customer_id` needed).
 
-**Ejemplo — Crear reservación:**
+Example — create:
+
 ```json
 POST /api/v1/reservations/
 {
-  "table_id": "uuid-de-la-mesa",
+  "table_id": "uuid-of-table",
   "reservation_date": "2026-07-20T19:00:00",
   "guest_count": 4,
+  "guest_name": "Carlos Ramírez",
+  "guest_phone": "+57 310 555 1234",
   "notes": "Mesa cerca de la ventana"
 }
 ```
 
----
+### Menu
 
-### 🍽️ Menu — Menú
+Public reads, locked writes. `GET /available` and `GET /category/{category_id}` are filters.
 
-| Método | Ruta | Descripción | Auth |
+### Orders
+
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/menu/` | Lista todos los items del menú | Público |
-| GET | `/api/v1/menu/available` | Lista solo items disponibles | Público |
-| GET | `/api/v1/menu/{item_id}` | Retorna un item por ID | Público |
-| GET | `/api/v1/menu/category/{category_id}` | Filtra items por categoría | Público |
-| POST | `/api/v1/menu/` | Crea un nuevo item en el menú | 🔒 |
-| PUT | `/api/v1/menu/{item_id}` | Actualiza un item del menú | 🔒 |
-| DELETE | `/api/v1/menu/{item_id}` | Elimina un item del menú | 🔒 |
+| GET | `/orders/` | 🔒 | List. |
+| GET | `/orders/active` | 🔒 | Active orders. |
+| GET | `/orders/{order_id}` | 🔒 | Get one. |
+| POST | `/orders/` | 🔒 | Create. |
+| POST | `/orders/{order_id}/items` | 🔒 | Add an item line. |
+| PUT | `/orders/{order_id}/status` | 🔒 | Update order status. |
+| DELETE | `/orders/{order_id}` | 🔒 | Cancel / delete. |
 
----
+Order statuses: `pending`, `in_progress`, `completed`, `cancelled`.
 
-### 📋 Orders — Pedidos
+Example — create order:
 
-| Método | Ruta | Descripción | Auth |
-|---|---|---|---|
-| GET | `/api/v1/orders/` | Lista todos los pedidos | 🔒 |
-| GET | `/api/v1/orders/active` | Lista pedidos activos | 🔒 |
-| GET | `/api/v1/orders/{order_id}` | Retorna un pedido por ID | 🔒 |
-| POST | `/api/v1/orders/` | Crea un nuevo pedido | 🔒 |
-| POST | `/api/v1/orders/{order_id}/items` | Agrega un item a un pedido | 🔒 |
-| PUT | `/api/v1/orders/{order_id}/status` | Actualiza el estado del pedido | 🔒 |
-
-**Estados de pedido:** `pending`, `ready`, `paid`
-
-**Ejemplo — Crear pedido:**
 ```json
 POST /api/v1/orders/
-{
-  "table_id": "uuid-de-la-mesa"
-}
+{ "table_id": "uuid-of-table" }
 ```
 
-**Ejemplo — Agregar item:**
+Example — add item:
+
 ```json
 POST /api/v1/orders/{order_id}/items
 {
-  "menu_item_id": "uuid-del-item",
+  "menu_item_id": "uuid-of-item",
   "quantity": 2
 }
 ```
 
----
+### Kitchen
 
-### 👨‍🍳 Kitchen — Cocina
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/kitchen/` | Lista órdenes pendientes e in-progress | 🔒 |
-| GET | `/api/v1/kitchen/pending` | Lista órdenes pendientes | 🔒 |
-| GET | `/api/v1/kitchen/in-progress` | Lista órdenes en preparación | 🔒 |
-| GET | `/api/v1/kitchen/order/{order_id}` | Órdenes de cocina de un pedido | 🔒 |
-| GET | `/api/v1/kitchen/{kitchen_order_id}` | Retorna una orden de cocina por ID | 🔒 |
-| PUT | `/api/v1/kitchen/{kitchen_order_id}/status` | Actualiza estado de cocina | 🔒 |
+| GET | `/kitchen/` | 🔒 | All pending + in-progress kitchen lines. |
+| GET | `/kitchen/pending` | 🔒 | Pending only. |
+| GET | `/kitchen/in-progress` | 🔒 | In-progress only. |
+| GET | `/kitchen/order/{order_id}` | 🔒 | Lines for an order. |
+| GET | `/kitchen/{kitchen_order_id}` | 🔒 | One kitchen order. |
+| PUT | `/kitchen/{kitchen_order_id}/status` | 🔒 | Update status. |
 
-**Estados de cocina:** `pending`, `in_progress`, `ready`
+Kitchen line statuses: `pending`, `preparing`, `ready`, `delivered`.
 
----
+### Inventory
 
-### 📦 Inventory — Inventario
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/inventory/` | Lista todo el inventario | 🔒 |
-| GET | `/api/v1/inventory/low-stock` | Lista items con stock bajo | 🔒 |
-| GET | `/api/v1/inventory/{item_id}` | Retorna un item por ID | 🔒 |
-| POST | `/api/v1/inventory/` | Registra un nuevo item | 🔒 |
-| PUT | `/api/v1/inventory/{item_id}` | Actualiza un item | 🔒 |
-| POST | `/api/v1/inventory/{item_id}/movements` | Registra movimiento de stock | 🔒 |
+| GET | `/inventory/` | 🔒 | List items. |
+| GET | `/inventory/low-stock` | 🔒 | Items below `min_stock`. |
+| GET | `/inventory/{item_id}` | 🔒 | Get one. |
+| POST | `/inventory/` | 🔒 | Create. |
+| PUT | `/inventory/{item_id}` | 🔒 | Update. |
+| POST | `/inventory/{item_id}/movements` | 🔒 | Register a movement. |
+| DELETE | `/inventory/{item_id}` | 🔒 | Delete. |
 
-**Tipos de movimiento:** `in` (entrada), `out` (salida)
+Movement types: `in` (restock) and `out` (consumption).
 
----
+### Payments
 
-### 💳 Payments — Pagos
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/payments/` | Lista todos los pagos | 🔒 |
-| GET | `/api/v1/payments/{payment_id}` | Retorna un pago por ID | 🔒 |
-| GET | `/api/v1/payments/order/{order_id}` | Retorna el pago de un pedido | 🔒 |
-| POST | `/api/v1/payments/` | Registra un nuevo pago | 🔒 |
+| GET | `/payments/` | 🔒 | List. |
+| GET | `/payments/order/{order_id}` | 🔒 | Find by order. |
+| GET | `/payments/{payment_id}` | 🔒 | Get one. |
+| POST | `/payments/` | 🔒 | Create. |
+| PUT | `/payments/{payment_id}` | 🔒 | Update (e.g. complete, refund). |
+| DELETE | `/payments/{payment_id}` | 🔒 | Delete. |
 
-**Ejemplo — Registrar pago:**
+Payment methods: `cash`, `card`, `transfer`. Payment statuses: `pending`, `completed`, `refunded`, `failed`.
+
+Example — register payment:
+
 ```json
 POST /api/v1/payments/
 {
-  "order_id": "uuid-del-pedido",
+  "order_id": "uuid-of-order",
   "amount": 45000,
   "method": "cash"
 }
 ```
 
----
+### Reports
 
-### 📊 Reports — Reportes
-
-| Método | Ruta | Descripción | Auth |
+| Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/reports/sales` | Reporte de ventas por rango de fechas | 🔒 |
-| GET | `/api/v1/reports/products` | Productos más vendidos | 🔒 |
+| GET | `/reports/sales` | 🔒 | Sales by date range. |
+| GET | `/reports/products` | 🔒 | Best-selling products. |
+| GET | `/reports/daily-sales` | 🔒 | Daily sales series. |
+| GET | `/reports/today-stats` | 🔒 | Today's aggregate stats. |
 
-**Ejemplo de uso:**
-```
+Example:
+
+```http
 GET /api/v1/reports/sales?start_date=2026-07-01T00:00:00&end_date=2026-07-15T23:59:59
 ```
 
----
+### Settings
 
-## 7. Códigos de Respuesta HTTP
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| GET | `/settings/` | public | Read restaurant settings. |
+| PUT | `/settings/` | 🔒 | Update restaurant settings. |
 
-| Código | Significado | Cuándo ocurre |
-|---|---|---|
-| 200 | OK | Solicitud exitosa |
-| 201 | Created | Recurso creado exitosamente |
-| 204 | No Content | Eliminación exitosa |
-| 401 | Unauthorized | Token inválido o ausente |
-| 404 | Not Found | Recurso no encontrado |
-| 422 | Unprocessable Entity | Datos de entrada inválidos |
-| 500 | Internal Server Error | Error interno del servidor |
+The single `Setting` row stores `restaurant_name`, `address`, `phone`, `email`, `tax_rate`, `currency` — see [database-guide.md](../database-guide.md#settings--setting).
 
 ---
 
-## 8. Flujo Operativo del Sistema
+## 7. HTTP status codes
 
-```
-Cliente reserva mesa → Mesa: RESERVED
-        ↓
-Cliente llega → Mesa: OCCUPIED
-        ↓
-Mesero crea pedido → Order: PENDING
-        ↓
-Inventario se descuenta automáticamente
-        ↓
-Pedido llega a cocina → Kitchen: PENDING → IN_PROGRESS → READY
-        ↓
-Mesero entrega → Cliente consume
-        ↓
-Cajero registra pago → Order: PAID
-        ↓
-Mesa vuelve a: AVAILABLE → Datos alimentan Reportes
-```
-
----
-
-## 9. Endpoints Base del Servidor
-
-| Ruta | Descripción |
+| Code | Meaning |
 |---|---|
-| `GET /` | Confirma que el servidor está corriendo |
-| `GET /health` | Verificación de salud del servidor |
-| `GET /docs` | Documentación interactiva Swagger UI |
-| `GET /openapi.json` | Esquema OpenAPI en formato JSON |
+| 200 | OK |
+| 201 | Created |
+| 204 | No Content (successful delete) |
+| 401 | Unauthorized — invalid or missing token |
+| 403 | Forbidden — inactive user or insufficient role |
+| 404 | Not Found |
+| 422 | Unprocessable Entity (Pydantic validation) |
+| 500 | Internal Server Error |
+
+Errors return `{"detail": "message"}`.
+
+---
+
+## 8. Operational flow
+
+```
+Customer reserves a table → Table.status = RESERVED
+        ↓
+Customer arrives → Table.status = OCCUPIED
+        ↓
+Waiter creates order → Order.status = PENDING, kitchen lines created
+        ↓
+Kitchen cooks → KitchenOrder.status: PENDING → PREPARING → READY
+        ↓
+Waiter delivers → KitchenOrder.status = DELIVERED
+        ↓
+Cashier registers payment → Payment.status = COMPLETED, Order.status = COMPLETED
+        ↓
+Table returns to AVAILABLE; data feeds /reports/*
+```
+
+---
+
+## 9. Server base endpoints
+
+| Path | Auth | Description |
+|---|---|---|
+| `GET /` | public | Server banner. |
+| `GET /health` | public | Health check (Docker / monitoring). |
+| `GET /docs` | public | Swagger UI. |
+| `GET /redoc` | public | ReDoc UI. |
+| `GET /openapi.json` | public | Raw OpenAPI schema. |
+
+---
+
+## 10. Not exposed yet
+
+These models exist in the database and have services/repositories but **no router** so far:
+
+- `suppliers`, `purchases`, `purchase_details` — supplier purchase orders.
+- `recipes` — bill-of-materials mapping menu items to inventory items.
+- `customers` — referenced by reservations but not directly CRUD'd yet.
+
+When routes are added, update [api-reference.md](../api-reference.md) and this document.

@@ -1,6 +1,6 @@
 # UI Feedback System
 
-Branch `Its-JrDev/feature/ui-feedback-system`. Three vanilla JS systems for loading states and user feedback.
+Three vanilla JS systems for loading states and user feedback, now merged into `develop`.
 
 | System | Purpose | Files |
 |--------|---------|-------|

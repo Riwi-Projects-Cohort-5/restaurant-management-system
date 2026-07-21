@@ -1,105 +1,123 @@
-# Documentación general del backend
+# Backend Overview
 
-## Tabla de contenido
-1. Introducción
-2. Objetivo del documento
-3. Alcance del sistema
-4. Arquitectura general
-5. Módulos funcionales
-6. Tecnologías utilizadas
-7. Flujo de una solicitud
-8. Estructura del proyecto
-9. Buenas prácticas de desarrollo
-10. Conclusiones
+Back to [docs/README.md](README.md).
 
-## 1. Introducción
-El backend del sistema de gestión del restaurante es la capa responsable de procesar la lógica de negocio, exponer servicios a través de una API y coordinar la interacción con la base de datos. Su propósito es permitir la gestión integral de operaciones diarias del restaurante, tales como autenticación de usuarios, manejo de mesas, reservas, pedidos, pagos, inventario y reportes.
+## 1. Purpose
 
-## 2. Objetivo del documento
-Este documento tiene como finalidad describir de forma formal la arquitectura, los componentes y el funcionamiento general del backend del proyecto. También sirve como referencia técnica para comprender cómo está organizado el sistema y cómo se integran sus diferentes capas.
+The backend is a FastAPI REST API that powers the Restaurant Management System. It exposes endpoints for authentication, users, tables, reservations, menu, orders, kitchen workflow, inventory, payments, reports, settings and the supporting lookup tables (categories, locations).
 
-## 3. Alcance del sistema
-El backend está diseñado para cubrir los procesos principales de operación de un restaurante, incluyendo:
+## 2. Tech stack
 
-- autenticación y control de acceso
-- administración de usuarios
-- gestión de mesas y reservas
-- administración del menú
-- creación y seguimiento de pedidos
-- procesamiento de pagos
-- control de inventario
-- gestión de cocina
-- generación de reportes
+| Technology | Version | Role |
+|---|---|---|
+| Python | 3.13 | Language |
+| FastAPI | 0.139.0 | Web framework |
+| SQLAlchemy | 2.0.48 | ORM |
+| Alembic | 1.18.4 | Schema migrations |
+| Pydantic | 2.13.3 (v2) | Input/output validation |
+| python-jose | 3.5.0 | JWT |
+| Passlib + bcrypt | 1.7.4 / 4.0.1 | Password hashing |
+| PostgreSQL | — | Primary database |
+| Uvicorn | 0.51.0 | ASGI server |
+| Docker + Compose | — | Local + production containerisation |
 
-## 4. Arquitectura general
-El backend sigue una arquitectura modular y por capas, lo que permite separar claramente responsabilidades y facilitar el mantenimiento del sistema. Su estructura general se organiza de la siguiente manera:
+## 3. Layered architecture
 
-- app/main.py: punto de entrada de la aplicación
-- app/api/: definición de rutas y endpoints expuestos por la API
-- app/core/: configuración, seguridad y utilidades compartidas
-- app/db/: conexión a la base de datos, modelos ORM y esquemas Pydantic
-- app/repositories/: acceso a datos y operaciones de persistencia
-- app/services/: lógica de negocio y validaciones del sistema
-- app/utils/: funciones auxiliares reutilizables
+See [architecture.md](architecture.md) for the diagram and request flow. Four decoupled layers:
 
-Esta organización permite que cada capa cumpla una función específica, reduciendo la complejidad del código y facilitando su evolución.
+1. **Endpoints** — `app/api/v1/*.py` — receive HTTP, validate via Pydantic, return JSON.
+2. **Services** — `app/services/*.py` — business rules (uniqueness, status transitions, totals, stock moves).
+3. **Repositories** — `app/repositories/*.py` — the only place SQLAlchemy queries live.
+4. **Models + DB** — `app/db/models/*.py`, `app/db/database.py` — declarative ORM, session factory.
 
-## 5. Módulos funcionales
-El sistema está dividido en módulos funcionales que responden a las necesidades del negocio del restaurante:
+Shared dependencies live in `app/core/`:
 
-- Auth: autenticación de usuarios y gestión de sesiones
-- Users: administración de personal y perfiles del sistema
-- Locations: gestión de ubicaciones del restaurante
-- Inventory: manejo de stock e inventario
-- Kitchen: procesamiento de órdenes y seguimiento de cocina
-- Menu: administración de categorías y productos del menú
-- Orders: creación, actualización y gestión de pedidos
-- Payments: registro y procesamiento de pagos
-- Reservations: administración de reservas
-- Tables: control de mesas y su disponibilidad
-- Reports: generación de reportes y análisis operativos
+- `config.py` — Settings via Pydantic Settings, reads `.env`. `SECRET_KEY` is mandatory.
+- `security.py` — JWT encode/decode, bcrypt verify/hash.
+- `dependencies.py` — `get_current_user` FastAPI dependency (OAuth2 Bearer).
 
-## 6. Tecnologías utilizadas
-El backend utiliza un conjunto de herramientas modernas y ampliamente adoptadas:
+## 4. Routers mounted at `/api/v1`
 
-- Python como lenguaje principal
-- FastAPI para el desarrollo de la API REST
-- SQLAlchemy como ORM para la interacción con PostgreSQL
-- Pydantic para validación de datos de entrada y salida
-- PostgreSQL como motor de base de datos relacional
-- Docker y Docker Compose para contenedorización del entorno
+The main router (`app/api/router.py`) includes **14 routers**:
 
-## 7. Flujo de una solicitud
-Un flujo típico de una petición dentro del sistema sigue este recorrido:
+| # | Module | Prefix | Public endpoints | Protected |
+|---|---|---|---|---|
+| 1 | auth | `/auth` | `POST /login`, `POST /register` | — |
+| 2 | users | `/users` | — | all |
+| 3 | categories | `/categories` | `GET /` , `GET /{id}` | create/update/delete |
+| 4 | locations | `/locations` | all | all |
+| 5 | tables | `/tables` | `GET /` , `/available` , `/{id}` , `/status` | create/update/delete |
+| 6 | reservations | `/reservations` | — | all |
+| 7 | menu | `/menu` | all `GET` | create/update/delete |
+| 8 | orders | `/orders` | — | all |
+| 9 | kitchen | `/kitchen` | — | all |
+| 10 | inventory | `/inventory` | — | all |
+| 11 | payments | `/payments` | — | all |
+| 12 | reports | `/reports` | — | all |
+| 13 | settings | `/settings` | `GET /` | `PUT /` |
+| 14 | (root) | — | `GET /` , `GET /health` | — |
 
-1. El cliente envía una solicitud a una ruta de la API.
-2. La ruta delega la tarea al servicio correspondiente.
-3. El servicio ejecuta la lógica de negocio necesaria.
-4. El repositorio interactúa con la base de datos mediante SQLAlchemy.
-5. El resultado se transforma en un modelo de respuesta y se devuelve al cliente.
+For the full route table with request/response shapes, see [api-reference.md](api-reference.md). For narrative explanations + examples, see [backend/endpoints/DOCUMENTACION_BACKEND.md](backend/endpoints/DOCUMENTACION_BACKEND.md).
 
-Este modelo de flujo permite mantener el código ordenado y facilita la incorporación de nuevas funcionalidades sin afectar directamente otras capas.
+> Public/Protected column reflects the actual `Depends(get_current_user)` usage in `v1/*.py` as of this writing. Some "public" reads may be locked down in a future release.
 
-## 8. Estructura del proyecto
-La organización del proyecto responde a una separación clara entre responsabilidades:
+## 5. Models currently exposed
 
-- La capa de API expone los servicios del sistema.
-- La capa de servicios contiene la lógica de negocio.
-- La capa de repositorios encapsula las operaciones de acceso a datos.
-- La capa de modelos define las entidades del sistema.
-- La capa de esquemas valida y estructura las entradas y salidas.
+These tables exist in the database (driven by SQLAlchemy models in `app/db/models/`):
 
-Esta estructura mejora la mantenibilidad, la prueba del sistema y la colaboración entre desarrolladores.
+`User`, `Customer`, `Location`, `Table`, `Reservation`, `Category`, `MenuItem`, `Order`, `OrderItem`, `Payment`, `InventoryItem`, `InventoryMovement`, `KitchenOrder`, `Setting`, `Supplier`, `Purchase`, `PurchaseDetail`, `Recipe`.
 
-## 9. Buenas prácticas de desarrollo
-Para mantener el backend escalable y fácil de mantener, se recomienda seguir estas prácticas:
+The full schema and relationships are documented in [database-guide.md](database-guide.md).
 
-- mantener la separación entre API, servicios y repositorios
-- evitar lógica de negocio en las rutas directamente
-- usar modelos y esquemas para validar datos de forma consistente
-- documentar cambios en la estructura de la base de datos
-- mantener la base de datos alineada con los modelos del backend
-- escribir pruebas cuando sea posible para garantizar estabilidad del sistema
+## 6. Models without routers yet
 
-## 10. Conclusiones
-El backend del proyecto está diseñado como una solución modular, clara y extensible para cubrir las necesidades operativas de un restaurante. Gracias a su arquitectura por capas, su integración con PostgreSQL y su enfoque en la separación de responsabilidades, el sistema es adecuado para crecer y evolucionar conforme se agregan nuevas funciones o módulos.
+`Supplier`, `Purchase`, `PurchaseDetail`, `Recipe` and `Customer` have models + repositories + services, but **no router** exposes them yet. They are tracked in `app/db/models/__init__.py` and ready to be surfaced when purchase-orders and customer-facing features land.
+
+## 7. Configuration
+
+| Variable | Source | Required | Notes |
+|---|---|---|---|
+| `DATABASE_URL` | `.env` | No | Defaults to `postgresql://postgres:postgres@localhost:5432/restaurant_db`. |
+| `SECRET_KEY` | `.env` | **Yes** | Used for JWT HS256. App refuses to boot without it. |
+| `ALGORITHM` | `.env` | No | Default `HS256`. |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `.env` | No | Default 30. |
+| `API_V1_PREFIX` | `.env` | No | Default `/api/v1`. |
+| `PROJECT_NAME` | `.env` | No | Default "Restaurant Management System". |
+
+Copy `backend/.env.example` to `backend/.env` and set `SECRET_KEY` before running.
+
+## 8. Running locally
+
+```bash
+# 1. Start PostgreSQL
+docker-compose up -d
+
+# 2. Backend
+cd backend
+pip install -r requirements.txt
+cp .env.example .env        # set SECRET_KEY
+alembic upgrade head         # apply migrations
+uvicorn app.main:app --reload
+
+# 3. Browse the Swagger UI
+open http://localhost:8000/docs
+```
+
+## 9. Tests
+
+```bash
+cd backend
+pytest       # all tests under tests/
+pytest tests/test_health.py    # single file
+```
+
+Existing tests: `test_health.py`, `test_models.py`, `test_locations.py`, `test_tables_location.py`, plus `conftest.py` fixtures.
+
+## 10. Good practices
+
+- Keep endpoints thin — no business logic in `api/v1/*.py`.
+- Always validate inputs through Pydantic schemas in `db/schemas/`.
+- Use the repository for any SQL access; services must not run raw queries.
+- When you add or rename a model, write an Alembic migration under `alembic/versions/` and update `database-guide.md`.
+- Hash passwords with `security.hash_password` — never store plaintext.
+- Return errors via `HTTPException(status_code=..., detail=...)` so `frontend/src/services/api.js` can surface them.

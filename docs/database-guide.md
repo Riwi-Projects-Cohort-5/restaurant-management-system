@@ -1,135 +1,308 @@
-# Documentación de la base de datos
+# Database Guide
 
-## Tabla de contenido
-1. Introducción
-2. Objetivo del documento
-3. Tecnologías y entorno
-4. Estructura general del modelo de datos
-5. Descripción de tablas principales
-6. Relaciones entre entidades
-7. Flujo operativo del sistema
-8. Scripts de inicialización
-9. Principios de diseño
-10. Convenciones y buenas prácticas
-11. Conclusiones
+Back to [docs/README.md](README.md).
 
-## 1. Introducción
-La base de datos del sistema de gestión del restaurante constituye el componente central de almacenamiento y persistencia de la información operativa. Su función principal es garantizar que los datos generados por el backend permanezcan organizados, consistentes y disponibles para operaciones diarias, reportes y futuras ampliaciones del sistema. En este proyecto, la base de datos se implementa sobre PostgreSQL y se integra con el backend mediante SQLAlchemy.
+## 1. Overview
 
-## 2. Objetivo del documento
-El presente documento tiene como finalidad describir de forma formal y estructurada la arquitectura de la base de datos del proyecto, así como las tablas, relaciones, convenciones y reglas de uso que definen su comportamiento. También busca servir como referencia técnica para desarrolladores, analistas y miembros del equipo que necesiten comprender el modelo de datos del sistema.
+The data layer of the Restaurant Management System is a relational schema on PostgreSQL, managed by SQLAlchemy declarative models in `backend/app/db/models/`. Migrations are versioned with Alembic in `backend/alembic/versions/`. The schema covers authentication, restaurant operations (tables, reservations, menu, orders, kitchen), financials (payments, purchases) and operational lookups (locations, categories, suppliers, inventory).
 
-## 3. Tecnologías y entorno
-El entorno de base de datos está basado en las siguientes herramientas y componentes:
+## 2. Stack
 
-- PostgreSQL como motor relacional principal
-- Docker Compose para la ejecución del contenedor de base de datos
-- SQL scripts de inicialización para crear el esquema base
-- SQLAlchemy como ORM del backend para interactuar con la base de datos
+- PostgreSQL 16 (Docker image `postgres:16-alpine` via `docker-compose.yml`).
+- SQLAlchemy 2.0 ORM (declarative base in `app/db/database.py`).
+- Alembic 1.18 for migrations.
+- All primary keys use UUID (Python `uuid.uuid4` default), except `reservations.id` and `customers.id` which are `String(30)` to keep compatibility with legacy client-side IDs.
 
-El servicio principal de la base de datos se identifica como restaurant-db y se despliega dentro del entorno del proyecto para facilitar la ejecución local y el desarrollo colaborativo.
+## 3. Entities
 
-## 4. Estructura general del modelo de datos
-El modelo de datos sigue un enfoque relacional, donde cada entidad del negocio se representa mediante una tabla específica. Estas tablas están conectadas mediante claves foráneas para preservar la integridad referencial y reflejar de manera precisa las relaciones del negocio del restaurante.
+### Authentication & users
 
-Este diseño permite representar procesos como la asignación de mesas, la reserva de espacios, la creación de pedidos, la gestión de pagos, el control de inventario y el seguimiento de la cocina.
+#### `users` — `User`
+Staff accounts. All authenticated traffic comes from this table.
 
-## 5. Descripción de tablas principales
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `username` | String(50) unique not null | |
+| `email` | String(255) unique not null | |
+| `hashed_password` | String(255) not null | bcrypt hash |
+| `full_name` | String(100) not null | |
+| `role` | Enum `admin`, `waiter`, `chef`, `cashier` not null, default `waiter` | enum `userrole` |
+| `is_active` | Boolean default true | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-### 5.1 users
-La tabla users almacena la información relacionada con los usuarios del sistema, incluyendo datos de autenticación, roles, estado de cuenta y marcas de tiempo. Esta tabla es fundamental para controlar el acceso a la aplicación y distinguir entre distintos perfiles operativos como administradores, meseros, cajeros o cocineros.
+Relationship: `orders` → `Order` (back_populates `waiter`).
 
-### 5.2 customers
-La tabla customers almacena información básica de los clientes del restaurante. Su propósito principal es servir como referencia para reservas y operaciones de negocio que puedan requerir identificación de clientes en el futuro. Aunque el modelo actual está orientado principalmente a la operación interna del restaurante, esta tabla permite mantener un registro ordenado de los clientes relevantes.
+> There is **no `client` role** in the backend. Customers do not authenticate during the MVP. See [vision.md](vision.md).
 
-### 5.3 tables
-La tabla tables representa las mesas del restaurante. Contiene información como número de mesa, capacidad, estado y la ubicación asociada mediante una clave foránea. La columna `location_id` es nullable y referencia la tabla `locations` con comportamiento `ON DELETE SET NULL`, lo que significa que si se elimina una ubicación, las mesas asociadas simplemente pierden su referencia de ubicación sin generar errores de integridad referencial. Esta tabla permite determinar de forma clara si una mesa está disponible, ocupada, reservada o en mantenimiento.
+#### `customers` — `Customer`
+Lightweight customer record used only for reservation history. Customers never log in.
 
-### 5.4 reservations
-La tabla reservations almacena las reservas realizadas por los clientes. Registra información como fecha, cliente asociado, mesa seleccionada y estado de la reserva. Su uso principal es planificar la ocupación del local y evitar conflictos de disponibilidad.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | String(30) PK | legacy client-side ID |
+| `name` | String(100) not null | |
+| `phone`, `email` | nullable | |
+| `created_at` | DateTime(tz) | |
 
-### 5.5 categories
-La tabla categories agrupa los productos del menú en categorías temáticas. Esta estructura mejora la organización del catálogo y facilita operaciones de filtrado, mantenimiento y visualización.
+### Restaurant layout
 
-### 5.6 products o menu items
-La tabla products, también conocida en el contexto del proyecto como menu items, almacena la información de los productos que pueden venderse en el restaurante. Entre sus datos principales se encuentran el nombre, la descripción, el precio, la disponibilidad y la imagen asociada.
+#### `locations` — `Location`
+Physical dining areas (Terraza, Interior, VIP, Barra, etc.).
 
-### 5.7 orders
-La tabla orders representa los pedidos generados desde mesas y atendidos por usuarios del sistema. En el esquema actual, esta tabla no depende de customers y mantiene relaciones con tables y users. Contiene información financiera básica como subtotal, impuestos y total del pedido.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `name` | String(100) unique not null | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-### 5.8 order_details
-La tabla order_details descompone cada pedido en líneas de detalle. Esto permite registrar múltiples productos en un mismo pedido con cantidades y importes individuales, lo que es habitual en entornos de restaurante.
+#### `tables` — `Table`
+A table belongs to at most one location (`location_id` nullable, `ON DELETE SET NULL`).
 
-### 5.9 payments
-La tabla payments registra los pagos asociados a los pedidos. Aquí se guardan los métodos de pago, montos, fechas y estados de la operación, lo que proporciona trazabilidad de los cobros realizados.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `number` | Integer unique not null | displayed table number |
+| `capacity` | Integer not null | |
+| `status` | Enum `available`, `occupied`, `reserved`, `maintenance`, default `available` | enum `tablestatus` |
+| `location_id` | UUID FK → `locations.id`, `ON DELETE SET NULL`, nullable, indexed | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-### 5.10 inventory_items y inventory_movements
-Estas tablas permiten controlar el inventario del restaurante. inventory_items contiene el estado actual del stock de cada producto o insumo, mientras que inventory_movements registra el historial de entradas y salidas para auditoría y control.
+### Menu
 
-### 5.11 kitchen_status
-La tabla kitchen_status permite monitorear el estado de preparación de los pedidos desde la cocina. Registra información operativa como tiempos de inicio, fin y observaciones, lo que facilita la coordinación entre mesas, cocina y servicio.
+#### `categories` — `Category`
+Dish grouping (Platos fuertes, Entradas, Bebidas, …).
 
-### 5.12 locations
-La tabla locations almacena las ubicaciones físicas del restaurante (por ejemplo: Terraza, Interior, Barra, VIP). Esta tabla fue creada como parte de la normalización del modelo de datos, reemplazando la columna `location` de tipo string que existía directamente en la tabla `tables`. Sus columnas son:
+| Column | Type |
+|---|---|
+| `id` | UUID PK |
+| `name` | String(100) unique not null |
+| `description` | String(255) nullable |
+| `is_active` | Boolean default true |
+| `created_at`, `updated_at` | DateTime(tz) |
 
-- `id`: clave primaria UUID generada automáticamente.
-- `name`: nombre de la ubicación, de tipo String(100), único y no nulo.
-- `created_at`: fecha y hora de creación del registro.
-- `updated_at`: fecha y hora de la última actualización del registro.
+#### `menu_items` — `MenuItem`
+Items that can be sold.
 
-La relación entre `tables` y `locations` es de muchos a uno: cada mesa puede tener una ubicación asignada, y cada ubicación puede contener múltiples mesas.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `name` | String(150) not null | |
+| `description` | Text nullable | |
+| `price` | Numeric(10,2) not null | |
+| `category_id` | UUID FK → `categories.id`, not null | |
+| `is_available` | Boolean default true | |
+| `image_url` | String(500) nullable | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-## 6. Relaciones entre entidades
-El diseño relacional de la base de datos se apoya en el uso de claves foráneas para establecer conexiones entre tablas. Algunas de las relaciones principales son:
+### Reservations & orders
 
-- tables hace referencia a locations (location_id)
-- orders hace referencia a tables y users
-- reservations hace referencia a customers y tables
-- order_details hace referencia a orders y products
-- payments hace referencia a orders
-- inventory_movements hace referencia a inventory_items
-- kitchen_status hace referencia a orders y users
+#### `reservations` — `Reservation`
+Bookings made by a guest (customer or walk-in). The `id` is a String(30) — the frontend generated it when reservations were mock-only, and the column was kept that way.
 
-Estas relaciones son importantes porque garantizan que la información se mantenga coherente y que no existan referencias inválidas entre tablas.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | String(30) PK | |
+| `customer_id` | String(30) FK → `customers.id`, nullable | optional link to a known customer |
+| `table_id` | UUID FK → `tables.id`, nullable | |
+| `guest_name`, `guest_phone` | String nullable | walk-in identity |
+| `reservation_date` | DateTime(tz) not null | |
+| `guest_count` | Integer not null | |
+| `status` | Enum `pending`, `confirmed`, `cancelled`, `completed`, default `pending` | enum `reservationstatus` |
+| `notes` | Text nullable | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-## 7. Flujo operativo del sistema
-Un flujo operativo típico dentro del sistema sigue el siguiente orden:
+#### `orders` — `Order`
+An order belongs to one waiter and one table. May be linked to a reservation.
 
-1. Se registra o actualiza una mesa en la tabla tables.
-2. Se crea una reserva en reservations cuando un cliente solicita ocupar una mesa.
-3. Se genera un pedido en orders desde una mesa atendida por un usuario.
-4. Se agregan los productos del pedido en order_details.
-5. Se procesa el pago en payments.
-6. Se actualiza el inventario mediante inventory_items e inventory_movements.
-7. La cocina monitorea el estado de preparación a través de kitchen_status.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `waiter_id` | UUID FK → `users.id`, not null | |
+| `table_id` | UUID FK → `tables.id`, not null | |
+| `reservation_id` | String(30) FK → `reservations.id`, `ON DELETE SET NULL`, nullable | |
+| `status` | Enum `pending`, `in_progress`, `completed`, `cancelled`, default `pending` | enum `orderstatus` |
+| `total` | Numeric(10,2) default 0 | |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-Este flujo demuestra cómo los diferentes módulos del negocio interactúan a través de la base de datos y cómo cada tabla cumple un rol específico dentro del proceso general.
+Relationships: `waiter` (User), `items` (OrderItem).
 
-## 8. Scripts de inicialización
-El esquema inicial de la base de datos y los datos base del proyecto se almacenan en la carpeta database. Los archivos principales son:
+#### `order_items` — `OrderItem`
+Lines of an order. Cascade-deleted with the order.
 
-- database/init/01_schema.sql: contiene la definición de las tablas y sus relaciones
-- database/seed/: contiene datos de ejemplo o de inicialización para el entorno de desarrollo
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `order_id` | UUID FK → `orders.id`, `ON DELETE CASCADE`, not null | |
+| `menu_item_id` | UUID FK → `menu_items.id`, not null | |
+| `quantity` | Integer default 1 | |
+| `unit_price` | Numeric(10,2) not null | snapshot of menu price at order time |
+| `subtotal` | Numeric(10,2) not null | `quantity * unit_price` |
 
-Estos scripts se ejecutan automáticamente cuando el contenedor de PostgreSQL se inicializa, lo cual facilita la puesta en marcha del sistema en nuevos entornos.
+### Kitchen
 
-## 9. Principios de diseño
-El diseño de la base de datos busca cumplir con los siguientes criterios:
+#### `kitchen_orders` — `KitchenOrder`
+One per order item that needs to be cooked. Updated by kitchen staff through `/api/v1/kitchen`.
 
-- ser relacional para representar correctamente las relaciones del negocio
-- ser normalizado cuando corresponde para evitar redundancia innecesaria
-- ser claro y fácil de consultar para reportes y operaciones diarias
-- ser compatible con el ORM SQLAlchemy utilizado por el backend
-- ser escalable frente a futuras mejoras del sistema
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `order_id` | UUID FK → `orders.id`, `ON DELETE CASCADE`, not null | |
+| `menu_item_name` | String(150) not null | snapshot of the dish name for the kitchen display |
+| `quantity` | Integer not null | |
+| `notes` | Text nullable | waiter → kitchen comms |
+| `status` | Enum `pending`, `preparing`, `ready`, `delivered`, default `pending` | enum `kitchenorderstatus` |
+| `priority` | Integer default 0 | higher = sooner |
+| `created_at`, `updated_at` | DateTime(tz) | |
 
-## 10. Convenciones y buenas prácticas
-Para mantener la base de datos consistente y sostenible, se recomienda seguir estas buenas prácticas:
+### Payments
 
-- usar claves primarias UUID cuando sea necesario para evitar colisiones
-- mantener los formatos de fecha y hora estandarizados
-- evitar inconsistencias entre el esquema SQL y los modelos del backend
-- actualizar tanto la base como la documentación al modificar tablas o relaciones
-- verificar la integridad referencial antes de desplegar cambios importantes
+#### `payments` — `Payment`
+One-to-one with `orders` (`order_id` is **unique**).
 
-## 11. Conclusiones
-La base de datos del proyecto está diseñada para respaldar las operaciones principales del restaurante de forma ordenada, modular y escalable. Gracias a su estructura relacional y a la organización de tablas por dominio funcional, el sistema puede gestionar reservas, pedidos, pagos, cocina e inventario de manera coherente. Mantener esta documentación actualizada es esencial para asegurar la comprensión del modelo de datos y facilitar el desarrollo continuo del proyecto.
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `order_id` | UUID FK → `orders.id`, unique, not null | |
+| `amount` | Numeric(10,2) not null | |
+| `method` | Enum `cash`, `card`, `transfer`, not null | enum `paymentmethod` |
+| `status` | Enum `pending`, `completed`, `refunded`, `failed`, default `pending` | enum `paymentstatus` |
+| `created_at`, `updated_at` | DateTime(tz) | |
+
+### Inventory
+
+#### `inventory_items` — `InventoryItem`
+Insumos / ingredients.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `name` | String(150) not null | |
+| `unit` | String(50) not null | e.g. `kg`, `L`, `unit` |
+| `quantity` | Numeric(10,2) default 0 | current stock |
+| `min_stock` | Numeric(10,2) default 0 | threshold for `/low-stock` |
+| `is_active` | Boolean default true | |
+| `created_at`, `updated_at` | DateTime(tz) | |
+
+#### `inventory_movements` — `InventoryMovement`
+Append-only ledger of stock changes.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `item_id` | UUID FK → `inventory_items.id`, not null | |
+| `type` | Enum `in`, `out`, not null | enum `movementtype` |
+| `quantity` | Numeric(10,2) not null | positive number |
+| `reason` | Text nullable | |
+| `created_at` | DateTime(tz) | |
+
+### Purchasing (models only — no router yet)
+
+#### `suppliers` — `Supplier`
+| Column | Type |
+|---|---|
+| `id` | UUID PK |
+| `name` | String(150) not null |
+| `phone`, `email`, `address` | nullable |
+| `is_active` | Boolean default true |
+| `created_at` | DateTime(tz) |
+
+#### `purchases` — `Purchase`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID PK | |
+| `supplier_id` | UUID FK → `suppliers.id`, not null | |
+| `purchase_date` | DateTime(tz) default now() | |
+| `status` | String(30) not null, default `pending` | |
+| `total` | Numeric(10,2) default 0 | |
+| `notes` | Text nullable | |
+| `created_at` | DateTime(tz) | |
+
+#### `purchase_details` — `PurchaseDetail`
+Line items of a purchase order. Defined in `app/db/models/purchase_detail.py` (referenced by `__init__.py`).
+
+#### `recipes` — `Recipe`
+Maps a `menu_item` to the `inventory_item`s required to prepare it.
+
+| Column | Type |
+|---|---|
+| `id` | UUID PK |
+| `product_id` | UUID FK → `menu_items.id`, not null |
+| `ingredient_id` | UUID FK → `inventory_items.id`, not null |
+| `required_quantity` | Numeric(10,2) not null |
+
+### System
+
+#### `settings` — `Setting`
+A single row holding restaurant-level configuration (tax rate, currency, contact info).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | String(50) PK, default `uuid4` | |
+| `restaurant_name` | String(200) default "El Fogon Caribeno" | |
+| `address` | Text default "" | |
+| `phone` | String(50) default "" | |
+| `email` | String(200) default "" | |
+| `tax_rate` | Float default 11.5 | |
+| `currency` | String(10) default "USD" | |
+| `created_at`, `updated_at` | DateTime(tz) | |
+
+## 4. Relationships summary
+
+```mermaid
+erDiagram
+    users ||--o{ orders : "waiter_id"
+    locations ||--o{ tables : "location_id"
+    tables ||--o{ reservations : "table_id"
+    tables ||--o{ orders : "table_id"
+    customers ||--o{ reservations : "customer_id"
+    reservations ||--o{ orders : "reservation_id (SET NULL)"
+    orders ||--o{ order_items : "order_id (CASCADE)"
+    menu_items ||--o{ order_items : "menu_item_id"
+    categories ||--o{ menu_items : "category_id"
+    orders ||--o{ kitchen_orders : "order_id (CASCADE)"
+    orders ||--|| payments : "order_id (unique)"
+    inventory_items ||--o{ inventory_movements : "item_id"
+    menu_items ||--o{ recipes : "product_id"
+    inventory_items ||--o{ recipes : "ingredient_id"
+    suppliers ||--o{ purchases : "supplier_id"
+    purchases ||--o{ purchase_details : "purchase_id"
+```
+
+## 5. Migrations
+
+Schema is migrated with Alembic. Migrations live in `backend/alembic/versions/`. Current chain:
+
+| Revision | File | Description |
+|---|---|---|
+| 001 | `001_initial.py` | Initial schema — most tables. |
+| 002 | `002_normalize_location.py` | Adds the `locations` table and replaces the `location` string on `tables` with `location_id` FK. |
+| 003 | `003_add_settings.py` | Adds the `settings` table. |
+| 004 | `004_add_guest_fields_reservations.py` | Adds `guest_name` and `guest_phone` to `reservations`. |
+| 005 | `005_add_reservation_id_to_orders.py` | Adds `reservation_id` FK to `orders`. |
+| 006 | `006_fix_reservation_fk_on_delete.py` | Changes `orders.reservation_id` FK to `ON DELETE SET NULL`. |
+
+Apply with:
+
+```bash
+cd backend
+alembic upgrade head
+```
+
+## 6. Initial data
+
+`backend/app/db/seed.py` can seed reference data (locations, categories, a few menu items, a default admin). Run it directly:
+
+```bash
+python -m app.db.seed
+```
+
+There is also `database/init/01_schema.sql` and `database/seed/` for environments that bootstrap from raw SQL (the Docker entrypoint loads these on first start).
+
+## 7. Design principles
+
+- **Models are the source of truth.** The Alembic migration chain is generated from the models; never hand-write SQL that diverges.
+- **UUIDs** for primary keys except where legacy `String(30)` IDs are still in use (`reservations`, `customers`, `settings`).
+- **Soft deletes** are preferred for active-flag columns (`is_active`) over hard deletes.
+- **Cascade rules** keep child rows tidy: `order_items` and `kitchen_orders` cascade with their `orders`. `tables.location_id` uses `SET NULL`. Orders pointing to reservations use `SET NULL`.
+- **Audit columns**: most tables have `created_at`; updatable tables also have `updated_at` with `onupdate`.
