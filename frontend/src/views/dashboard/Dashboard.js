@@ -56,7 +56,7 @@ const Dashboard = {
     html += '<div class="flex gap-3">';
     if (hasAnyRole("admin", "waiter")) {
       html +=
-        '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-primary-600 hover:bg-primary-700 text-white border-primary-600 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+        '<button data-action="new-order" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-primary-600 hover:bg-primary-700 text-white border-primary-600 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
     }
     html += "</div>";
     html += "</div>";
@@ -185,6 +185,13 @@ const Dashboard = {
 
     el.innerHTML = html;
     window.createIcons && window.createIcons();
+
+    const newOrderBtn = el.querySelector('[data-action="new-order"]');
+    if (newOrderBtn) {
+      newOrderBtn.addEventListener("click", function () {
+        window.navigate("/pos");
+      });
+    }
   },
 
   init: function () {
