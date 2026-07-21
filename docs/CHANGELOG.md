@@ -7,7 +7,7 @@ Back to [docs/README.md](README.md).
 ## 2026-07-21 — `Its-JrDev/chore/release-config`
 
 ### Added (new files)
-- `.github/workflows/release.yml` — governs the path to `main`. On PR to `main`: validation gate (backend lint + tests with Postgres service container, frontend lint + prettier + build; no deploys). On push to `main`: computes next semver tag (starting at `v0.1.0`, patch bump by default), pushes the tag, publishes a GitHub Release using `.github/release.yml` for auto-categorised notes, and triggers production deploys on Render for both backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
+- `.github/workflows/release.yml` — governs the path to `main`. On PR to `main`: validation gate (backend lint + tests with Postgres service container, frontend lint + prettier + build; no deploys). On push to `main`: computes next semver tag (first release → `v1.0.0` aligned with `frontend/package.json`; subsequent releases auto-bump by scanning commit subjects for Conventional Commits: `BREAKING CHANGE` / `!:` → major, `feat(...)` → minor, default → patch), pushes the tag, publishes a GitHub Release using `.github/release.yml` for auto-categorised notes, and triggers production deploys on Render for both backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
 - `.github/release.yml` — `release-drafter` categorisation config (features, bug fixes, UI/UX, perf, docs, chores/refactor, security) and notes template.
 
 ### Updated

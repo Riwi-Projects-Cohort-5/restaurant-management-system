@@ -130,27 +130,47 @@ jobs:
           # Fetch all tags (checkout@v4 with fetch-depth 0 still misses lightweight tags)
           git fetch --tags --force
           prev=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
           if [ -z "$prev" ]; then
-            version="v0.1.0"
+            # First release. Aligns with `frontend/package.json` "version": "1.0.0".
+            version="v1.0.0"
             is_first="true"
           else
-            # Strip optional leading 'v'
+            # Build the version parts of the previous tag (strip a leading 'v').
             base="${prev#v}"
-            # Split major.minor.patch
             major="${base%%.*}"
             rest="${base#*.}"
             minor="${rest%%.*}"
             patch="${rest#*.}"
-            # Bump patch by default. When merged PRs contain a 'feat:' or a 'BREAKING
-            # CHANGE:' label, the next level is bumped in the labels step below; here
-            # we compute a fallback conservative bump.
-            patch=$((patch + 1))
+
+            # Range of commits since the previous tag. We scan their subjects for
+            # Conventional Commit prefixes to decide the bump level:
+            #   - any `BREAKING CHANGE:` or `!:` suffix  -> major
+            #   - any `feat:` / `feat(scope):`              -> minor
+            #   - otherwise (fix:, docs:, chore:, ...)    -> patch
+            range="${prev}..HEAD"
+            bump="patch"
+            while IFS= read -r subject; do
+              if echo "$subject" | grep -qE '(^|: |\()BREAKING CHANGE(:|\!)|!: '; then
+                bump="major"; break
+              fi
+              if echo "$subject" | grep -qE '^feat(\(.+\))?:'; then
+                bump="minor"
+              fi
+            done < <(git log --format='%s%n%b%n---END---' "$range" | tr '\n' '\f' | sed 's/\f---END---\f/\n/g')
+
+            case "$bump" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              patch) patch=$((patch + 1)) ;;
+            esac
             version="v${major}.${minor}.${patch}"
             is_first="false"
           fi
+
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "is_first=${is_first}" >> "$GITHUB_OUTPUT"
-          echo "Computed version: ${version} (prev=${prev:-none})"
+          echo "Computed version: ${version} (prev=${prev:-none}, bump=${bump:-first})"
 
       - name: Create and push tag
         shell: bash

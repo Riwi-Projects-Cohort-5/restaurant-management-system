@@ -48,7 +48,7 @@ We follow a `develop`-based trunk. **Never commit directly to `main` or `develop
 1. **Open a PR `develop` → `main`** (typically titled `release: vX.Y.Z` or `chore: cut release <date>`). The workflow's validation gate runs: backend lint + tests (with Postgres service container), frontend lint + prettier + build. No deploys run on a PR.
 2. **Merge the PR** once the gate is green and reviewers approve (the `main` branch should be protected with "Require status checks to pass" and "Require a pull request before merging").
 3. On push to `main`, the workflow:
-   - Computes the next semver tag (starts at `v0.1.0`; bumps patch by default — bump minor/major manually for feature/breaking releases).
+   - Computes the next semver tag (first release → `v1.0.0` aligned with `frontend/package.json`; subsequent releases auto-bump by scanning commit subjects since the previous tag: `BREAKING CHANGE` / `!:` → major, `feat(...)` → minor, default → patch).
    - Creates and pushes the tag.
    - Publishes a GitHub Release with notes categorised via `.github/release.yml`.
    - Triggers production deploys to Render for both the backend (`RENDER_PROD_SERVICE_ID`) and the frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
