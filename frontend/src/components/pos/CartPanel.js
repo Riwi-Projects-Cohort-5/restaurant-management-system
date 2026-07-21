@@ -1,4 +1,5 @@
 import { createOrder, addOrderItem, saveDraft } from "../../store/posData.js";
+import { toast } from "../ui/ToastManager.js";
 
 let cartItems = [];
 
@@ -133,7 +134,7 @@ function setupCartEvents() {
       const tableSelect = document.getElementById("table-select");
       const tableId = tableSelect ? tableSelect.value : null;
       if (!tableId) {
-        alert("Please select a table before sending to kitchen");
+        toast.warning("No Table", "Please select a table before sending to kitchen");
         return;
       }
       const noteInput = document.getElementById("cart-kitchen-note");
@@ -153,12 +154,15 @@ function setupCartEvents() {
           refreshCart();
           window.dispatchEvent(new CustomEvent("cart:sent"));
         } else {
-          alert("Failed to create order: " + (result.error || "Unknown error"));
+          toast.error(
+            "Order Failed",
+            "Failed to create order: " + (result.error || "Unknown error")
+          );
           sendBtn.disabled = false;
           sendBtn.textContent = "Send to Kitchen";
         }
       } catch (err) {
-        alert("Error sending to kitchen: " + err.message);
+        toast.error("Error", "Error sending to kitchen: " + err.message);
         sendBtn.disabled = false;
         sendBtn.textContent = "Send to Kitchen";
       }

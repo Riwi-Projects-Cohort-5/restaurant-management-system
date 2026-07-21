@@ -3,6 +3,7 @@ import StatCard from "../../components/ui/StatCard.js";
 import SalesChart from "../../components/dashboard/SalesChart.js";
 import { allOrders, loadOrders } from "../../store/posData.js";
 import { apiGet } from "../../services/api.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 const Dashboard = {
   render: async function (el) {
@@ -53,89 +54,102 @@ const Dashboard = {
     html += '<div class="flex items-center justify-between mb-6">';
     html += '<h2 class="text-[22px] font-bold text-brand-900">Overview</h2>';
     html += '<div class="flex gap-3">';
-    html +=
-      '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-primary-600 text-white border-primary-600 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+    if (hasAnyRole("admin", "waiter")) {
+      html +=
+        '<button data-action="new-order" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-primary-600 hover:bg-primary-700 text-white border-primary-600 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+    }
     html += "</div>";
     html += "</div>";
 
     html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">';
-    html += StatCard({
-      label: "Total Revenue",
-      value:
-        "$" +
-        (stats.revenue || 0).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }),
-      change: "today",
-      icon: "dollar-sign",
-      iconBg: "bg-brand-100 text-brand-700",
-    });
-    html += StatCard({
-      label: "Orders Today",
-      value: String(stats.orders || 0),
-      change: "today",
-      icon: "shopping-bag",
-      iconBg: "bg-primary-100 text-primary-700",
-    });
-    html += StatCard({
-      label: "Active Tables",
-      value: (stats.active_tables || 0) + " / " + (stats.total_tables || 0),
-      change:
-        stats.total_tables > 0
-          ? Math.round((stats.active_tables / stats.total_tables) * 100) + "% occupancy"
-          : "N/A",
-      icon: "users",
-      iconBg: "bg-accent-100 text-accent-700",
-      changeNeutral: true,
-    });
-    html += StatCard({
-      label: "Reservations",
-      value: String(stats.reservations || 0),
-      change: "today",
-      icon: "calendar-check",
-      iconBg: "bg-success-100 text-success-700",
-    });
+    if (hasAnyRole("admin", "cashier")) {
+      html += StatCard({
+        label: "Total Revenue",
+        value:
+          "$" +
+          (stats.revenue || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        change: "today",
+        icon: "dollar-sign",
+        iconBg: "bg-brand-100 text-brand-700",
+      });
+    }
+    if (hasAnyRole("admin", "waiter", "cashier")) {
+      html += StatCard({
+        label: "Orders Today",
+        value: String(stats.orders || 0),
+        change: "today",
+        icon: "shopping-bag",
+        iconBg: "bg-primary-100 text-primary-700",
+      });
+    }
+    if (hasAnyRole("admin", "waiter")) {
+      html += StatCard({
+        label: "Active Tables",
+        value: (stats.active_tables || 0) + " / " + (stats.total_tables || 0),
+        change:
+          stats.total_tables > 0
+            ? Math.round((stats.active_tables / stats.total_tables) * 100) + "% occupancy"
+            : "N/A",
+        icon: "users",
+        iconBg: "bg-accent-100 text-accent-700",
+        changeNeutral: true,
+      });
+      html += StatCard({
+        label: "Reservations",
+        value: String(stats.reservations || 0),
+        change: "today",
+        icon: "calendar-check",
+        iconBg: "bg-success-100 text-success-700",
+      });
+    }
     html += "</div>";
 
     html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">';
-    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
-    html += '<div class="flex items-center justify-between mb-4">';
-    html += '<h3 class="text-base font-semibold text-primary-700 font-display">Weekly Sales</h3>';
-    html += SalesChart.renderLegend();
-    html += "</div>";
-    html += '<div class="relative h-[200px]"><canvas id="salesChart"></canvas></div>';
-    html += "</div>";
+    if (hasAnyRole("admin", "cashier")) {
+      html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
+      html += '<div class="flex items-center justify-between mb-4">';
+      html += '<h3 class="text-base font-semibold text-primary-700 font-display">Weekly Sales</h3>';
+      html += SalesChart.renderLegend();
+      html += "</div>";
+      html += '<div class="relative h-[200px]"><canvas id="salesChart"></canvas></div>';
+      html += "</div>";
+    }
 
-    html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
-    html +=
-      '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
-    html += '<div class="flex flex-col gap-4">';
-    html +=
-      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">' +
-      (tableStatus.available || 0) +
-      " tables</span></div>";
-    html +=
-      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">' +
-      (tableStatus.occupied || 0) +
-      " tables</span></div>";
-    html +=
-      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">' +
-      (tableStatus.reserved || 0) +
-      " tables</span></div>";
-    const total = tableStatus.total || 1;
-    const occPct = Math.round((tableStatus.occupied / total) * 100);
-    const resPct = Math.round((tableStatus.reserved / total) * 100);
-    const avPct = 100 - occPct - resPct;
-    html +=
-      '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500" style="width:' +
-      occPct +
-      '%"></div><div class="bg-accent-500" style="width:' +
-      resPct +
-      '%"></div><div class="bg-success-500" style="width:' +
-      avPct +
-      '%"></div></div></div>';
-    html += "</div>";
+    if (hasAnyRole("admin", "waiter")) {
+      html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
+      html +=
+        '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
+      html += '<div class="flex flex-col gap-4">';
+      html +=
+        '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">' +
+        (tableStatus.available || 0) +
+        " tables</span></div>";
+      html +=
+        '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">' +
+        (tableStatus.occupied || 0) +
+        " tables</span></div>";
+      html +=
+        '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">' +
+        (tableStatus.reserved || 0) +
+        " tables</span></div>";
+      const total = tableStatus.total || 1;
+      const occPct = Math.round((tableStatus.occupied / total) * 100);
+      const resPct = Math.round((tableStatus.reserved / total) * 100);
+      const avPct = 100 - occPct - resPct;
+      html +=
+        '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500" style="width:' +
+        occPct +
+        '%"></div><div class="bg-accent-500" style="width:' +
+        resPct +
+        '%"></div><div class="bg-success-500" style="width:' +
+        avPct +
+        '%"></div></div></div>';
+      html += "</div>";
+      html += "</div>";
+    }
     html += "</div>";
     html += "</div>";
 
@@ -171,6 +185,14 @@ const Dashboard = {
 
     el.innerHTML = html;
     window.createIcons && window.createIcons();
+
+    const newOrderBtn = el.querySelector('[data-action="new-order"]');
+    if (newOrderBtn) {
+      newOrderBtn.addEventListener("click", function () {
+        window._openOrderTableId = "new";
+        window.navigate("/pos");
+      });
+    }
   },
 
   init: function () {

@@ -17,8 +17,8 @@ const ROLE_HOME = {
 const ROLE_ACCESS = {
   "/admin": [ROLES.ADMIN],
   "/dashboard": [ROLES.ADMIN, ROLES.CLIENT],
-  "/orders": [ROLES.ADMIN, ROLES.WAITER],
-  "/pos": [ROLES.ADMIN, ROLES.WAITER],
+  "/orders": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
+  "/pos": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
   "/kitchen": [ROLES.ADMIN, ROLES.CHEF],
   "/tables": [ROLES.ADMIN, ROLES.WAITER],
   "/payments": [ROLES.ADMIN, ROLES.CASHIER],

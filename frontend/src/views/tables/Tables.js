@@ -11,8 +11,12 @@ import {
   createArea as apiCreateArea,
   deleteArea as apiDeleteArea,
 } from "../../store/posData.js";
+import { reservationModal } from "../../components/ui/ReservationModal.js";
 import { createReservation } from "../../services/reservationService.js";
 import { getState as getReservationState, loadReservations } from "../../store/reservations.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -70,8 +74,10 @@ function renderMain(el) {
   html += '<div class="flex items-center justify-between">';
   html += '<h2 class="text-xl font-semibold text-brand-900 font-display">Table Management</h2>';
   html += '<div class="flex gap-2">';
-  html +=
-    '<button data-action="manage-areas" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Manage Areas</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="manage-areas" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Manage Areas</button>';
+  }
   html += "</div></div>";
 
   html += renderAreaFilters();
@@ -311,26 +317,36 @@ function renderTableDetailCard(t) {
       (order.time || "\u2014") +
       "</div></div>";
     html += "</div>";
-    html += '<div class="flex gap-2 mt-3">';
-    html +=
-      '<button data-action="view-order" data-order-id="' +
-      order.id +
-      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
-    html +=
-      '<button data-action="free-table" data-table-id="' +
-      t.id +
-      '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
-    html += "</div></div>";
+    if (hasAnyRole("admin", "waiter")) {
+      html += '<div class="flex gap-2 mt-3">';
+      html +=
+        '<button data-action="view-order" data-order-id="' +
+        order.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
+      html +=
+        '<button data-action="free-table" data-table-id="' +
+        t.id +
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
+      html += "</div>";
+    }
+    html += "</div>";
   } else if (t.status === "occupied") {
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
     html +=
       '<p class="text-center text-neutral-500 text-sm mb-3">No active order found for this table.</p>';
-    html += '<div class="flex gap-2">';
-    html +=
-      '<button data-action="free-table" data-table-id="' +
-      t.id +
-      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
-    html += "</div></div>";
+    if (hasAnyRole("admin", "waiter")) {
+      html += '<div class="flex gap-2">';
+      html +=
+        '<button data-action="open-order" data-table-id="' +
+        t.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Open Order</button>';
+      html +=
+        '<button data-action="free-table" data-table-id="' +
+        t.id +
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
+      html += "</div>";
+    }
+    html += "</div>";
   } else if (t.status === "reserved") {
     const res = getReservationForTable(t.id);
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
@@ -352,52 +368,54 @@ function renderTableDetailCard(t) {
         res.partySize +
         " guests</div>";
       html += "</div>";
-      html += '<div class="flex gap-2 mt-3">';
-      html +=
-        '<button data-action="seat-reservation" data-table-id="' +
-        t.id +
-        '" data-reservation-id="' +
-        res.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
-      html +=
-        '<button data-action="cancel-reservation" data-table-id="' +
-        t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
-      html += "</div>";
+      if (hasAnyRole("admin", "waiter")) {
+        html += '<div class="flex gap-2 mt-3">';
+        html +=
+          '<button data-action="seat-reservation" data-table-id="' +
+          t.id +
+          '" data-reservation-id="' +
+          res.id +
+          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+        html +=
+          '<button data-action="cancel-reservation" data-table-id="' +
+          t.id +
+          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+        html += "</div>";
+      }
     } else {
       html +=
         '<div class="bg-info-50 border border-info-200 rounded-lg p-3 text-sm text-info-700">Reserved for ' +
         t.info +
         "</div>";
-      html += '<div class="flex gap-2 mt-3">';
-      html +=
-        '<button data-action="seat-guests" data-table-id="' +
-        t.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
-      html +=
-        '<button data-action="cancel-reservation" data-table-id="' +
-        t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
-      html += "</div>";
+      if (hasAnyRole("admin", "waiter")) {
+        html += '<div class="flex gap-2 mt-3">';
+        html +=
+          '<button data-action="seat-guests" data-table-id="' +
+          t.id +
+          '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+        html +=
+          '<button data-action="cancel-reservation" data-table-id="' +
+          t.id +
+          '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+        html += "</div>";
+      }
     }
     html += "</div>";
   } else {
-    html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
-    html += '<div class="flex gap-2">';
-    html +=
-      '<button data-action="seat-guests" data-table-id="' +
-      t.id +
-      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
-    html +=
-      '<button data-action="open-order" data-table-id="' +
-      t.id +
-      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
-    html +=
-      '<button data-action="reserve" data-table-id="' +
-      t.id +
-      '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
-    html += "</div></div>";
+    if (hasAnyRole("admin", "waiter")) {
+      html += '<div class="border-t border-brand-200 pt-4 mt-4">';
+      html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
+      html += '<div class="flex gap-2">';
+      html +=
+        '<button data-action="seat-guests" data-table-id="' +
+        t.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
+      html +=
+        '<button data-action="reserve" data-table-id="' +
+        t.id +
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
+      html += "</div></div>";
+    }
   }
 
   html += "</div></div>";
@@ -1024,18 +1042,28 @@ function setupEvents(el) {
       const daTables = tables.filter(function (t) {
         return t.area === daid;
       });
-      if (daTables.length > 0) return;
-      await apiDeleteArea(daid);
-      await loadAreas();
-      currentAreaFilter = "all";
-      expandedAreaId = null;
-      editingAreaId = null;
-      editingAreaIcon = null;
-      openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
-      renderManageAreas(el);
+      if (daTables.length > 0) {
+        toast.warning("Cannot Delete", "Area has tables. Remove them first.");
+        return;
+      }
+      if (
+        await confirmModal.show({
+          title: "Delete Area",
+          message: "Are you sure you want to delete this area?",
+        })
+      ) {
+        await apiDeleteArea(daid);
+        await loadAreas();
+        currentAreaFilter = "all";
+        expandedAreaId = null;
+        editingAreaId = null;
+        editingAreaIcon = null;
+        openPickerAreaId = null;
+        document.querySelectorAll(".fixed.z-100").forEach(function (p) {
+          p.remove();
+        });
+        renderManageAreas(el);
+      }
       return;
     }
 
@@ -1043,9 +1071,16 @@ function setupEvents(el) {
     if (deleteTable) {
       e.stopPropagation();
       const dtid = deleteTable.getAttribute("data-table-id");
-      await apiDeleteTable(dtid);
-      await loadTables();
-      renderManageAreas(el);
+      if (
+        await confirmModal.show({
+          title: "Delete Table",
+          message: "Are you sure you want to delete this table?",
+        })
+      ) {
+        await apiDeleteTable(dtid);
+        await loadTables();
+        renderManageAreas(el);
+      }
       return;
     }
 
@@ -1118,20 +1153,22 @@ function setupEvents(el) {
       e.stopPropagation();
       const rid = reserveBtn.getAttribute("data-table-id");
       if (rid) {
-        const name = prompt("Reservation name:");
-        if (name && name.trim()) {
-          const rt = tables.find(function (tbl) {
-            return tbl.id === rid;
-          });
-          const now = new Date();
-          const dateStr = now.toISOString().split("T")[0];
-          const timeStr = now.toTimeString().slice(0, 5);
+        const rt = tables.find(function (tbl) {
+          return tbl.id === rid;
+        });
+        const data = await reservationModal.show({
+          title: "Reserve Table",
+          preset: { tableId: rid, partySize: rt ? rt.seats : 4 },
+        });
+        if (data) {
           await createReservation({
-            table_id: rid,
-            date: dateStr,
-            time: timeStr,
-            partySize: rt ? rt.seats : 4,
-            notes: "Reserved by " + name.trim(),
+            guestName: data.guestName,
+            guestPhone: data.guestPhone,
+            date: data.date,
+            time: data.time,
+            partySize: data.partySize,
+            tableId: data.tableId || rid,
+            notes: data.notes,
           });
           await apiUpdateTable(rid, { status: "reserved" });
           await loadTables();

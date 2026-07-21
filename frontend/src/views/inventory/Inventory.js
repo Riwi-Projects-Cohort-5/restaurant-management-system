@@ -1,5 +1,9 @@
 import * as inventoryStore from "../../store/inventory.js";
 import * as inventoryService from "../../services/inventoryService.js";
+import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 
 const UNITS = [
   { id: "kg", name: "Kilograms" },
@@ -530,13 +534,7 @@ async function renderForm(el, itemId) {
     '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
   html += "</div>";
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="inv-active" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (!item || item.is_active ? "checked" : "") +
-    " />";
-  html += '<label for="inv-active" class="text-sm font-semibold text-secondary-700">Active</label>';
-  html += "</div>";
+  html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || item.is_active });
 
   html += "</div></div></div>";
 
@@ -577,9 +575,18 @@ function setupListEvents(el) {
     const action = btn.getAttribute("data-action");
 
     if (action === "create-item") {
-      subView = "create";
-      selectedId = null;
-      await renderForm(el, null);
+      const data = await inventoryItemModal.show();
+      if (data) {
+        await inventoryService.createItem({
+          name: data.name.trim(),
+          unit: data.unit,
+          quantity: data.quantity,
+          min_stock: data.min_stock,
+          is_active: data.is_active,
+        });
+        await inventoryStore.refreshItems();
+        renderList(el);
+      }
     } else if (action === "view-detail") {
       selectedId = btn.getAttribute("data-item-id");
       subView = "detail";
@@ -636,7 +643,7 @@ function setupDetailEvents(el, itemId) {
       const type = btn.getAttribute("data-movement-type");
 
       if (!qty || qty <= 0) {
-        alert("Please enter a valid quantity");
+        toast.warning("Invalid Quantity", "Please enter a valid quantity");
         return;
       }
 
@@ -648,7 +655,12 @@ function setupDetailEvents(el, itemId) {
       await inventoryStore.refreshItems();
       await renderDetail(el, itemId);
     } else if (action === "delete-item") {
-      if (confirm("Are you sure you want to delete this item?")) {
+      if (
+        await confirmModal.show({
+          title: "Delete Item",
+          message: "Are you sure you want to delete this item?",
+        })
+      ) {
         await inventoryService.deleteItem(itemId);
         await inventoryStore.refreshItems();
         subView = "list";
@@ -692,11 +704,11 @@ function setupFormEvents(el) {
       const active = (document.getElementById("inv-active") || {}).checked;
 
       if (!name.trim()) {
-        alert("Please enter a name");
+        toast.warning("Missing Name", "Please enter a name");
         return;
       }
       if (!unit) {
-        alert("Please select a unit");
+        toast.warning("Missing Unit", "Please select a unit");
         return;
       }
 
@@ -730,8 +742,6 @@ const InventoryView = {
 
     if (subView === "detail" && selectedId) {
       await renderDetail(el, selectedId);
-    } else if (subView === "create") {
-      await renderForm(el, null);
     } else if (subView === "edit" && selectedId) {
       await renderForm(el, selectedId);
     } else {

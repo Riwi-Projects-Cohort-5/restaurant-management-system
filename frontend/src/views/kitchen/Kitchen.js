@@ -4,6 +4,7 @@ import {
   loadOrders,
   updateAllKitchenOrderStatuses,
 } from "../../store/posData.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 const KITCHEN_STATUS_MAP = {
   new: "pending",
@@ -111,83 +112,28 @@ function renderCard(order, col) {
     '<button data-kitchen-action="details" data-order-id="' +
     order.id +
     '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Details</button>';
-  html +=
-    '<button data-kitchen-action="move" data-order-id="' +
-    order.id +
-    '" data-from-status="' +
-    col.key +
-    '" data-next-status="' +
-    col.next +
-    '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg text-white border-0 cursor-pointer transition-colors ' +
-    actionBg +
-    '">' +
-    actionLabel +
-    "</button>";
+  if (hasAnyRole("admin", "chef")) {
+    html +=
+      '<button data-kitchen-action="move" data-order-id="' +
+      order.id +
+      '" data-from-status="' +
+      col.key +
+      '" data-next-status="' +
+      col.next +
+      '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg text-white border-0 cursor-pointer transition-colors ' +
+      actionBg +
+      '">' +
+      actionLabel +
+      "</button>";
+  }
   html += "</div></div>";
 
   return html;
 }
 
 function showDetailsModal(order) {
-  const existing = document.getElementById("kitchen-details-modal");
-  if (existing) existing.remove();
-
-  let itemsHtml = "";
-  order.items.forEach(function (item) {
-    itemsHtml += '<div class="flex justify-between text-sm py-1 border-b border-brand-100">';
-    itemsHtml += "<span>" + item.qty + "x " + item.name + "</span>";
-    itemsHtml += "</div>";
-  });
-
-  let modal =
-    '<div id="kitchen-details-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">';
-  modal += '<div class="bg-white rounded-xl shadow-xl w-[400px] max-h-[80vh] flex flex-col">';
-  modal += '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100">';
-  modal += '<h3 class="text-base font-bold text-brand-800">Order Details</h3>';
-  modal +=
-    '<button id="kitchen-modal-close" class="text-brand-400 hover:text-brand-600 bg-transparent border-0 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>';
-  modal += "</div>";
-  modal += '<div class="px-5 py-4 overflow-y-auto flex-1">';
-  modal +=
-    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Table: </span><span class="text-sm text-brand-800">' +
-    order.table +
-    "</span></div>";
-  modal +=
-    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Status: </span><span class="text-sm text-brand-800 capitalize">' +
-    order.status +
-    "</span></div>";
-  modal +=
-    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Time: </span><span class="text-sm text-brand-800">' +
-    order.time +
-    " min</span></div>";
-  modal += '<div class="mb-3">';
-  modal += '<p class="text-sm font-semibold text-brand-700 mb-1">Items:</p>';
-  modal += itemsHtml;
-  modal += "</div>";
-  if (order.note) {
-    modal += '<div class="mt-3 p-3 bg-accent-50 border-l-[3px] border-accent-400 rounded">';
-    modal += '<p class="text-xs font-semibold text-accent-700 mb-1">Kitchen Note:</p>';
-    modal += '<p class="text-sm text-accent-700 italic">' + order.note + "</p>";
-    modal += "</div>";
-  }
-  modal += "</div>";
-  modal += '<div class="px-5 py-3 border-t border-brand-100 flex justify-end">';
-  modal +=
-    '<button id="kitchen-modal-close-btn" class="h-8 px-4 text-sm font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white border-0 cursor-pointer transition-colors">Close</button>';
-  modal += "</div></div></div>";
-
-  document.body.insertAdjacentHTML("beforeend", modal);
-  window.createIcons();
-
-  function closeModal() {
-    const m = document.getElementById("kitchen-details-modal");
-    if (m) m.remove();
-  }
-  document.getElementById("kitchen-modal-close").onclick = closeModal;
-  document.getElementById("kitchen-modal-close-btn").onclick = closeModal;
-  document.getElementById("kitchen-details-modal").onclick = function (e) {
-    if (e.target === this) closeModal();
-  };
+  window._openOrderId = order.fullId || order.id;
+  window.location.hash = "#/orders";
 }
 
 const KitchenView = {
@@ -262,12 +208,25 @@ const KitchenView = {
       }
     };
     el.addEventListener("click", this._clickHandler);
+
+    this._onOrdersUpdated = async function () {
+      const currentEl = document.getElementById("current-view");
+      if (currentEl) {
+        await KitchenView.render(currentEl);
+        window.createIcons();
+      }
+    };
+    window.addEventListener("orders:updated", this._onOrdersUpdated);
   },
   destroy: function () {
     const el = document.getElementById("current-view");
     if (el && this._clickHandler) {
       el.removeEventListener("click", this._clickHandler);
       this._clickHandler = null;
+    }
+    if (this._onOrdersUpdated) {
+      window.removeEventListener("orders:updated", this._onOrdersUpdated);
+      this._onOrdersUpdated = null;
     }
   },
 };

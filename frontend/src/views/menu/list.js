@@ -2,6 +2,11 @@ import * as menuStore from "../../store/menu.js";
 import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
+import { productModal } from "../../components/ui/ProductModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
+import CheckboxField from "../../components/forms/CheckboxField.js";
 
 initMockCategories();
 initMockProducts();
@@ -76,8 +81,10 @@ async function renderList(el) {
     " product" +
     (products.length !== 1 ? "s" : "") +
     "</p></div>";
-  html +=
-    '<button data-action="create-product" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Product</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="create-product" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Product</button>';
+  }
   html += "</div>";
 
   html += '<div class="flex flex-wrap gap-3 items-center">';
@@ -176,10 +183,12 @@ async function renderList(el) {
         '<button data-action="view-detail" data-product-id="' +
         product.id +
         '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-brand-50 text-brand-700 hover:bg-brand-100 border-0 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3 h-3"></i> View</button>';
-      html +=
-        '<button data-action="edit-product" data-product-id="' +
-        product.id +
-        '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-3 h-3"></i> Edit</button>';
+      if (hasAnyRole("admin")) {
+        html +=
+          '<button data-action="edit-product" data-product-id="' +
+          product.id +
+          '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-3 h-3"></i> Edit</button>';
+      }
       html += "</div>";
       html += "</div>";
     }
@@ -265,17 +274,19 @@ async function renderDetail(el, productId) {
 
   html +=
     '<div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center gap-3">';
-  html +=
-    '<button data-action="edit-product" data-product-id="' +
-    product.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="edit-product" data-product-id="' +
+      product.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>';
+  }
 
-  if (product.available) {
+  if (product.available && hasAnyRole("admin")) {
     html +=
       '<button data-action="toggle-availability" data-product-id="' +
       product.id +
       '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="eye-off" class="w-4 h-4"></i> Disable</button>';
-  } else {
+  } else if (!product.available && hasAnyRole("admin")) {
     html +=
       '<button data-action="toggle-availability" data-product-id="' +
       product.id +
@@ -374,14 +385,11 @@ async function renderForm(el, productId) {
     '" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white" />';
   html += "</div>";
 
-  html += '<div class="flex items-center gap-3">';
-  html +=
-    '<input type="checkbox" id="product-available" class="w-5 h-5 rounded border-brand-300 text-primary-600 focus:ring-primary-500" ' +
-    (product && product.available ? "checked" : "") +
-    " />";
-  html +=
-    '<label for="product-available" class="text-sm font-semibold text-secondary-700">Available</label>';
-  html += "</div>";
+  html += CheckboxField({
+    id: "product-available",
+    label: "Available",
+    checked: product && product.available,
+  });
 
   html += "</div></div></div>";
 
@@ -404,16 +412,27 @@ async function renderForm(el, productId) {
 }
 
 function setupListEvents(el) {
-  el.addEventListener("click", function (e) {
+  el.addEventListener("click", async function (e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
     const action = btn.dataset.action;
 
     if (action === "create-product") {
-      subView = "create";
-      selectedId = null;
-      renderForm(el, null);
+      e.stopPropagation();
+      const data = await productModal.show();
+      if (data) {
+        await menuService.createProduct({
+          category_id: data.category_id,
+          name: data.name,
+          description: data.description || null,
+          price: data.price,
+          image_url: data.image_url || null,
+          available: data.available,
+        });
+        await menuStore.refreshProducts();
+        renderList(el);
+      }
     } else if (action === "view-detail") {
       selectedId = btn.dataset.productId;
       subView = "detail";
@@ -477,7 +496,12 @@ function setupDetailEvents(el) {
       await menuStore.refreshProducts();
       renderDetail(el, selectedId);
     } else if (action === "delete-product") {
-      if (confirm("Are you sure you want to delete this product?")) {
+      if (
+        await confirmModal.show({
+          title: "Delete Product",
+          message: "Are you sure you want to delete this product?",
+        })
+      ) {
         await menuService.deleteProduct(selectedId);
         await menuStore.refreshProducts();
         subView = "list";
@@ -516,15 +540,15 @@ function setupFormEvents(el) {
       const available = availableInput.checked;
 
       if (!name) {
-        alert("Please enter a product name");
+        toast.warning("Missing Name", "Please enter a product name");
         return;
       }
       if (!categoryId) {
-        alert("Please select a category");
+        toast.warning("Missing Category", "Please select a category");
         return;
       }
       if (!price || price <= 0) {
-        alert("Please enter a valid price");
+        toast.warning("Invalid Price", "Please enter a valid price");
         return;
       }
 
@@ -557,8 +581,6 @@ export function renderMenu(el) {
 
   if (subView === "detail" && selectedId) {
     renderDetail(el, selectedId);
-  } else if (subView === "create") {
-    renderForm(el, null);
   } else if (subView === "edit" && selectedId) {
     renderForm(el, selectedId);
   } else {

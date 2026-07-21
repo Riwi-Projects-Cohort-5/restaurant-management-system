@@ -263,6 +263,7 @@ export async function updateOrderStatus(orderId, frontendStatus) {
     const result = await apiPut("/api/v1/orders/" + orderId + "/status", { status: backendStatus });
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
@@ -274,6 +275,7 @@ export async function deleteOrder(orderId) {
     await apiDelete("/api/v1/orders/" + orderId);
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
@@ -287,6 +289,7 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
     });
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
@@ -325,13 +328,13 @@ export function canTransition(role, from, to) {
     const fi = LIFECYCLE.indexOf(from);
     const ti = LIFECYCLE.indexOf(to);
     if (fi === -1 || ti === -1) return false;
-    return ti === fi + 1;
+    return ti === fi + 1 && fi >= 3;
   }
   if (role === "chef") {
     const fi2 = LIFECYCLE.indexOf(from);
     const ti2 = LIFECYCLE.indexOf(to);
     if (fi2 === -1 || ti2 === -1) return false;
-    return ti2 === fi2 + 1 && fi2 >= 1 && ti2 <= 4;
+    return ti2 === fi2 + 1 && fi2 >= 1 && ti2 <= 3;
   }
   return false;
 }

@@ -7,13 +7,13 @@ import PosView from "./views/orders/PosView.js";
 import Kitchen from "./views/kitchen/Kitchen.js";
 import TablesView from "./views/tables/Tables.js";
 import Login from "./views/auth/Login.js";
-import Register from "./views/auth/register.js";
 import Reservations from "./views/reservations/list.js";
 import Payments from "./views/payments/list.js";
 import Menu from "./views/menu/list.js";
 import Inventory from "./views/inventory/Inventory.js";
 import Reports from "./views/reports/Reports.js";
 import Settings from "./views/settings/Settings.js";
+import { initRoleSwitcher } from "./components/dev/RoleSwitcher.js";
 
 window.createIcons = function () {
   createIcons({ icons });
@@ -23,7 +23,6 @@ let currentView = null;
 
 const routes = {
   "/login": { view: Login, shell: false, auth: false },
-  "/register": { view: Register, shell: false, auth: false },
   "/dashboard": { view: Dashboard, shell: true, auth: true },
   "/pos": { view: PosView, shell: true, auth: true },
   "/kitchen": { view: Kitchen, shell: true, auth: true },
@@ -54,14 +53,14 @@ function renderView() {
     const path = getRoute();
     const user = authStore.currentUser();
 
-    if (path !== "/login" && path !== "/register") {
+    if (path !== "/login") {
       if (!user) {
         window.location.hash = "#/login";
         return;
       }
     }
 
-    if (path === "/login" || path === "/register") {
+    if (path === "/login") {
       if (user) {
         const home = getHomeRoute(user.role);
         window.location.hash = "#" + home;
@@ -173,7 +172,14 @@ window.navigate = function (path) {
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
     renderView();
+    initRoleSwitcher(authStore);
   });
 } else {
   renderView();
+  initRoleSwitcher(authStore);
 }
+
+window.addEventListener("dev-role-changed", function () {
+  renderView();
+  window.createIcons();
+});

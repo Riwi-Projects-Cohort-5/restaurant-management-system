@@ -19,6 +19,9 @@ import {
 } from "../../store/posData.js";
 import CartPanel, { loadDraftItems } from "../../components/pos/CartPanel.js";
 import { exportToCSV } from "../../utils/csvExport.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -78,11 +81,15 @@ function renderOrderList(container) {
   html += '<div class="flex items-center justify-between mb-6">';
   html += '<h2 class="text-xl font-bold text-brand-900">Orders</h2>';
   html += '<div class="flex gap-2">';
-  html +=
-    '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
-  html +=
-    '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
-  html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
+  }
+  if (hasAnyRole("admin", "waiter")) {
+    html +=
+      '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
+    html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  }
   html += "</div>";
   html += "</div>";
 
@@ -705,7 +712,13 @@ function setupOrderListEvents(container) {
         const order = allOrders.find(function (o) {
           return o.id === did;
         });
-        if (order) {
+        if (
+          order &&
+          (await confirmModal.show({
+            title: "Delete Order",
+            message: "Are you sure you want to delete this order?",
+          }))
+        ) {
           deleteOrder(order.fullId).then(function () {
             renderOrderList(container);
             window.createIcons();
@@ -750,7 +763,7 @@ function setupOrderListEvents(container) {
         renderOrderList(container);
         window.createIcons();
       } else {
-        alert("Draft has no table assigned. Edit it first to assign a table.");
+        toast.warning("No Table", "Draft has no table assigned. Edit it first to assign a table.");
       }
       return;
     }
@@ -758,7 +771,7 @@ function setupOrderListEvents(container) {
     const deleteDraftBtn = e.target.closest('[data-action="delete-draft"]');
     if (deleteDraftBtn) {
       const draftId = deleteDraftBtn.getAttribute("data-draft-id");
-      if (confirm("Delete this draft?")) {
+      if (await confirmModal.show({ title: "Delete Draft", message: "Delete this draft?" })) {
         deleteDraft(draftId);
         renderOrderList(container);
         window.createIcons();
@@ -911,7 +924,13 @@ function setupOrderDetailEvents(container, order) {
         const order = allOrders.find(function (o) {
           return o.id === delId;
         });
-        if (order) {
+        if (
+          order &&
+          (await confirmModal.show({
+            title: "Delete Order",
+            message: "Are you sure you want to delete this order?",
+          }))
+        ) {
           deleteOrder(order.fullId).then(function () {
             subView = "orders";
             renderOrderList(container);
@@ -1071,6 +1090,21 @@ const PosView = {
       window.createIcons();
       return;
     }
+    const openOrderId = window._openOrderId;
+    if (openOrderId) {
+      window._openOrderId = null;
+      const matched = allOrders.find(function (o) {
+        return o.fullId === openOrderId || o.id === openOrderId;
+      });
+      if (matched) {
+        subView = "detail";
+        selectedOrderId = matched.id;
+        editingOrder = null;
+        renderOrderDetail(el, matched.id);
+        window.createIcons();
+        return;
+      }
+    }
     if (subView === "new") {
       renderNewOrder(el);
     } else if (subView === "detail" && selectedOrderId) {
@@ -1091,12 +1125,36 @@ const PosView = {
       }
     };
     window.addEventListener("cart:sent", this._onCartSent);
+
+    this._onOrdersUpdated = async function () {
+      if (!_lastContainer) return;
+      await loadOrders();
+      if (subView === "detail" && selectedOrderId) {
+        const stillExists = allOrders.find(function (o) {
+          return o.id === selectedOrderId;
+        });
+        if (stillExists) {
+          renderOrderDetail(_lastContainer, selectedOrderId);
+        } else {
+          subView = "orders";
+          renderOrderList(_lastContainer);
+        }
+      } else {
+        renderOrderList(_lastContainer);
+      }
+      window.createIcons();
+    };
+    window.addEventListener("orders:updated", this._onOrdersUpdated);
   },
   destroy: function () {
     editingOrder = null;
     if (this._onCartSent) {
       window.removeEventListener("cart:sent", this._onCartSent);
       this._onCartSent = null;
+    }
+    if (this._onOrdersUpdated) {
+      window.removeEventListener("orders:updated", this._onOrdersUpdated);
+      this._onOrdersUpdated = null;
     }
   },
 };
