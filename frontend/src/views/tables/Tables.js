@@ -323,7 +323,7 @@ function renderTableDetailCard(t) {
       html +=
         '<button data-action="free-table" data-table-id="' +
         t.id +
-        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
       html += "</div>";
     }
     html += "</div>";
@@ -334,9 +334,13 @@ function renderTableDetailCard(t) {
     if (hasAnyRole("admin", "waiter")) {
       html += '<div class="flex gap-2">';
       html +=
+        '<button data-action="open-order" data-table-id="' +
+        t.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Open Order</button>';
+      html +=
         '<button data-action="free-table" data-table-id="' +
         t.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Free Table</button>';
       html += "</div>";
     }
     html += "</div>";
