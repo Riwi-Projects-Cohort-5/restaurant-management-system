@@ -1,6 +1,8 @@
 import * as inventoryStore from "../../store/inventory.js";
 import * as inventoryService from "../../services/inventoryService.js";
 import { inventoryItemModal } from "../../components/ui/InventoryItemModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 const UNITS = [
   { id: "kg", name: "Kilograms" },
@@ -646,7 +648,7 @@ function setupDetailEvents(el, itemId) {
       const type = btn.getAttribute("data-movement-type");
 
       if (!qty || qty <= 0) {
-        alert("Please enter a valid quantity");
+        toast.warning("Invalid Quantity", "Please enter a valid quantity");
         return;
       }
 
@@ -658,7 +660,7 @@ function setupDetailEvents(el, itemId) {
       await inventoryStore.refreshItems();
       await renderDetail(el, itemId);
     } else if (action === "delete-item") {
-      if (confirm("Are you sure you want to delete this item?")) {
+      if (await confirmModal.show({ title: "Delete Item", message: "Are you sure you want to delete this item?" })) {
         await inventoryService.deleteItem(itemId);
         await inventoryStore.refreshItems();
         subView = "list";
@@ -702,11 +704,11 @@ function setupFormEvents(el) {
       const active = (document.getElementById("inv-active") || {}).checked;
 
       if (!name.trim()) {
-        alert("Please enter a name");
+        toast.warning("Missing Name", "Please enter a name");
         return;
       }
       if (!unit) {
-        alert("Please select a unit");
+        toast.warning("Missing Unit", "Please select a unit");
         return;
       }
 

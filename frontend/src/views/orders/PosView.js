@@ -20,6 +20,8 @@ import {
 import CartPanel, { loadDraftItems } from "../../components/pos/CartPanel.js";
 import { exportToCSV } from "../../utils/csvExport.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -755,7 +757,7 @@ function setupOrderListEvents(container) {
         renderOrderList(container);
         window.createIcons();
       } else {
-        alert("Draft has no table assigned. Edit it first to assign a table.");
+        toast.warning("No Table", "Draft has no table assigned. Edit it first to assign a table.");
       }
       return;
     }
@@ -763,7 +765,7 @@ function setupOrderListEvents(container) {
     const deleteDraftBtn = e.target.closest('[data-action="delete-draft"]');
     if (deleteDraftBtn) {
       const draftId = deleteDraftBtn.getAttribute("data-draft-id");
-      if (confirm("Delete this draft?")) {
+      if (await confirmModal.show({ title: "Delete Draft", message: "Delete this draft?" })) {
         deleteDraft(draftId);
         renderOrderList(container);
         window.createIcons();

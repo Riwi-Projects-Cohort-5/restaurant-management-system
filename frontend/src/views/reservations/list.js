@@ -3,6 +3,8 @@ import * as reservationService from "../../services/reservationService.js";
 import { tables, loadTables } from "../../store/posData.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { reservationModal } from "../../components/ui/ReservationModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -554,7 +556,7 @@ function setupEvents(el) {
     if (deleteBtn) {
       e.stopPropagation();
       const deleteId = deleteBtn.getAttribute("data-id");
-      if (confirm("\u00BFEliminar esta reservaci\u00F3n permanentemente?")) {
+      if (await confirmModal.show({ title: "Delete Reservation", message: "¿Eliminar esta reservación permanentemente?" })) {
         const result = await reservationService.deleteReservation(deleteId);
         if (result.success) {
           await reservationStore.refreshReservations();
@@ -562,7 +564,7 @@ function setupEvents(el) {
           selectedId = null;
           renderList(el);
         } else {
-          alert(result.error || "Error al eliminar la reservaci\u00F3n");
+          toast.error("Error", result.error || "Error al eliminar la reservación");
         }
       }
       return;

@@ -4,6 +4,8 @@ import { allOrders, loadOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { paymentModal } from "../../components/ui/PaymentModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -515,7 +517,7 @@ function setupListEvents(el) {
           await paymentsStore.refreshPayments();
           renderList(el);
         } else {
-          alert(result.error || "Error creating payment");
+          toast.error("Error", result.error || "Error creating payment");
         }
       }
     } else if (action === "config-methods") {
@@ -534,7 +536,7 @@ function setupListEvents(el) {
     } else if (action === "delete-payment") {
       e.stopPropagation();
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
+      if (await confirmModal.show({ title: "Delete Payment", message: "Are you sure you want to delete this payment?" })) {
         await paymentService.deletePayment(deleteId);
         await paymentsStore.refreshPayments();
         renderList(el);
@@ -586,7 +588,7 @@ function setupDetailEvents(el) {
       renderList(el);
     } else if (action === "delete-payment") {
       const deleteId = btn.dataset.paymentId;
-      if (confirm("Are you sure you want to delete this payment?")) {
+      if (await confirmModal.show({ title: "Delete Payment", message: "Are you sure you want to delete this payment?" })) {
         await paymentService.deletePayment(deleteId);
         await paymentsStore.refreshPayments();
         subView = "list";

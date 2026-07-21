@@ -4,6 +4,8 @@ import { initMockCategories, initMockProducts } from "../../services/menuService
 import { currentUser } from "../../store/auth.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { productModal } from "../../components/ui/ProductModal.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 initMockCategories();
 initMockProducts();
@@ -496,7 +498,7 @@ function setupDetailEvents(el) {
       await menuStore.refreshProducts();
       renderDetail(el, selectedId);
     } else if (action === "delete-product") {
-      if (confirm("Are you sure you want to delete this product?")) {
+      if (await confirmModal.show({ title: "Delete Product", message: "Are you sure you want to delete this product?" })) {
         await menuService.deleteProduct(selectedId);
         await menuStore.refreshProducts();
         subView = "list";
@@ -535,15 +537,15 @@ function setupFormEvents(el) {
       const available = availableInput.checked;
 
       if (!name) {
-        alert("Please enter a product name");
+        toast.warning("Missing Name", "Please enter a product name");
         return;
       }
       if (!categoryId) {
-        alert("Please select a category");
+        toast.warning("Missing Category", "Please select a category");
         return;
       }
       if (!price || price <= 0) {
-        alert("Please enter a valid price");
+        toast.warning("Invalid Price", "Please enter a valid price");
         return;
       }
 
