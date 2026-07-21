@@ -1,6 +1,16 @@
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/reportService.js";
 import { exportToCSV } from "../../utils/csvExport.js";
 
+const CHART_COLORS = {
+  revenue: "#e57722",
+  orders: "#f2ba7a",
+  axisTick: "#958877",
+  tooltipBg: "#1e1b16",
+  tooltipTitle: "#fefaf5",
+  tooltipBody: "#e8e3da",
+  tooltipBorder: "#3d352a",
+};
+
 let startDate = "";
 let endDate = "";
 let chartInstance = null;
@@ -36,7 +46,7 @@ function renderBarChart(data) {
           data: data.map(function (d) {
             return d.revenue;
           }),
-          backgroundColor: "#E57722",
+          backgroundColor: CHART_COLORS.revenue,
           borderRadius: 6,
           barPercentage: 0.6,
         },
@@ -45,7 +55,7 @@ function renderBarChart(data) {
           data: data.map(function (d) {
             return d.orders * 50;
           }),
-          backgroundColor: "#F2BA7A",
+          backgroundColor: CHART_COLORS.orders,
           borderRadius: 6,
           barPercentage: 0.6,
         },
@@ -57,10 +67,10 @@ function renderBarChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#1E1B16",
-          titleColor: "#FEFAF5",
-          bodyColor: "#E8E3DA",
-          borderColor: "#3D352A",
+          backgroundColor: CHART_COLORS.tooltipBg,
+          titleColor: CHART_COLORS.tooltipTitle,
+          bodyColor: CHART_COLORS.tooltipBody,
+          borderColor: CHART_COLORS.tooltipBorder,
           borderWidth: 1,
           padding: 12,
           cornerRadius: 8,
@@ -80,13 +90,13 @@ function renderBarChart(data) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: "#958877", font: { size: 12, weight: 500 } },
+          ticks: { color: CHART_COLORS.axisTick, font: { size: 12, weight: 500 } },
           border: { display: false },
         },
         y: {
           grid: { color: "rgba(0,0,0,0.06)", drawBorder: false },
           ticks: {
-            color: "#958877",
+            color: CHART_COLORS.axisTick,
             font: { size: 11 },
             callback: function (v) {
               return "$" + (v / 1000).toFixed(1) + "k";
@@ -215,9 +225,9 @@ async function render(el) {
   html += '<p class="text-sm text-secondary-500 mt-0.5">Sales analytics and performance</p></div>';
   html += '<div class="flex gap-2">';
   html +=
-    '<button data-action="export-sales-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Sales CSV</button>';
+    '<button data-action="export-sales-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Sales CSV</button>';
   html +=
-    '<button data-action="export-products-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Products CSV</button>';
+    '<button data-action="export-products-csv" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border bg-white text-brand-700 border-brand-300 cursor-pointer hover:bg-brand-50 transition-colors"><i data-lucide="download" class="w-4 h-4"></i> Export Products CSV</button>';
   html += "</div>";
   html += "</div>";
 

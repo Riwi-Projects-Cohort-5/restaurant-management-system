@@ -268,7 +268,7 @@ function renderDetail(el) {
     html +=
       '<button data-action="delete-reservation" data-id="' +
       r.id +
-      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar</button>';
+      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>';
   }
   html += "</div></div>";
 
@@ -556,7 +556,7 @@ function setupEvents(el) {
     if (deleteBtn) {
       e.stopPropagation();
       const deleteId = deleteBtn.getAttribute("data-id");
-      if (await confirmModal.show({ title: "Delete Reservation", message: "¿Eliminar esta reservación permanentemente?" })) {
+      if (await confirmModal.show({ title: "Delete Reservation", message: "Delete this reservation permanently?" })) {
         const result = await reservationService.deleteReservation(deleteId);
         if (result.success) {
           await reservationStore.refreshReservations();
@@ -564,7 +564,7 @@ function setupEvents(el) {
           selectedId = null;
           renderList(el);
         } else {
-          toast.error("Error", result.error || "Error al eliminar la reservación");
+          toast.error("Error", result.error || "Error deleting reservation");
         }
       }
       return;

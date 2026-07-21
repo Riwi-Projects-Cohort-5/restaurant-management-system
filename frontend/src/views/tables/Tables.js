@@ -15,6 +15,8 @@ import { reservationModal } from "../../components/ui/ReservationModal.js";
 import { createReservation } from "../../services/reservationService.js";
 import { getState as getReservationState, loadReservations } from "../../store/reservations.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { confirmModal } from "../../components/ui/ConfirmModal.js";
+import { toast } from "../../components/ui/ToastManager.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -1040,18 +1042,23 @@ function setupEvents(el) {
       const daTables = tables.filter(function (t) {
         return t.area === daid;
       });
-      if (daTables.length > 0) return;
-      await apiDeleteArea(daid);
-      await loadAreas();
-      currentAreaFilter = "all";
-      expandedAreaId = null;
-      editingAreaId = null;
-      editingAreaIcon = null;
-      openPickerAreaId = null;
-      document.querySelectorAll(".fixed.z-100").forEach(function (p) {
-        p.remove();
-      });
-      renderManageAreas(el);
+      if (daTables.length > 0) {
+        toast.warning("Cannot Delete", "Area has tables. Remove them first.");
+        return;
+      }
+      if (await confirmModal.show({ title: "Delete Area", message: "Are you sure you want to delete this area?" })) {
+        await apiDeleteArea(daid);
+        await loadAreas();
+        currentAreaFilter = "all";
+        expandedAreaId = null;
+        editingAreaId = null;
+        editingAreaIcon = null;
+        openPickerAreaId = null;
+        document.querySelectorAll(".fixed.z-100").forEach(function (p) {
+          p.remove();
+        });
+        renderManageAreas(el);
+      }
       return;
     }
 
@@ -1059,9 +1066,11 @@ function setupEvents(el) {
     if (deleteTable) {
       e.stopPropagation();
       const dtid = deleteTable.getAttribute("data-table-id");
-      await apiDeleteTable(dtid);
-      await loadTables();
-      renderManageAreas(el);
+      if (await confirmModal.show({ title: "Delete Table", message: "Are you sure you want to delete this table?" })) {
+        await apiDeleteTable(dtid);
+        await loadTables();
+        renderManageAreas(el);
+      }
       return;
     }
 

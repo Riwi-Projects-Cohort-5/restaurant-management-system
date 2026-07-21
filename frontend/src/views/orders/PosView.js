@@ -83,11 +83,11 @@ function renderOrderList(container) {
   html += '<div class="flex gap-2">';
   if (hasAnyRole("admin")) {
     html +=
-      '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
+      '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
   }
   if (hasAnyRole("admin", "waiter")) {
     html +=
-      '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
+      '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
     html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
   }
   html += "</div>";
@@ -712,7 +712,7 @@ function setupOrderListEvents(container) {
         const order = allOrders.find(function (o) {
           return o.id === did;
         });
-        if (order) {
+        if (order && await confirmModal.show({ title: "Delete Order", message: "Are you sure you want to delete this order?" })) {
           deleteOrder(order.fullId).then(function () {
             renderOrderList(container);
             window.createIcons();
@@ -918,7 +918,7 @@ function setupOrderDetailEvents(container, order) {
         const order = allOrders.find(function (o) {
           return o.id === delId;
         });
-        if (order) {
+        if (order && await confirmModal.show({ title: "Delete Order", message: "Are you sure you want to delete this order?" })) {
           deleteOrder(order.fullId).then(function () {
             subView = "orders";
             renderOrderList(container);
