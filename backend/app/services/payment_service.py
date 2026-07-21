@@ -31,6 +31,10 @@ class PaymentService:
         order = self.order_repo.get_by_id(order_id)
         if not order:
             return None
+        if amount <= 0:
+            raise ValueError("El monto del pago debe ser mayor a 0.")
+        if amount > order.total:
+            raise ValueError(f"El monto del pago ({amount}) excede el total de la orden ({order.total}).")
         try:
             method_enum = PaymentMethod(method)
         except ValueError:

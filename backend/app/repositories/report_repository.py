@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import cast, Date, func
+from sqlalchemy import Date, cast, func
 from sqlalchemy.orm import Session
 
 from app.db.models.menu_item import MenuItem
-from app.db.models.order import Order, OrderStatus
+from app.db.models.order import Order
 from app.db.models.order_item import OrderItem
 from app.db.models.payment import Payment, PaymentStatus
 from app.db.models.reservation import Reservation, ReservationStatus

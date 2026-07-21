@@ -1,4 +1,9 @@
-import { kitchenOrders, loadKitchenOrders, loadOrders, updateAllKitchenOrderStatuses } from "../../store/posData.js";
+import {
+  kitchenOrders,
+  loadKitchenOrders,
+  loadOrders,
+  updateAllKitchenOrderStatuses,
+} from "../../store/posData.js";
 
 const KITCHEN_STATUS_MAP = {
   new: "pending",
@@ -130,7 +135,7 @@ function showDetailsModal(order) {
   let itemsHtml = "";
   order.items.forEach(function (item) {
     itemsHtml += '<div class="flex justify-between text-sm py-1 border-b border-brand-100">';
-    itemsHtml += '<span>' + item.qty + 'x ' + item.name + '</span>';
+    itemsHtml += "<span>" + item.qty + "x " + item.name + "</span>";
     itemsHtml += "</div>";
   });
 
@@ -139,12 +144,22 @@ function showDetailsModal(order) {
   modal += '<div class="bg-white rounded-xl shadow-xl w-[400px] max-h-[80vh] flex flex-col">';
   modal += '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100">';
   modal += '<h3 class="text-base font-bold text-brand-800">Order Details</h3>';
-  modal += '<button id="kitchen-modal-close" class="text-brand-400 hover:text-brand-600 bg-transparent border-0 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>';
+  modal +=
+    '<button id="kitchen-modal-close" class="text-brand-400 hover:text-brand-600 bg-transparent border-0 cursor-pointer"><i data-lucide="x" class="w-5 h-5"></i></button>';
   modal += "</div>";
   modal += '<div class="px-5 py-4 overflow-y-auto flex-1">';
-  modal += '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Table: </span><span class="text-sm text-brand-800">' + order.table + '</span></div>';
-  modal += '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Status: </span><span class="text-sm text-brand-800 capitalize">' + order.status + '</span></div>';
-  modal += '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Time: </span><span class="text-sm text-brand-800">' + order.time + ' min</span></div>';
+  modal +=
+    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Table: </span><span class="text-sm text-brand-800">' +
+    order.table +
+    "</span></div>";
+  modal +=
+    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Status: </span><span class="text-sm text-brand-800 capitalize">' +
+    order.status +
+    "</span></div>";
+  modal +=
+    '<div class="mb-3"><span class="text-sm font-semibold text-brand-700">Time: </span><span class="text-sm text-brand-800">' +
+    order.time +
+    " min</span></div>";
   modal += '<div class="mb-3">';
   modal += '<p class="text-sm font-semibold text-brand-700 mb-1">Items:</p>';
   modal += itemsHtml;
@@ -152,12 +167,13 @@ function showDetailsModal(order) {
   if (order.note) {
     modal += '<div class="mt-3 p-3 bg-accent-50 border-l-[3px] border-accent-400 rounded">';
     modal += '<p class="text-xs font-semibold text-accent-700 mb-1">Kitchen Note:</p>';
-    modal += '<p class="text-sm text-accent-700 italic">' + order.note + '</p>';
+    modal += '<p class="text-sm text-accent-700 italic">' + order.note + "</p>";
     modal += "</div>";
   }
   modal += "</div>";
   modal += '<div class="px-5 py-3 border-t border-brand-100 flex justify-end">';
-  modal += '<button id="kitchen-modal-close-btn" class="h-8 px-4 text-sm font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white border-0 cursor-pointer transition-colors">Close</button>';
+  modal +=
+    '<button id="kitchen-modal-close-btn" class="h-8 px-4 text-sm font-semibold rounded-lg bg-brand-600 hover:bg-brand-700 text-white border-0 cursor-pointer transition-colors">Close</button>';
   modal += "</div></div></div>";
 
   document.body.insertAdjacentHTML("beforeend", modal);

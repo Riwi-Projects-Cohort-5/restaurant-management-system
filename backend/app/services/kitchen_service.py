@@ -50,7 +50,7 @@ class KitchenService:
         if any(s == KitchenOrderStatus.PREPARING for s in statuses):
             new_status = OrderStatus.IN_PROGRESS
         elif all(s in (KitchenOrderStatus.READY, KitchenOrderStatus.DELIVERED) for s in statuses):
-            new_status = OrderStatus.COMPLETED
+            new_status = OrderStatus.IN_PROGRESS
         elif all(s == KitchenOrderStatus.PENDING for s in statuses):
             new_status = OrderStatus.PENDING
         else:

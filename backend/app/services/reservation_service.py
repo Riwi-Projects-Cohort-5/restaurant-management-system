@@ -42,12 +42,14 @@ class ReservationService:
         )
         return self.repo.create(reservation)
 
+    _UPDATEABLE_FIELDS = {"table_id", "reservation_date", "guest_count", "guest_name", "guest_phone", "notes", "status"}
+
     def update(self, reservation_id: str, data: dict) -> Optional[Reservation]:
         reservation = self.repo.get_by_id(reservation_id)
         if not reservation:
             return None
         for key, value in data.items():
-            if value is not None and hasattr(reservation, key):
+            if value is not None and key in self._UPDATEABLE_FIELDS and hasattr(reservation, key):
                 if key == "status":
                     try:
                         value = ReservationStatus(value)

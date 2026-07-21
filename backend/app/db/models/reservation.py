@@ -37,21 +37,32 @@ class Reservation(Base):
 
 
 def generate_reservation_id(db) -> str:
-    today = date.today()
-    date_str = today.strftime("%Y%m%d")
-    prefix = f"RF-{date_str}-"
+    from sqlalchemy.exc import IntegrityError
 
-    last = (
-        db.query(Reservation)
-        .filter(Reservation.id.like(f"{prefix}%"))
-        .order_by(Reservation.id.desc())
-        .first()
-    )
+    for _ in range(5):
+        today = date.today()
+        date_str = today.strftime("%Y%m%d")
+        prefix = f"RF-{date_str}-"
 
-    if last:
-        last_num = int(last.id.split("-")[-1])
-        new_num = last_num + 1
-    else:
-        new_num = 1
+        last = (
+            db.query(Reservation)
+            .filter(Reservation.id.like(f"{prefix}%"))
+            .order_by(Reservation.id.desc())
+            .first()
+        )
 
-    return f"{prefix}{new_num:04d}"
+        if last:
+            last_num = int(last.id.split("-")[-1])
+            new_num = last_num + 1
+        else:
+            new_num = 1
+
+        reservation_id = f"{prefix}{new_num:04d}"
+        try:
+            db.flush()
+            return reservation_id
+        except IntegrityError:
+            db.rollback()
+            continue
+
+    raise ValueError("No se pudo generar un ID de reservación único después de varios intentos.")

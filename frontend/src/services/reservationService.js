@@ -6,7 +6,9 @@ function mapReservation(r) {
   const dt = r.reservation_date ? new Date(r.reservation_date) : null;
   let tableNum = r.table_number || r.tableNumber || null;
   if (!tableNum && r.table_id && _tablesCache.length) {
-    const found = _tablesCache.find(function (t) { return t.id === r.table_id; });
+    const found = _tablesCache.find(function (t) {
+      return t.id === r.table_id;
+    });
     if (found) tableNum = found.number;
   }
   return {
@@ -94,9 +96,12 @@ export async function filterReservations({ date, status, search }) {
 
 export async function createReservation(data) {
   try {
-    const reservationDateTime = data.date && data.time
-      ? `${data.date}T${data.time}:00`
-      : data.date ? `${data.date}T00:00:00` : new Date().toISOString();
+    const reservationDateTime =
+      data.date && data.time
+        ? `${data.date}T${data.time}:00`
+        : data.date
+          ? `${data.date}T00:00:00`
+          : new Date().toISOString();
 
     const item = await apiPost("/api/v1/reservations/", {
       table_id: data.tableId || data.table_id || null,

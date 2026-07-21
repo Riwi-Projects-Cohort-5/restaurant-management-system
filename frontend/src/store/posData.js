@@ -1,9 +1,4 @@
-import {
-  apiGet,
-  apiPost,
-  apiPut,
-  apiDelete,
-} from "../services/api.js";
+import { apiGet, apiPost, apiPut, apiDelete } from "../services/api.js";
 import * as menuService from "../services/menuService.js";
 import * as locationService from "../services/locationService.js";
 
@@ -71,8 +66,14 @@ export async function loadOrders() {
         fullId: o.id,
         table: o.table_id,
         items: (o.order_items || []).map(function (oi) {
-          var matched = menuItems.find(function (m) { return String(m.id) === String(oi.menu_item_id); });
-          return { name: matched ? matched.name : oi.menu_item_id, qty: oi.quantity, price: parseFloat(oi.unit_price) };
+          const matched = menuItems.find(function (m) {
+            return String(m.id) === String(oi.menu_item_id);
+          });
+          return {
+            name: matched ? matched.name : oi.menu_item_id,
+            qty: oi.quantity,
+            price: parseFloat(oi.unit_price),
+          };
         }),
         total: parseFloat(o.total),
         status: STATUS_MAP_TO_FRONTEND[o.status] || o.status,
@@ -81,20 +82,18 @@ export async function loadOrders() {
         server: o.waiter_id || "",
         createdBy: "waiter",
         reservationId: o.reservation_id || null,
-        placedAt: o.created_at ? new Date(o.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "",
+        placedAt: o.created_at
+          ? new Date(o.created_at).toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+            })
+          : "",
       };
     });
   } catch {
     allOrders = [];
   }
 }
-
-const KITCHEN_STATUS_MAP_TO_FRONTEND = {
-  pending: "new",
-  preparing: "preparing",
-  ready: "ready",
-  delivered: "served",
-};
 
 export async function loadKitchenOrders() {
   try {
@@ -103,7 +102,14 @@ export async function loadKitchenOrders() {
     orders.forEach(function (o) {
       const key = o.order_id;
       if (!grouped[key]) {
-        grouped[key] = { fullId: key, kitchenIds: [], items: [], statuses: [], created_at: o.created_at, notes: null };
+        grouped[key] = {
+          fullId: key,
+          kitchenIds: [],
+          items: [],
+          statuses: [],
+          created_at: o.created_at,
+          notes: null,
+        };
       }
       grouped[key].kitchenIds.push(o.id);
       grouped[key].items.push({ name: o.menu_item_name, qty: o.quantity });
@@ -115,18 +121,27 @@ export async function loadKitchenOrders() {
     });
     kitchenOrders = Object.keys(grouped).map(function (key) {
       const g = grouped[key];
-      const matchedOrder = allOrders.find(function (o) { return o.fullId === key; });
+      const matchedOrder = allOrders.find(function (o) {
+        return o.fullId === key;
+      });
       const tableNum = matchedOrder ? matchedOrder.table : 0;
       let status = "new";
       if (g.statuses.indexOf("preparing") !== -1) status = "preparing";
-      if (g.statuses.every(function (s) { return s === "ready"; })) status = "ready";
+      if (
+        g.statuses.every(function (s) {
+          return s === "ready";
+        })
+      )
+        status = "ready";
       return {
         id: typeof key === "string" ? key.slice(0, 8) : key,
         fullId: g.fullId,
         kitchenIds: g.kitchenIds,
         table: tableNum,
         status: status,
-        time: g.created_at ? Math.floor((Date.now() - new Date(g.created_at).getTime()) / 60000) : 0,
+        time: g.created_at
+          ? Math.floor((Date.now() - new Date(g.created_at).getTime()) / 60000)
+          : 0,
         items: g.items,
         note: g.notes,
       };
@@ -159,7 +174,7 @@ export async function loadTables() {
 export async function loadAreas() {
   const locs = await locationService.getAllLocations();
   areas.length = 0;
-  locs.forEach(function (loc, i) {
+  locs.forEach(function (loc) {
     areas.push({ id: loc.id, name: loc.name, icon: "map-pin" });
   });
 }
@@ -267,7 +282,9 @@ export async function deleteOrder(orderId) {
 
 export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   try {
-    const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", { status: newStatus });
+    const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", {
+      status: newStatus,
+    });
     await loadOrders();
     await loadKitchenOrders();
     return { success: true, order: result };
@@ -353,9 +370,15 @@ export function saveDraft(cartItems, tableId) {
 }
 
 export function deleteDraft(draftId) {
-  draftOrders = draftOrders.filter(function (d) { return d.id !== draftId; });
+  draftOrders = draftOrders.filter(function (d) {
+    return d.id !== draftId;
+  });
 }
 
 export function getDraftById(draftId) {
-  return draftOrders.find(function (d) { return d.id === draftId; }) || null;
+  return (
+    draftOrders.find(function (d) {
+      return d.id === draftId;
+    }) || null
+  );
 }

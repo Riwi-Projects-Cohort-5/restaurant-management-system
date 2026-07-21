@@ -5,13 +5,11 @@ import {
   loadTables,
   loadAreas,
   loadOrders,
-  createOrder,
   createTable as apiCreateTable,
   deleteTable as apiDeleteTable,
   updateTable as apiUpdateTable,
   createArea as apiCreateArea,
   deleteArea as apiDeleteArea,
-  updateArea as apiUpdateArea,
 } from "../../store/posData.js";
 import { createReservation } from "../../services/reservationService.js";
 import { getState as getReservationState, loadReservations } from "../../store/reservations.js";
@@ -271,7 +269,8 @@ function renderTableDetailCard(t) {
     '<div class="bg-white border border-brand-300 rounded-xl shadow-[0_2px_6px_rgba(114,49,23,0.08)] overflow-hidden mb-5">';
   html +=
     '<div class="flex items-center justify-between px-5 py-4 border-b border-brand-100 bg-brand-50">';
-  html += '<h3 class="text-base font-semibold text-brand-900 font-display">Table ' + t.number + "</h3>";
+  html +=
+    '<h3 class="text-base font-semibold text-brand-900 font-display">Table ' + t.number + "</h3>";
   html += '<div class="flex items-center gap-2">' + badgeHtml;
   html +=
     '<button data-action="close-detail" class="w-8 h-8 border border-brand-300 rounded-lg flex items-center justify-center text-brand-500 hover:bg-brand-50 cursor-pointer bg-white"><i data-lucide="x" class="w-4 h-4"></i></button>';
@@ -296,7 +295,8 @@ function renderTableDetailCard(t) {
 
   if (t.status === "occupied" && order) {
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Active Order #' + order.id + "</h4>";
+    html +=
+      '<h4 class="text-sm font-semibold text-primary-700 mb-3">Active Order #' + order.id + "</h4>";
     html += '<div class="grid grid-cols-3 gap-3 mb-4">';
     html +=
       '<div class="text-center"><div class="text-[11px] font-bold uppercase text-secondary-500 mb-1">Items</div><div class="text-xl font-bold text-brand-900">' +
@@ -317,14 +317,19 @@ function renderTableDetailCard(t) {
       order.id +
       '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">View Order</button>';
     html +=
-      '<button data-action="free-table" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+      '<button data-action="free-table" data-table-id="' +
+      t.id +
+      '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
     html += "</div></div>";
   } else if (t.status === "occupied") {
     html += '<div class="border-t border-brand-200 pt-4 mt-4">';
-    html += '<p class="text-center text-neutral-500 text-sm mb-3">No active order found for this table.</p>';
+    html +=
+      '<p class="text-center text-neutral-500 text-sm mb-3">No active order found for this table.</p>';
     html += '<div class="flex gap-2">';
     html +=
-      '<button data-action="free-table" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
+      '<button data-action="free-table" data-table-id="' +
+      t.id +
+      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Volver Libre</button>';
     html += "</div></div>";
   } else if (t.status === "reserved") {
     const res = getReservationForTable(t.id);
@@ -332,15 +337,32 @@ function renderTableDetailCard(t) {
     html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Reservation</h4>';
     if (res) {
       html += '<div class="bg-accent-50 border border-accent-200 rounded-lg p-3 space-y-1">';
-      html += '<div class="text-sm font-semibold text-accent-800">' + (res.guestName || "Guest") + "</div>";
-      if (res.guestPhone) html += '<div class="text-xs text-accent-600">' + res.guestPhone + "</div>";
-      html += '<div class="text-xs text-accent-600">' + res.date + " at " + res.time + " &middot; " + res.partySize + " guests</div>";
+      html +=
+        '<div class="text-sm font-semibold text-accent-800">' +
+        (res.guestName || "Guest") +
+        "</div>";
+      if (res.guestPhone)
+        html += '<div class="text-xs text-accent-600">' + res.guestPhone + "</div>";
+      html +=
+        '<div class="text-xs text-accent-600">' +
+        res.date +
+        " at " +
+        res.time +
+        " &middot; " +
+        res.partySize +
+        " guests</div>";
       html += "</div>";
       html += '<div class="flex gap-2 mt-3">';
       html +=
-        '<button data-action="seat-reservation" data-table-id="' + t.id + '" data-reservation-id="' + res.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+        '<button data-action="seat-reservation" data-table-id="' +
+        t.id +
+        '" data-reservation-id="' +
+        res.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
       html +=
-        '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+        '<button data-action="cancel-reservation" data-table-id="' +
+        t.id +
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
       html += "</div>";
     } else {
       html +=
@@ -349,9 +371,13 @@ function renderTableDetailCard(t) {
         "</div>";
       html += '<div class="flex gap-2 mt-3">';
       html +=
-        '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
+        '<button data-action="seat-guests" data-table-id="' +
+        t.id +
+        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Now</button>';
       html +=
-        '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
+        '<button data-action="cancel-reservation" data-table-id="' +
+        t.id +
+        '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer">Cancel</button>';
       html += "</div>";
     }
     html += "</div>";
@@ -360,11 +386,17 @@ function renderTableDetailCard(t) {
     html += '<h4 class="text-sm font-semibold text-primary-700 mb-3">Quick Actions</h4>';
     html += '<div class="flex gap-2">';
     html +=
-      '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
+      '<button data-action="seat-guests" data-table-id="' +
+      t.id +
+      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">Seat Guests</button>';
     html +=
-      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
+      '<button data-action="open-order" data-table-id="' +
+      t.id +
+      '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
     html +=
-      '<button data-action="reserve" data-table-id="' + t.id + '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
+      '<button data-action="reserve" data-table-id="' +
+      t.id +
+      '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
     html += "</div></div>";
   }
 
@@ -421,7 +453,8 @@ function renderDetail(el) {
   html += '<div class="flex items-center gap-3">';
   html +=
     '<button data-action="back" class="flex items-center gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>';
-  html += '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.number + "</h2>";
+  html +=
+    '<h2 class="text-xl font-semibold text-primary-700 font-display">Table ' + t.number + "</h2>";
   html += "</div>";
   html += renderBadge(t.status);
   html += "</div>";
@@ -463,7 +496,9 @@ function renderDetail(el) {
     html += '<h3 class="text-lg text-neutral-800 mb-2">Table is free</h3>';
     html += '<p class="text-neutral-500 mb-6">Ready for new guests</p>';
     html +=
-      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+      '<button data-action="open-order" data-table-id="' +
+      t.id +
+      '" class="flex items-center gap-2 mx-auto px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
     html += "</div>";
   } else if (t.status === "occupied" && order) {
     html +=
@@ -530,12 +565,18 @@ function renderDetail(el) {
       '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="eye" class="w-4 h-4"></i> View Order</button>';
   } else if (t.status === "occupied" && !order) {
     actions =
-      '<button data-action="open-order" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
+      '<button data-action="open-order" data-table-id="' +
+      t.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> Open Order</button>';
   } else if (t.status === "reserved") {
     actions =
-      '<button data-action="cancel-reservation" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>';
+      '<button data-action="cancel-reservation" data-table-id="' +
+      t.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer"><i data-lucide="x" class="w-4 h-4"></i> Cancel</button>';
     actions +=
-      '<button data-action="seat-guests" data-table-id="' + t.id + '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Seat Guests</button>';
+      '<button data-action="seat-guests" data-table-id="' +
+      t.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer"><i data-lucide="users" class="w-4 h-4"></i> Seat Guests</button>';
   }
 
   if (actions) {
@@ -787,30 +828,34 @@ function renderIconPickerPopup(targetEl, iconName, context, areaId) {
     document.removeEventListener("click", closeHandler);
   }
 
-  var closeHandler = function (e) {
+  const closeHandler = function (e) {
     if (!popup.contains(e.target)) {
       closePopup();
     }
   };
 
   popup.addEventListener("click", function (e) {
-    var iconBtn = e.target.closest("[data-icon-pick]");
+    const iconBtn = e.target.closest("[data-icon-pick]");
     if (!iconBtn) return;
     e.stopPropagation();
 
-    var iconName2 = iconBtn.getAttribute("data-icon-pick");
-    var pickerCtx = iconBtn.getAttribute("data-picker-context");
-    var ipaid2 = iconBtn.getAttribute("data-area-id");
+    const iconName2 = iconBtn.getAttribute("data-icon-pick");
+    const pickerCtx = iconBtn.getAttribute("data-picker-context");
+    const ipaid2 = iconBtn.getAttribute("data-area-id");
 
     closePopup();
 
     if (pickerCtx === "area" && ipaid2) {
-      var ipa = areas.find(function (a) { return a.id === ipaid2; });
+      const ipa = areas.find(function (a) {
+        return a.id === ipaid2;
+      });
       if (ipa) ipa.icon = iconName2;
       editingAreaIcon = iconName2;
       renderManageAreas(document.getElementById("current-view"));
     } else if (pickerCtx === "inline" && ipaid2) {
-      var ipa2 = areas.find(function (a) { return a.id === ipaid2; });
+      const ipa2 = areas.find(function (a) {
+        return a.id === ipaid2;
+      });
       if (ipa2) ipa2.icon = iconName2;
       renderInlineAreaForm(ipaid2, "edit");
     } else if (pickerCtx === "new-area") {
@@ -895,7 +940,7 @@ function setupEvents(el) {
     }
 
     const tableEl = target.closest("[data-table-id]");
-    if (tableEl && !target.closest('[data-action]') && !target.closest('[class*="px-5 pb-5"]')) {
+    if (tableEl && !target.closest("[data-action]") && !target.closest('[class*="px-5 pb-5"]')) {
       e.stopPropagation();
       const tid = tableEl.getAttribute("data-table-id");
       selectedTableId = tid;
@@ -1058,7 +1103,6 @@ function setupEvents(el) {
     if (seatReservation) {
       e.stopPropagation();
       const srid = seatReservation.getAttribute("data-table-id");
-      const sresid = seatReservation.getAttribute("data-reservation-id");
       if (srid) {
         await apiUpdateTable(srid, { status: "occupied" });
         await loadTables();
@@ -1076,7 +1120,9 @@ function setupEvents(el) {
       if (rid) {
         const name = prompt("Reservation name:");
         if (name && name.trim()) {
-          const rt = tables.find(function (tbl) { return tbl.id === rid; });
+          const rt = tables.find(function (tbl) {
+            return tbl.id === rid;
+          });
           const now = new Date();
           const dateStr = now.toISOString().split("T")[0];
           const timeStr = now.toTimeString().slice(0, 5);

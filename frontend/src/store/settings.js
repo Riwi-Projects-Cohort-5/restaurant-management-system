@@ -1,7 +1,7 @@
 import { createStore } from "./index.js";
 import { apiGet, apiPut } from "../services/api.js";
 
-var defaults = {
+const defaults = {
   restaurant_name: "El Fogon Caribeno",
   address: "",
   phone: "",
@@ -10,7 +10,7 @@ var defaults = {
   currency: "USD",
 };
 
-var settingsStore = createStore({
+const settingsStore = createStore({
   settings: defaults,
   loaded: false,
 });
