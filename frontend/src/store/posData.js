@@ -326,14 +326,20 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   }
 }
 
-export async function updateAllKitchenOrderStatuses(lineStatuses, newStatus, expectedCurrentStatus) {
+export async function updateAllKitchenOrderStatuses(
+  lineStatuses,
+  newStatus,
+  expectedCurrentStatus
+) {
   let lastResult;
   const targetIds = expectedCurrentStatus
-    ? lineStatuses.filter(function (ls) {
-        return ls.status === expectedCurrentStatus;
-      }).map(function (ls) {
-        return ls.id;
-      })
+    ? lineStatuses
+        .filter(function (ls) {
+          return ls.status === expectedCurrentStatus;
+        })
+        .map(function (ls) {
+          return ls.id;
+        })
     : lineStatuses.map(function (ls) {
         return ls.id;
       });

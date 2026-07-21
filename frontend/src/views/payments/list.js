@@ -240,7 +240,8 @@ function renderList(el) {
         '<tr class="border-b border-brand-100 hover:bg-brand-50 transition-colors cursor-pointer" data-action="view-detail" data-payment-id="' +
         payment.id +
         '">';
-      html += '<td class="px-5 py-3 font-semibold text-primary-700">' + payment.id.slice(0, 8) + "</td>";
+      html +=
+        '<td class="px-5 py-3 font-semibold text-primary-700">' + payment.id.slice(0, 8) + "</td>";
       html += '<td class="px-5 py-3">#' + payment.order_id.slice(0, 8) + "</td>";
       html += '<td class="px-5 py-3">Table ' + table + "</td>";
       html += '<td class="px-5 py-3">—</td>';
@@ -326,7 +327,8 @@ async function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Order ID</div>';
-  html += '<div class="text-lg font-bold text-brand-900">#' + payment.order_id.slice(0, 8) + "</div>";
+  html +=
+    '<div class="text-lg font-bold text-brand-900">#' + payment.order_id.slice(0, 8) + "</div>";
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';

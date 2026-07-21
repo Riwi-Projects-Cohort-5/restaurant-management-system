@@ -208,7 +208,9 @@ export function init() {
       const newDark = isDark();
       themeBtn.innerHTML = `<i data-lucide="${newDark ? "sun" : "moon"}" class="w-[18px] h-[18px]"></i>`;
       createIcons({ icons: { Sun, Moon } });
-      window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: newDark ? "dark" : "light" } }));
+      window.dispatchEvent(
+        new CustomEvent("themechange", { detail: { theme: newDark ? "dark" : "light" } })
+      );
 
       // Update scene and logos
       const sceneImg = document.querySelector("#loginPage img[src*='-scene.svg']");
