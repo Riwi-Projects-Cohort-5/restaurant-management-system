@@ -1073,8 +1073,8 @@ function setupOrderDetailEvents(container, order) {
 const PosView = {
   render: async function (el) {
     _lastContainer = el;
-    await loadOrders();
     await loadMenuItems();
+    await loadOrders();
     await loadTables();
     const openTableId = window._openOrderTableId;
     if (openTableId) {

@@ -7,6 +7,9 @@ export let allOrders = [];
 export let kitchenOrders = [];
 export let draftOrders = [];
 let draftCounter = 1;
+const _userMap = {};
+let _usersLoaded = false;
+let _menuLoaded = false;
 
 export const areas = [
   { id: 1, name: "Main Hall", icon: "home" },
@@ -35,6 +38,19 @@ const STATUS_MAP_TO_FRONTEND = {
   cancelled: "cancelled",
 };
 
+export async function loadUsers() {
+  if (_usersLoaded) return;
+  try {
+    const users = await apiGet("/api/v1/users/");
+    users.forEach(function (u) {
+      _userMap[u.id] = u.full_name || u.username;
+    });
+    _usersLoaded = true;
+  } catch {
+    // ignore - userMap stays empty
+  }
+}
+
 export async function loadMenuItems() {
   const products = await menuService.getAllProducts();
   const categories = await menuService.getAllCategories();
@@ -55,12 +71,16 @@ export async function loadMenuItems() {
     .filter(function (item) {
       return item.available;
     });
+  _menuLoaded = true;
 }
 
 export async function loadOrders() {
   try {
+    await loadUsers();
+    if (!_menuLoaded) await loadMenuItems();
     const orders = await apiGet("/api/v1/orders/?limit=50");
     allOrders = orders.map(function (o) {
+      const serverName = _userMap[o.waiter_id] || o.waiter_id || "";
       return {
         id: typeof o.id === "string" ? o.id.slice(0, 8) : o.id,
         fullId: o.id,
@@ -79,8 +99,8 @@ export async function loadOrders() {
         status: STATUS_MAP_TO_FRONTEND[o.status] || o.status,
         time: formatTimeAgo(o.created_at),
         note: null,
-        server: o.waiter_id || "",
-        createdBy: "waiter",
+        server: serverName,
+        createdBy: serverName,
         reservationId: o.reservation_id || null,
         placedAt: o.created_at
           ? new Date(o.created_at).toLocaleTimeString("en-US", {
