@@ -41,6 +41,38 @@ We follow a `develop`-based trunk. **Never commit directly to `main` or `develop
 - Add `closes #N` in the PR description to auto-close issues.
 - Squash-merge into `develop` is the default.
 
+### Releases to `main`
+
+`main` is the production branch. It is only updated by merging a **release PR** from `develop` → `main`. The release flow is automated by `.github/workflows/release.yml`:
+
+1. **Open a PR `develop` → `main`** (typically titled `release: vX.Y.Z` or `chore: cut release <date>`). The workflow's validation gate runs: backend lint + tests (with Postgres service container), frontend lint + prettier + build. No deploys run on a PR.
+2. **Merge the PR** once the gate is green and reviewers approve (the `main` branch should be protected with "Require status checks to pass" and "Require a pull request before merging").
+3. On push to `main`, the workflow:
+   - Computes the next semver tag (starts at `v0.1.0`; bumps patch by default — bump minor/major manually for feature/breaking releases).
+   - Creates and pushes the tag.
+   - Publishes a GitHub Release with notes categorised via `.github/release.yml`.
+   - Triggers production deploys to Render for both the backend (`RENDER_PROD_SERVICE_ID`) and the frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
+
+### Render secrets required for production deploys
+
+Add these to the repo's `Settings → Secrets and variables → Actions`:
+
+| Secret | Purpose |
+|---|---|
+| `RENDER_API_KEY` | Render API token, used by all deploy jobs (develop + main). |
+| `RENDER_SERVICE_ID` | Backend service ID on Render — used by the `develop` deploy in `backend.yml`. |
+| `RENDER_PROD_SERVICE_ID` | **Production** backend service ID — used by the release workflow on `main`. |
+| `RENDER_PROD_FRONTEND_SERVICE_ID` | **Production** frontend static-site service ID — used by the release workflow on `main`. |
+
+> Keeping develop and production service IDs separate means deploys to `develop` (preview) and `main` (production) land on different services and never collide.
+
+### Branch protection (recommended)
+
+On GitHub → Settings → Branches:
+
+- `main`: require pull request before merging, require status checks (`Validate backend`, `Validate frontend`, `Release gate`), require linear history, do not allow force pushes.
+- `develop`: require pull request before merging (or allow direct pushes if the team is small), require `Backend CI/CD` and `Frontend CI` checks.
+
 ## 2. Commit style
 
 Conventional Commits. Type + colon + short imperative description, lowercase.
@@ -157,6 +189,7 @@ Before opening a PR, make sure:
 - [ ] New roles or routes are reflected in `frontend/src/utils/routeGuard.js` and `docs/frontend/overview.md`.
 - [ ] `docs/README.md` index is still accurate (or has a new row).
 - [ ] `CHANGELOG.md` captures the change.
+- [ ] If this change targets `main` (release PR), the `Validate backend`, `Validate frontend` and `Release gate` checks pass before merging.
 
 ## 8. Code style quick wins
 
