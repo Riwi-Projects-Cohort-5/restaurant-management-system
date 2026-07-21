@@ -140,10 +140,10 @@ export function initRoleSwitcher(authModule) {
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
-      setTimeout(renderFloatingButton, 500);
+      renderFloatingButton();
     });
   } else {
-    setTimeout(renderFloatingButton, 500);
+    renderFloatingButton();
   }
 }
 

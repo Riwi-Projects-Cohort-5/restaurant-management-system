@@ -12,7 +12,6 @@
   const passwordInput = document.getElementById("password");
   const passwordToggle = document.getElementById("passwordToggle");
   const emailError = document.getElementById("emailError");
-  const signInBtn = document.getElementById("signInBtn");
 
   // ── Initialize Lucide icons ──
   function initIcons() {
@@ -92,15 +91,6 @@
       }
 
       if (hasError) return;
-
-      // Simulate sign-in
-      signInBtn.disabled = true;
-      signInBtn.textContent = "Signing in...";
-
-      setTimeout(function () {
-        signInBtn.disabled = false;
-        signInBtn.textContent = "Sign In";
-      }, 2000);
     });
   }
 
