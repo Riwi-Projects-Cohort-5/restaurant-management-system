@@ -3,6 +3,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.db.models.kitchen_order import KitchenOrder
 from app.db.models.order import Order, OrderStatus
 from app.db.models.order_item import OrderItem
 from app.repositories.menu_item_repository import MenuItemRepository
@@ -70,6 +71,12 @@ class OrderService:
             order.status = OrderStatus(status)
         except ValueError:
             raise InvalidEnumValueError(f"Invalid status: {status}. Must be one of: {[e.value for e in OrderStatus]}")
+        if order.status == OrderStatus.CANCELLED:
+            kitchen_orders = self.repo.db.query(KitchenOrder).filter(
+                KitchenOrder.order_id == order_id
+            ).all()
+            for ko in kitchen_orders:
+                self.repo.db.delete(ko)
         return self.repo.update(order)
 
     def delete(self, order_id: UUID) -> bool:

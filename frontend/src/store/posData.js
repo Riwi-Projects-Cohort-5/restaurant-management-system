@@ -25,7 +25,7 @@ const STATUS_MAP_TO_BACKEND = {
   draft: null,
   new: "pending",
   preparing: "in_progress",
-  ready: "in_progress",
+  ready: "ready",
   served: "served",
   completed: "completed",
   cancelled: "cancelled",
@@ -34,6 +34,7 @@ const STATUS_MAP_TO_BACKEND = {
 const STATUS_MAP_TO_FRONTEND = {
   pending: "new",
   in_progress: "preparing",
+  ready: "ready",
   served: "served",
   completed: "completed",
   cancelled: "cancelled",
@@ -119,16 +120,21 @@ export async function loadOrders() {
 export async function loadKitchenOrders() {
   try {
     const orders = await apiGet("/api/v1/kitchen/");
+    const parentStatuses = {};
+    allOrders.forEach(function (o) {
+      parentStatuses[o.fullId] = o.status;
+    });
     const grouped = {};
     orders.forEach(function (o) {
       const key = o.order_id;
+      const parentStatus = parentStatuses[key];
+      if (parentStatus === "cancelled" || parentStatus === "completed") return;
       if (!grouped[key]) {
         grouped[key] = {
           fullId: key,
           kitchenIds: [],
           items: [],
           statuses: [],
-          lineStatuses: [],
           created_at: o.created_at,
           notes: null,
         };
@@ -136,7 +142,6 @@ export async function loadKitchenOrders() {
       grouped[key].kitchenIds.push(o.id);
       grouped[key].items.push({ name: o.menu_item_name, qty: o.quantity });
       grouped[key].statuses.push(o.status);
-      grouped[key].lineStatuses.push({ id: o.id, status: o.status });
       if (o.notes) grouped[key].notes = o.notes;
       if (o.created_at && (!grouped[key].created_at || o.created_at < grouped[key].created_at)) {
         grouped[key].created_at = o.created_at;
@@ -156,17 +161,10 @@ export async function loadKitchenOrders() {
         })
       )
         status = "ready";
-      if (
-        g.statuses.every(function (s) {
-          return s === "delivered";
-        })
-      )
-        status = "served";
       return {
         id: typeof key === "string" ? key.slice(0, 8) : key,
         fullId: g.fullId,
         kitchenIds: g.kitchenIds,
-        lineStatuses: g.lineStatuses,
         table: tableNum,
         status: status,
         time: g.created_at
@@ -312,52 +310,25 @@ export async function deleteOrder(orderId) {
   }
 }
 
-export async function updateKitchenOrderStatus(kitchenOrderId, newStatus, silent) {
+export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   try {
     const result = await apiPut("/api/v1/kitchen/" + kitchenOrderId + "/status", {
       status: newStatus,
     });
-    if (!silent) {
-      await loadOrders();
-      await loadKitchenOrders();
-      window.dispatchEvent(new CustomEvent("orders:updated"));
-    }
+    await loadOrders();
+    await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
   }
 }
 
-export async function updateAllKitchenOrderStatuses(
-  lineStatuses,
-  newStatus,
-  expectedCurrentStatus
-) {
-  let lastResult, targetIds;
-  if (expectedCurrentStatus) {
-    targetIds = lineStatuses
-      .filter(function (ls) {
-        return ls.status === expectedCurrentStatus;
-      })
-      .map(function (ls) {
-        return ls.id;
-      });
-    if (targetIds.length === 0) {
-      targetIds = lineStatuses.map(function (ls) {
-        return ls.id;
-      });
-    }
-  } else {
-    targetIds = lineStatuses.map(function (ls) {
-      return ls.id;
-    });
+export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus) {
+  let lastResult;
+  for (const kid of kitchenIds) {
+    lastResult = await updateKitchenOrderStatus(kid, newStatus);
   }
-  for (const kid of targetIds) {
-    lastResult = await updateKitchenOrderStatus(kid, newStatus, true);
-  }
-  await loadOrders();
-  await loadKitchenOrders();
-  window.dispatchEvent(new CustomEvent("orders:updated"));
   return lastResult || { success: false, error: "No kitchen order IDs provided" };
 }
 
@@ -385,7 +356,7 @@ export function canTransition(role, from, to) {
     const fi = LIFECYCLE.indexOf(from);
     const ti = LIFECYCLE.indexOf(to);
     if (fi === -1 || ti === -1) return false;
-    return ti === fi + 1 && fi >= 3;
+    return ti === fi + 1 && fi === 3;
   }
   if (role === "chef") {
     const fi2 = LIFECYCLE.indexOf(from);

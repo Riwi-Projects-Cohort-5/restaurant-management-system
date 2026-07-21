@@ -518,6 +518,7 @@ function setupListEvents(el) {
         });
         if (result.success) {
           await paymentsStore.refreshPayments();
+          await loadOrders();
           renderList(el);
         } else {
           toast.error("Error", result.error || "Error creating payment");

@@ -49,6 +49,8 @@ class KitchenService:
         statuses = [ko.status for ko in kitchen_orders]
         if all(s == KitchenOrderStatus.DELIVERED for s in statuses):
             new_status = OrderStatus.SERVED
+        elif all(s == KitchenOrderStatus.READY for s in statuses):
+            new_status = OrderStatus.READY
         elif any(s == KitchenOrderStatus.PREPARING for s in statuses):
             new_status = OrderStatus.IN_PROGRESS
         elif any(s == KitchenOrderStatus.READY for s in statuses):
