@@ -394,7 +394,7 @@ function renderConfirmTablePanel(el) {
         t.id +
         '" class="flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all text-left ' +
         (isSelected
-          ? "border-primary-500 bg-primary-50 shadow-[0_0_0_3px_rgba(229,119,34,0.15)]"
+          ? "border-primary-500 bg-primary-50 shadow-[var(--ring-brand)]"
           : "border-brand-200 bg-white hover:border-brand-400 hover:bg-brand-50") +
         '">';
       html +=

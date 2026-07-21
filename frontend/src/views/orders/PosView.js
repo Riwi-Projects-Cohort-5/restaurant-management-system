@@ -255,7 +255,7 @@ function renderNewOrder(container) {
     html +=
       '<div data-action="add-to-cart" data-item-id="' +
       item.id +
-      '" class="bg-white border border-brand-300 rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)]">';
+      '" class="bg-white border border-brand-300 rounded-xl p-4 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[var(--shadow-brand-hover)]">';
     html +=
       '<div class="w-20 h-20 rounded-lg flex items-center justify-center text-3xl mb-3 bg-brand-50">' +
       (item.emoji || "\uD83C\uDF7D\uFE0F") +
@@ -521,7 +521,7 @@ function renderOrderDetail(container, orderId) {
       html +=
         '<div data-action="add-to-edit-order" data-item-id="' +
         item.id +
-        '" class="bg-white border border-brand-300 rounded-xl p-3 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)]">';
+        '" class="bg-white border border-brand-300 rounded-xl p-3 cursor-pointer transition-all flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[var(--shadow-brand-hover)]">';
       html +=
         '<div class="w-14 h-14 rounded-lg flex items-center justify-center text-2xl mb-2 bg-brand-50">' +
         (item.emoji || "\uD83C\uDF7D\uFE0F") +
@@ -597,7 +597,7 @@ function renderOrderDetail(container, orderId) {
     '<div class="text-[13px] text-accent-700 italic p-3 bg-accent-50 rounded-md border-l-[3px] border-accent-400">';
   if (canEditNote) {
     html +=
-      '<textarea id="detailNoteInput" class="w-full border border-brand-300 rounded-md p-3 text-[13px] resize-y min-h-[60px] mb-3 text-neutral-700 bg-white focus:outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.1)]" placeholder="Add a note for the kitchen (e.g. allergy, substitution)...">' +
+      '<textarea id="detailNoteInput" class="w-full border border-brand-300 rounded-md p-3 text-[13px] resize-y min-h-[60px] mb-3 text-neutral-700 bg-white focus:outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)]" placeholder="Add a note for the kitchen (e.g. allergy, substitution)...">' +
       (displayOrder.note || "") +
       "</textarea>";
     html +=

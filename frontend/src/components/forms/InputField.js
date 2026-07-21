@@ -28,7 +28,7 @@ function InputField(opts) {
     "bg-brand-50 border border-brand-300 rounded-md outline-none " +
     "transition-colors duration-100 " +
     "placeholder:text-neutral-400 " +
-    "focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] " +
+    "focus:border-brand-500 focus:shadow-[var(--ring-brand)] " +
     'hover:not-focus:border-brand-400" ' +
     'type="' +
     type +

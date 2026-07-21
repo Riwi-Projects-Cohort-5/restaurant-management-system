@@ -440,9 +440,9 @@ function renderMovementForm(el, itemId, type) {
   html += '<div class="p-5">';
   html += '<div class="grid grid-cols-2 gap-4 max-w-md">';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Quantity<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Quantity<input type="number" id="movement-qty" min="0.1" step="0.1" placeholder="0.0" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
-    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Reason<input type="text" id="movement-reason" placeholder="e.g. Supplier delivery" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Reason<input type="text" id="movement-reason" placeholder="e.g. Supplier delivery" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html += "</div>";
   html += '<div class="flex gap-3 mt-4">';
   html +=
@@ -496,13 +496,13 @@ async function renderForm(el, itemId) {
   html +=
     '<input type="text" id="inv-name" value="' +
     (item ? item.name : "") +
-    '" placeholder="e.g. Extra Virgin Olive Oil" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" />';
+    '" placeholder="e.g. Extra Virgin Olive Oil" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" />';
   html += "</div>";
 
   html += "<div>";
   html += '<label class="block text-sm font-semibold text-secondary-600 mb-1">Unit *</label>';
   html +=
-    '<select id="inv-unit" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all">';
+    '<select id="inv-unit" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all">';
   html += '<option value="">Select unit...</option>';
   UNITS.forEach(function (u) {
     html +=
@@ -524,14 +524,14 @@ async function renderForm(el, itemId) {
   html +=
     '<input type="number" id="inv-quantity" step="0.1" min="0" value="' +
     (item ? item.quantity : "0") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
+    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></div>';
 
   html +=
     '<div><label class="block text-sm font-semibold text-secondary-600 mb-1">Minimum Stock *</label>';
   html +=
     '<input type="number" id="inv-min-stock" step="0.1" min="0" value="' +
     (item ? item.min_stock : "0") +
-    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></div>';
+    '" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></div>';
   html += "</div>";
 
   html += CheckboxField({ id: "inv-active", label: "Active", checked: !item || item.is_active });

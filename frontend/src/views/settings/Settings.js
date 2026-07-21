@@ -75,7 +75,7 @@ function render(el) {
   html +=
     '<label class="block text-sm font-semibold text-secondary-600 mb-1">Currency Code</label>';
   html +=
-    '<select id="settings-currency-code" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all">';
+    '<select id="settings-currency-code" class="w-full px-3 py-2 border border-brand-200 rounded-lg text-sm text-neutral-900 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all">';
   const codes = ["USD", "EUR", "GBP", "MXN", "CAD", "JPY"];
   codes.forEach(function (code) {
     html +=

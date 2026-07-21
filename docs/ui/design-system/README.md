@@ -12,14 +12,39 @@ app.css (@theme) ──> Tailwind utilities ──> Components
 
 | Category | Variables | Count |
 |----------|-----------|-------|
-| Colors | `--color-brand-*`, `--color-primary-*`, `--color-neutral-*`, `--color-secondary-*`, `--color-accent-*`, `--color-success-*`, `--color-warning-*`, `--color-error-*`, `--color-info-*` | ~80 |
+| Colors | `--color-brand-*`, `--color-primary-*`, `--color-neutral-*`, `--color-secondary-*`, `--color-accent-*`, `--color-success-*`, `--color-warning-*`, `--color-error-*`, `--color-info-*` | ~80 per theme |
 | Spacing | `--spacing-sp-0` through `--spacing-sp-32` | 16 |
 | Radius | `--radius-radius-none` through `--radius-radius-full` | 9 |
 | Typography | `--font-sans`, `--font-display`, `--text-text-label/button/heading` | 5 |
 | Layout | `--topbar-height`, `--sidebar-width`, `--sidebar-collapsed` | 3 |
 | Duration | `--duration-fast/normal/slow`, `--animate-duration-*` | 6 |
+| Effects | `--ring-brand`, `--ring-error`, `--ring-primary`, `--shadow-brand-hover` | 4 per theme |
 
-**Total: ~119 CSS custom properties** (not 578 tokens).
+**Total: ~131 CSS custom properties** (light theme) + dark theme overrides.
+
+### Theming
+
+Two themes are defined via CSS custom property overrides:
+
+| Theme | Selector | Colors |
+|-------|----------|--------|
+| **Light** | default (no selector) | Cobre/terracota brand, green primary, warm grays |
+| **Dark** | `[data-theme="dark"]` | Vasija oxidada (azul-teal con pátina), Azul Caribe primary, grises azulados nocturnos |
+
+Theme state is managed by `frontend/src/utils/theme.js` — persisted in `localStorage` under key `fogon-theme`. Toggle applies `data-theme="dark"` to `<html>`.
+
+### Dark Mode — Scale Inversion
+
+The dark theme **inverts the scale direction** for `brand`, `neutral`, and `primary` so existing Tailwind utility classes produce correct dark mode colors without component changes:
+
+| Class | Light value | Dark value | Semantic role |
+|-------|-------------|------------|---------------|
+| `bg-brand-100` | `#fcedd7` (light peach) | `#132b35` (azul petróleo) | Main surface bg |
+| `bg-brand-50` | `#fef7ee` (warm cream) | `#0d1b2a` (negro azulado) | Input bg |
+| `bg-brand-500` | `#e57722` (cobre naranja) | `#4a7d8d` (teal oxidado) | Sidebar bg |
+| `text-neutral-900` | `#111827` (dark text) | `#e4ecf2` (light text) | Primary text |
+| `text-neutral-600` | `#4b5563` (muted text) | `#8a9eb2` (medium-light) | Secondary text |
+| `border-brand-300` | `#f2ba7a` (warm border) | `#29505d` (dark border) | Input/card border |
 
 ### Tailwind Usage Pattern
 
@@ -45,7 +70,6 @@ The following are documented in the old token docs but **do not exist as actual 
 
 - Semantic layer (`text.color.default`, `bg.color.primary`, `surface.color.*`, etc.)
 - Component-scoped tokens (`button.color.primaryBg`, `input.color.bg`, `toast.color.*`, etc.)
-- Dark theme overrides (`rms/semantic-dark`)
 - Penpot token export/import pipeline
 
 These were part of an initial design system plan. The actual implementation uses Tailwind utility classes directly.
@@ -54,5 +78,6 @@ These were part of an initial design system plan. The actual implementation uses
 
 | File | Contents |
 |------|----------|
-| `app.css` | Source of truth — all `@theme` variables, base styles, animations |
-| [primitives.md](primitives.md) | Actual CSS custom properties defined in `@theme` |
+| `app.css` | Source of truth — all `@theme` variables, base styles, dark theme overrides, animations |
+| [primitives.md](primitives.md) | Actual CSS custom properties defined in `@theme` (light + dark) |
+| [theme.md](theme.md) | Night mode architecture, logo/scene variants, theme utility API |

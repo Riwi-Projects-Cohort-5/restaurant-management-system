@@ -1,3 +1,5 @@
+import { getLogoPath, toggleTheme, isDark } from '../../utils/theme.js';
+
 const AppShell = {
   render: function (el) {
     if (el.querySelector("[data-app-shell]")) return;
@@ -28,13 +30,30 @@ const AppShell = {
     AppShell.renderSidebarNav(nav);
     AppShell.renderSidebarFooter(footer, user);
     AppShell.renderTopbar(topbar);
+
+    const themeBtn = document.getElementById("appShellThemeToggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", function () {
+        toggleTheme();
+        const icon = themeBtn.querySelector("[data-lucide]");
+        if (icon) {
+          icon.setAttribute("data-lucide", isDark() ? "moon" : "sun");
+          window.createIcons();
+        }
+        const sidebarHeader = el.querySelector("aside > header");
+        if (sidebarHeader) {
+          AppShell.renderSidebarHeader(sidebarHeader);
+        }
+        window.dispatchEvent(new Event("hashchange"));
+      });
+    }
   },
 
   renderSidebarHeader: function (el) {
     el.innerHTML =
       '<div class="flex items-center gap-3">' +
-      '<img src="/logos/logo-01.png" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
-      '<img src="/logos/logo-03.png" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
+      '<img src="' + getLogoPath('logo-01') + '" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
+      '<img src="' + getLogoPath('logo-03') + '" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
       "</div>";
   },
 
@@ -176,7 +195,7 @@ const AppShell = {
       title +
       "</h1>" +
       '<div class="flex-1"></div>' +
-      '<div class="flex items-center border border-brand-300 rounded-full gap-2 h-10 px-4 w-[240px] focus-within:border-brand-500 focus-within:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all duration-100">' +
+      '<div class="flex items-center border border-brand-300 rounded-full gap-2 h-10 px-4 w-[240px] focus-within:border-brand-500 focus-within:shadow-[var(--ring-brand)] transition-all duration-100">' +
       '<i data-lucide="search" class="w-4 h-4 text-brand-500 shrink-0"></i>' +
       '<input type="text" placeholder="Search orders, tables..." class="bg-transparent border-none outline-none flex-1 text-[13px] text-neutral-900 placeholder:text-brand-400" />' +
       "</div>" +
@@ -185,8 +204,8 @@ const AppShell = {
       '<i data-lucide="bell" class="w-[18px] h-[18px]"></i>' +
       '<span class="absolute w-2 h-2 rounded-full bg-error-500 top-2 right-2 border-2 border-white"></span>' +
       "</button>" +
-      '<button class="w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100">' +
-      '<i data-lucide="sun" class="w-[18px] h-[18px]"></i>' +
+      '<button id="appShellThemeToggle" class="w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100" aria-label="Toggle theme">' +
+      '<i data-lucide="' + (isDark() ? 'moon' : 'sun') + '" class="w-[18px] h-[18px]"></i>' +
       "</button>";
   },
 

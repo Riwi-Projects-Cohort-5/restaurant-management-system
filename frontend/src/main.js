@@ -1,6 +1,7 @@
 import { createIcons, icons } from "lucide";
 import * as authStore from "./store/auth.js";
 import { getHomeRoute, isRouteAllowed } from "./utils/routeGuard.js";
+import { initTheme } from "./utils/theme.js";
 import AppShell from "./components/layout/AppShell.js";
 import Dashboard from "./views/dashboard/Dashboard.js";
 import PosView from "./views/orders/PosView.js";
@@ -171,10 +172,12 @@ window.navigate = function (path) {
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
+    initTheme();
     renderView();
     initRoleSwitcher(authStore);
   });
 } else {
+  initTheme();
   renderView();
   initRoleSwitcher(authStore);
 }

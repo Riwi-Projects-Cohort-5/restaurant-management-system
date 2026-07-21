@@ -4,6 +4,7 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
 
+  /* ── Light Theme Tokens (default) ── */
   --color-brand-50: #fef7ee;
   --color-brand-100: #fcedd7;
   --color-brand-200: #f8d7ae;
@@ -147,6 +148,131 @@
   --text-text-label: 13px;
   --text-text-button: 14px;
   --text-text-heading: 28px;
+
+  --ring-brand: 0 0 0 3px rgba(229,119,34,0.15);
+  --ring-error: 0 0 0 3px rgba(239,68,68,0.15);
+  --ring-primary: 0 0 0 3px rgba(31,170,125,0.15);
+  --shadow-brand-hover: 0 6px 16px rgba(229,119,34,0.18);
+}
+
+/* ── Dark Theme Tokens (El Fogón Caribeño Night Mode) ─
+   Vasija oxidada: brand low = oscuro frío (fondos),
+   brand 500 = teal oxidado (vasija), brand high = claro (texto) ── */
+[data-theme="dark"] {
+  /* Brand — vasija oxidada con pátina azulada */
+  --color-brand-50: #0d1b2a;
+  --color-brand-100: #132b35;
+  --color-brand-200: #1c3d49;
+  --color-brand-300: #29505d;
+  --color-brand-400: #376675;
+  --color-brand-500: #4a7d8d;
+  --color-brand-600: #5a90a0;
+  --color-brand-700: #7ab0c0;
+  --color-brand-800: #a0ccd8;
+  --color-brand-900: #c8e4ec;
+
+  /* Primary — Azul Caribe (olas brillantes sobre fondo oscuro) */
+  --color-primary-50: #082e3f;
+  --color-primary-100: #0d465f;
+  --color-primary-200: #115f81;
+  --color-primary-300: #157ea6;
+  --color-primary-400: #1e9fc8;
+  --color-primary-500: #38badb;
+  --color-primary-600: #6fd3ea;
+  --color-primary-700: #a8e8f5;
+  --color-primary-800: #d5f5fb;
+  --color-primary-900: #eefcff;
+
+  /* Neutral — grises azulados nocturnos */
+  --color-neutral-0: #04090f;
+  --color-neutral-50: #0a1520;
+  --color-neutral-100: #132030;
+  --color-neutral-200: #1e2e40;
+  --color-neutral-300: #2a3e52;
+  --color-neutral-400: #4a5e72;
+  --color-neutral-500: #6a7e92;
+  --color-neutral-600: #8a9eb2;
+  --color-neutral-700: #a8b8cc;
+  --color-neutral-800: #c8d4e0;
+  --color-neutral-900: #e4ecf2;
+  --color-neutral-950: #f4f8fb;
+
+  /* Secondary — Azul Petróleo (profundidad de la vasija) */
+  --color-secondary-50: #132b35;
+  --color-secondary-100: #1c3d49;
+  --color-secondary-200: #29505d;
+  --color-secondary-300: #376675;
+  --color-secondary-400: #4a7d8d;
+  --color-secondary-500: #649ba9;
+  --color-secondary-600: #8db9c4;
+  --color-secondary-700: #b7d6dd;
+  --color-secondary-800: #d8eaee;
+  --color-secondary-900: #eef6f8;
+
+  /* Accent — Luz de la Luna (plateado nocturno) */
+  --color-accent-50: #1a2530;
+  --color-accent-100: #2a3a48;
+  --color-accent-200: #3a4f60;
+  --color-accent-300: #4a6478;
+  --color-accent-400: #6a8498;
+  --color-accent-500: #8aa4b8;
+  --color-accent-600: #a8c0d0;
+  --color-accent-700: #c4d8e4;
+  --color-accent-800: #dce8f0;
+  --color-accent-900: #f0f6fa;
+
+  /* Success — verde Caribe nocturno */
+  --color-success-50: #0a2a1e;
+  --color-success-100: #134030;
+  --color-success-200: #1e5842;
+  --color-success-300: #2a7054;
+  --color-success-400: #3d8868;
+  --color-success-500: #56a080;
+  --color-success-600: #78b898;
+  --color-success-700: #a0d0b8;
+  --color-success-800: #c8e8d8;
+  --color-success-900: #e4f4ec;
+
+  /* Warning — ámbar nocturno */
+  --color-warning-50: #2a1a08;
+  --color-warning-100: #3d2810;
+  --color-warning-200: #5a3818;
+  --color-warning-300: #7a4a20;
+  --color-warning-400: #9a5c28;
+  --color-warning-500: #b87038;
+  --color-warning-600: #d08850;
+  --color-warning-700: #e0a070;
+  --color-warning-800: #ecc098;
+  --color-warning-900: #f4dcc0;
+
+  /* Error — rojo nocturno */
+  --color-error-50: #2a0a0a;
+  --color-error-100: #401515;
+  --color-error-200: #582020;
+  --color-error-300: #703030;
+  --color-error-400: #884545;
+  --color-error-500: #a06060;
+  --color-error-600: #b88080;
+  --color-error-700: #d0a0a0;
+  --color-error-800: #e8c4c4;
+  --color-error-900: #f4e0e0;
+
+  /* Info — azul noche */
+  --color-info-50: #0a1a2e;
+  --color-info-100: #132a44;
+  --color-info-200: #1e3a5c;
+  --color-info-300: #2a4a74;
+  --color-info-400: #3a5a8c;
+  --color-info-500: #5070a4;
+  --color-info-600: #7090b8;
+  --color-info-700: #98b0d0;
+  --color-info-800: #c0d4e4;
+  --color-info-900: #dce8f4;
+
+  --ring-brand: 0 0 0 3px rgba(74,125,141,0.3);
+  --ring-error: 0 0 0 3px rgba(160,96,96,0.3);
+  --ring-primary: 0 0 0 3px rgba(56,186,219,0.3);
+  --shadow-brand-hover: 0 6px 16px rgba(74,125,141,0.25);
 }
 
 /* ── Base styles (inside @layer base so Tailwind utilities can override) ── */
@@ -186,6 +312,75 @@
   }
 }
 
+/* ── Dark mode component overrides ──
+   Inverted scale means low-index brand = dark bg, high-index = light text.
+   These fix component states that assumed the light-mode direction. ── */
+[data-theme="dark"] {
+  /* White surfaces → dark surfaces (cards, table rows, filter/action buttons) */
+  .bg-white {
+    background-color: var(--color-brand-200);
+  }
+  /* Exceptions: sidebar active nav, sidebar avatar stay white */
+  [data-app-shell] aside .bg-white {
+    background-color: #ffffff;
+  }
+  /* Topbar icon buttons: dark surface with light icons */
+  [data-app-shell] > header .bg-white {
+    background-color: var(--color-brand-300) !important;
+    border-color: var(--color-brand-400) !important;
+    color: var(--color-neutral-900) !important;
+  }
+  [data-app-shell] > header .bg-white:hover {
+    background-color: var(--color-brand-400) !important;
+    border-color: var(--color-brand-500) !important;
+    color: var(--color-neutral-950) !important;
+  }
+
+  /* Active nav item: dark text/icon on white */
+  [data-app-shell] aside .bg-white.text-brand-700 {
+    color: var(--color-brand-100);
+  }
+  [data-app-shell] aside .bg-white .text-brand-500 {
+    color: var(--color-brand-100);
+  }
+  [data-app-shell] aside .bg-white .bg-accent-400 {
+    background-color: var(--color-brand-400);
+  }
+
+  /* Sidebar avatar initials: dark teal on white */
+  [data-app-shell] aside footer .bg-white.text-brand-600 {
+    color: var(--color-brand-100);
+  }
+
+  /* Text on dark surfaces (main content): bright for contrast */
+  .bg-white.text-brand-700 {
+    color: var(--color-brand-900);
+  }
+  .bg-white.text-brand-600 {
+    color: var(--color-brand-800);
+  }
+  .bg-white.text-secondary-700 {
+    color: var(--color-secondary-700);
+  }
+  .bg-white.text-neutral-700 {
+    color: var(--color-neutral-800);
+  }
+
+  /* Border adjustments on dark surfaces */
+  .bg-white.border-brand-200 {
+    border-color: var(--color-brand-400);
+  }
+  .bg-white.border-brand-300 {
+    border-color: var(--color-brand-500);
+  }
+  .divide-brand-200 > * + * {
+    border-color: var(--color-brand-300);
+  }
+  .bg-white:hover.border-brand-400 {
+    border-color: var(--color-brand-500);
+  }
+}
+
 /* ── Scrollbar (can't be Tailwind) ── */
 ::-webkit-scrollbar {
   width: 6px;
@@ -199,6 +394,12 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-brand-400);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-500);
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
 }
 
 /* ── Toast & Modal animations (can't be Tailwind) ── */
