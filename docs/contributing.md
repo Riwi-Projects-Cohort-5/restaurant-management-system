@@ -51,20 +51,24 @@ We follow a `develop`-based trunk. **Never commit directly to `main` or `develop
    - Computes the next semver tag (first release → `v1.0.0` aligned with `frontend/package.json`; subsequent releases auto-bump by scanning commit subjects since the previous tag: `BREAKING CHANGE` / `!:` → major, `feat(...)` → minor, default → patch).
    - Creates and pushes the tag.
    - Publishes a GitHub Release with notes categorised via `.github/release.yml`.
-   - Triggers production deploys to Render for both the backend (`RENDER_PROD_SERVICE_ID`) and the frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`).
+   - Triggers production deploy to **Render** for the backend (`RENDER_PROD_SERVICE_ID`) and to **Vercel** for the frontend (`VERCEL_TOKEN`).
 
-### Render secrets required for production deploys
+### Required secrets for production deploys
 
 Add these to the repo's `Settings → Secrets and variables → Actions`:
 
-| Secret | Purpose |
-|---|---|
-| `RENDER_API_KEY` | Render API token, used by all deploy jobs (develop + main). |
-| `RENDER_SERVICE_ID` | Backend service ID on Render — used by the `develop` deploy in `backend.yml`. |
-| `RENDER_PROD_SERVICE_ID` | **Production** backend service ID — used by the release workflow on `main`. |
-| `RENDER_PROD_FRONTEND_SERVICE_ID` | **Production** frontend static-site service ID — used by the release workflow on `main`. |
+| Secret | Platform | Purpose |
+|---|---|---|
+| `RENDER_API_KEY` | Render | API token, used by all Render deploy jobs (develop + main). |
+| `RENDER_SERVICE_ID` | Render | Preview backend service ID — used by the `develop` deploy in `backend.yml`. |
+| `RENDER_PROD_SERVICE_ID` | Render | **Production** backend service ID — used by the release workflow on `main`. |
+| `VERCEL_TOKEN` | Vercel | API token, used by the frontend deploy job. Create at Vercel Account → Settings → Tokens. |
+| `VERCEL_ORG_ID` | Vercel | Organisation ID from Vercel project Settings → General → Project ID (the `orgId` in `.vercel/project.json`). |
+| `VERCEL_PROJECT_ID` | Vercel | Project ID from Vercel project Settings → General → Project ID. |
 
-> Keeping develop and production service IDs separate means deploys to `develop` (preview) and `main` (production) land on different services and never collide.
+> If Vercel is already connected to the GitHub repo with auto-deploy enabled on `main`, the frontend deploy job is optional. The release workflow's `deploy-frontend` step will gracefully skip if `VERCEL_TOKEN` is not set.
+
+> Keeping develop and production Render service IDs separate means preview deploys (to `develop`) and release deploys (to `main`) land on different services and never collide.
 
 ### Branch protection (recommended)
 

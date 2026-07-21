@@ -172,6 +172,12 @@ jobs:
           echo "is_first=${is_first}" >> "$GITHUB_OUTPUT"
           echo "Computed version: ${version} (prev=${prev:-none}, bump=${bump:-first})"
 
+      - name: Configure git identity
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Create and push tag
         shell: bash
         run: |
@@ -229,27 +235,36 @@ jobs:
             --fail-with-body
 
   # ---------------------------------------------------------------------------
-  # Frontend production deploy — trigger Render deploy hook for the frontend
-  # static site. Requires RENDER_PROD_FRONTEND_SERVICE_ID.
+  # Frontend production deploy — Vercel.
+  # Requires VERCEL_TOKEN (from Vercel Account → Settings → Tokens) and
+  # VERCEL_PROJECT_ID (from Vercel project dashboard → Settings → Project ID).
+  # If Vercel is already connected to the repo with auto-deploy on `main`,
+  # this job is optional — pushes to `main` will trigger Vercel deploys directly.
   # ---------------------------------------------------------------------------
   deploy-frontend:
-    name: Deploy frontend to Render (production)
+    name: Deploy frontend to Vercel
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render frontend deploy
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Enable corepack
+        run: corepack enable
+      - name: Deploy to Vercel
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_PROD_FRONTEND_SERVICE_ID: ${{ secrets.RENDER_PROD_FRONTEND_SERVICE_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
-          if [ -z "${RENDER_PROD_FRONTEND_SERVICE_ID}" ]; then
-            echo "::error::RENDER_PROD_FRONTEND_SERVICE_ID secret is not set; cannot deploy frontend to production."
-            exit 1
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "::warning::VERCEL_TOKEN secret is not set; skipping Vercel deploy."
+            echo "If Vercel is linked to the repo, auto-deploy on main will still work."
+            exit 0
           fi
-          curl -X POST "https://api.render.com/v1/services/${RENDER_PROD_FRONTEND_SERVICE_ID}/deploys" \
-            -H "Authorization: Bearer ${RENDER_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            --fail-with-body
+          npx vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
+          npx vercel build --prod --token="${VERCEL_TOKEN}"
+          npx vercel deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
