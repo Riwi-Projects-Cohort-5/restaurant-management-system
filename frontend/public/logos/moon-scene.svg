@@ -1,0 +1,176 @@
+<svg width="1280" height="1080" viewBox="0 0 1280 1080" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none">
+  <defs>
+    <linearGradient id="night-sky" x1="0.5" y1="0" x2="0.5" y2="1" gradientTransform="">
+      <stop offset="0" stop-color="#020617" stop-opacity="1"/>
+      <stop offset="0.18" stop-color="#04090f" stop-opacity="1"/>
+      <stop offset="0.35" stop-color="#082e3f" stop-opacity="1"/>
+      <stop offset="0.65" stop-color="#0d465f" stop-opacity="1"/>
+      <stop offset="1" stop-color="#17212c" stop-opacity="1"/>
+    </linearGradient>
+
+    <linearGradient id="night-sea" x1="0.5" y1="0" x2="0.5" y2="1" gradientTransform="">
+      <stop offset="0.03" stop-color="#0b1520" stop-opacity="1"/>
+      <stop offset="0.54" stop-color="#115f81" stop-opacity="1"/>
+      <stop offset="1" stop-color="#1e9fc8" stop-opacity="1"/>
+    </linearGradient>
+
+    <radialGradient id="moon-glow-radial" cx="0.5" cy="0.5" r="0.5" gradientTransform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)">
+      <stop offset="0" stop-color="#f4f8fb" stop-opacity="1"/>
+      <stop offset="0.55" stop-color="#cfd8e3" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#cfd8e3" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="moonlight-reflection" x1="0.5" y1="0" x2="0.5" y2="1" gradientTransform="">
+      <stop offset="0" stop-color="#6fd3ea" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#6fd3ea" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#a8e8f5" stop-opacity="0.32"/>
+    </linearGradient>
+
+    <linearGradient id="horizon-warmth" x1="0.5" y1="0" x2="0.5" y2="1" gradientTransform="">
+      <stop offset="0" stop-color="#5f2b1b" stop-opacity="0"/>
+      <stop offset="1" stop-color="#7d3823" stop-opacity="0.18"/>
+    </linearGradient>
+
+    <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.7" gradientTransform="matrix(1.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000)">
+      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.45"/>
+    </radialGradient>
+
+    <pattern patternUnits="userSpaceOnUse" x="0" y="0" width="1280" height="1080" id="fill-sky">
+      <rect width="1280" height="1080" style="fill: url(#night-sky);"/>
+    </pattern>
+
+    <pattern patternUnits="userSpaceOnUse" x="0" y="590" width="1280" height="490" id="fill-sea">
+      <rect width="1280" height="490" style="fill: url(#night-sea);"/>
+    </pattern>
+
+    <mask id="crescent-mask">
+      <rect x="500" y="900" width="320" height="320" fill="black"/>
+      <circle cx="640" cy="1050" r="100" fill="white"/>
+      <circle cx="678" cy="1038" r="94" fill="black"/>
+    </mask>
+
+    <filter id="star-glow" x="-0.5" y="-0.5" width="2" height="2" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="1080" rx="0" ry="0" fill="#04090f"/>
+
+  <rect x="0" y="0" width="1280" height="1080" fill="url(#night-sky)"/>
+
+  <g id="stars" fill="#f4f8fb">
+    <circle cx="30" cy="20" r="1.5" opacity="0.9"/>
+    <circle cx="60" cy="55" r="1" opacity="0.7"/>
+    <circle cx="95" cy="30" r="1.2" opacity="0.85"/>
+    <circle cx="135" cy="80" r="1" opacity="0.6"/>
+    <circle cx="170" cy="45" r="1.5" opacity="0.9"/>
+    <circle cx="205" cy="95" r="1" opacity="0.65"/>
+    <circle cx="230" cy="25" r="1" opacity="0.7"/>
+    <circle cx="50" cy="105" r="1.2" opacity="0.75"/>
+    <circle cx="110" cy="115" r="1" opacity="0.6"/>
+    <circle cx="1100" cy="40" r="1.2" opacity="0.8"/>
+    <circle cx="1140" cy="85" r="1" opacity="0.65"/>
+    <circle cx="1180" cy="30" r="1.5" opacity="0.9"/>
+    <circle cx="1220" cy="70" r="1" opacity="0.7"/>
+    <circle cx="1255" cy="50" r="1" opacity="0.6"/>
+    <circle cx="1200" cy="110" r="1" opacity="0.65"/>
+    <circle cx="1080" cy="115" r="1" opacity="0.7"/>
+
+    <circle cx="20" cy="160" r="1" opacity="0.7"/>
+    <circle cx="60" cy="200" r="1.5" opacity="0.85"/>
+    <circle cx="100" cy="250" r="1" opacity="0.6"/>
+    <circle cx="140" cy="300" r="1.2" opacity="0.8"/>
+    <circle cx="180" cy="350" r="1" opacity="0.65"/>
+    <circle cx="220" cy="400" r="1.5" opacity="0.9"/>
+    <circle cx="40" cy="450" r="1" opacity="0.7"/>
+    <circle cx="110" cy="410" r="1.2" opacity="0.8"/>
+    <circle cx="200" cy="180" r="1" opacity="0.65"/>
+    <circle cx="160" cy="230" r="1" opacity="0.7"/>
+    <circle cx="80" cy="380" r="1" opacity="0.6"/>
+    <circle cx="225" cy="320" r="1" opacity="0.7"/>
+    <circle cx="15" cy="280" r="1.2" opacity="0.8"/>
+
+    <circle cx="1060" cy="170" r="1" opacity="0.7"/>
+    <circle cx="1100" cy="220" r="1.5" opacity="0.85"/>
+    <circle cx="1150" cy="280" r="1" opacity="0.6"/>
+    <circle cx="1200" cy="330" r="1.2" opacity="0.8"/>
+    <circle cx="1245" cy="380" r="1" opacity="0.65"/>
+    <circle cx="1080" cy="430" r="1.5" opacity="0.9"/>
+    <circle cx="1170" cy="460" r="1" opacity="0.7"/>
+    <circle cx="1220" cy="200" r="1.2" opacity="0.8"/>
+    <circle cx="1150" cy="410" r="1" opacity="0.65"/>
+    <circle cx="1270" cy="250" r="1" opacity="0.7"/>
+    <circle cx="1050" cy="320" r="1" opacity="0.6"/>
+    <circle cx="1255" cy="440" r="1.2" opacity="0.75"/>
+    <circle cx="1090" cy="380" r="1" opacity="0.65"/>
+
+    <circle cx="50" cy="500" r="1" opacity="0.7"/>
+    <circle cx="150" cy="540" r="1.5" opacity="0.85"/>
+    <circle cx="220" cy="510" r="1" opacity="0.65"/>
+    <circle cx="1080" cy="520" r="1" opacity="0.7"/>
+    <circle cx="1180" cy="560" r="1.5" opacity="0.9"/>
+    <circle cx="1250" cy="530" r="1" opacity="0.65"/>
+    <circle cx="350" cy="555" r="1" opacity="0.7"/>
+    <circle cx="900" cy="540" r="1" opacity="0.6"/>
+    <circle cx="1050" cy="580" r="1" opacity="0.7"/>
+    <circle cx="500" cy="500" r="1" opacity="0.65"/>
+    <circle cx="750" cy="510" r="1.2" opacity="0.8"/>
+    <circle cx="420" cy="535" r="1" opacity="0.7"/>
+  </g>
+
+  <g id="bright-stars" fill="#ffffff">
+    <circle cx="150" cy="70" r="4" opacity="0.25"/>
+    <circle cx="150" cy="70" r="2" opacity="0.95"/>
+    <circle cx="1150" cy="100" r="4" opacity="0.25"/>
+    <circle cx="1150" cy="100" r="2" opacity="0.95"/>
+    <circle cx="100" cy="280" r="4" opacity="0.22"/>
+    <circle cx="100" cy="280" r="2" opacity="0.9"/>
+    <circle cx="1200" cy="350" r="4" opacity="0.22"/>
+    <circle cx="1200" cy="350" r="2" opacity="0.9"/>
+    <circle cx="80" cy="500" r="3.5" opacity="0.2"/>
+    <circle cx="80" cy="500" r="1.8" opacity="0.85"/>
+    <circle cx="1220" cy="500" r="3.5" opacity="0.2"/>
+    <circle cx="1220" cy="500" r="1.8" opacity="0.85"/>
+  </g>
+
+  <rect x="0" y="500" width="1280" height="100" fill="url(#horizon-warmth)" opacity="0.7"/>
+
+  <path d="M1280,594C1280,594,1256.429,575,1140.741,620C1139.021,621,1128.889,623,1128.889,623C1128.889,623,1123.868,625,1115.556,627C1028.896,653,1039.167,591,920,594C874.931,595,850.86,603,831.111,609C793.733,619,793.799,627,779.259,629C769.125,631,745.53,633,715.556,625C679.804,616,634.757,597,589.63,594C518.252,589,502.318,626,400,631C361.481,633,285.926,583,244.444,592C202.963,601,180.741,605,146.667,620C112.593,634,53.333,631,0,614C0,614,0,1080,0,1080L1280,1080L1280,594" fill="url(#night-sea)"/>
+
+  <ellipse cx="640" cy="830" rx="180" ry="220" fill="url(#moonlight-reflection)" opacity="0.55"/>
+
+  <g id="moon-glow" style="opacity: 0.1;">
+    <ellipse cx="640" cy="1050" rx="640" ry="640" fill="#1e9fc8"/>
+  </g>
+  <g id="moon-glow-2" style="opacity: 0.16;">
+    <ellipse cx="640" cy="1050" rx="524" ry="524" fill="#1e9fc8"/>
+  </g>
+  <g id="moon-glow-3" style="opacity: 0.22;">
+    <ellipse cx="640" cy="1050" rx="419" ry="419" fill="#38badb"/>
+  </g>
+  <g id="moon-glow-4" style="opacity: 0.3;">
+    <ellipse cx="640" cy="1050" rx="326" ry="326" fill="#4a7d8d"/>
+  </g>
+  <g id="moon-glow-5" style="opacity: 0.4;">
+    <ellipse cx="640" cy="1050" rx="244" ry="244" fill="#649ba9"/>
+  </g>
+  <g id="moon-glow-6" style="opacity: 0.55;">
+    <ellipse cx="640" cy="1050" rx="174" ry="174" fill="#93a9bf"/>
+  </g>
+  <g id="moon-glow-7" style="opacity: 0.7;">
+    <ellipse cx="640" cy="1050" rx="116" ry="116" fill="#cfd8e3"/>
+  </g>
+  <ellipse cx="640" cy="1050" rx="100" ry="100" fill="url(#moon-glow-radial)"/>
+
+  <rect x="500" y="900" width="320" height="320" fill="#f4f8fb" mask="url(#crescent-mask)"/>
+
+  <g opacity="0.18" fill="#a8b4c2">
+    <circle cx="608" cy="1048" r="6"/>
+    <circle cx="592" cy="1078" r="4"/>
+    <circle cx="618" cy="1100" r="3"/>
+    <circle cx="580" cy="1110" r="2.5"/>
+  </g>
+
+  <rect x="0" y="0" width="1280" height="1080" fill="url(#vignette)" pointer-events="none"/>
+</svg>
