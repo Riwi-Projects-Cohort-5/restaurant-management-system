@@ -7,19 +7,49 @@ const NAV_SECTIONS = [
   {
     label: "Main",
     items: [
-      { icon: "layout-dashboard", label: "Dashboard", path: "/dashboard", badge: "", roles: ["admin"] },
-      { icon: "shopping-cart", label: "POS / Orders", path: "/pos", badge: "3", roles: ["admin", "waiter", "chef"] },
-      { icon: "chef-hat", label: "Kitchen", path: "/kitchen", badge: "5", roles: ["admin", "chef"] },
+      {
+        icon: "layout-dashboard",
+        label: "Dashboard",
+        path: "/dashboard",
+        badge: "",
+        roles: ["admin"],
+      },
+      {
+        icon: "shopping-cart",
+        label: "POS / Orders",
+        path: "/pos",
+        badge: "3",
+        roles: ["admin", "waiter", "chef"],
+      },
+      {
+        icon: "chef-hat",
+        label: "Kitchen",
+        path: "/kitchen",
+        badge: "5",
+        roles: ["admin", "chef"],
+      },
       { icon: "square", label: "Tables", path: "/tables", badge: "", roles: ["admin", "waiter"] },
     ],
   },
   {
     label: "Management",
     items: [
-      { icon: "calendar", label: "Reservations", path: "/reservations", badge: "", roles: ["admin"] },
+      {
+        icon: "calendar",
+        label: "Reservations",
+        path: "/reservations",
+        badge: "",
+        roles: ["admin"],
+      },
       { icon: "utensils", label: "Menu", path: "/menu", badge: "", roles: ["*"] },
       { icon: "package", label: "Inventory", path: "/inventory", badge: "", roles: ["admin"] },
-      { icon: "credit-card", label: "Payments", path: "/payments", badge: "", roles: ["admin", "cashier"] },
+      {
+        icon: "credit-card",
+        label: "Payments",
+        path: "/payments",
+        badge: "",
+        roles: ["admin", "cashier"],
+      },
       { icon: "bar-chart-3", label: "Reports", path: "/reports", badge: "", roles: ["admin"] },
     ],
   },
@@ -268,7 +298,11 @@ const AppShell = {
         ? '<span class="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-600 rounded-b-full"></span>'
         : "";
       html +=
-        '<a href="#' + item.path + '" class="relative flex-1 flex flex-col items-center justify-center py-2 no-underline ' + stateClasses + '">';
+        '<a href="#' +
+        item.path +
+        '" class="relative flex-1 flex flex-col items-center justify-center py-2 no-underline ' +
+        stateClasses +
+        '">';
       html += accentBar;
       html += '<i data-lucide="' + item.icon + '" class="w-5 h-5 mb-0.5"></i>';
       html += '<span class="text-[10px] leading-tight">' + item.label + "</span>";
