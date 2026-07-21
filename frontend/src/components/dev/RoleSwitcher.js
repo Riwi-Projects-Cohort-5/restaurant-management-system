@@ -62,12 +62,9 @@ function renderFloatingButton() {
     wrapper.innerHTML = html;
   } else {
     wrapper.innerHTML =
-      '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9999px;border:2px solid ' +
-      (roleMeta ? roleMeta.color : "#666") +
-      ';background:#1e1e1e;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;">' +
-      '<span style="width:8px;height:8px;border-radius:50%;background:' +
-      (roleMeta ? roleMeta.color : "#666") +
-      ';"></span>' +
+      '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9999px;border:none;' +
+      'background:#e57722;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;">' +
+      '<span style="width:8px;height:8px;border-radius:50%;background:#fff;"></span>' +
       (roleMeta ? roleMeta.label : role) +
       "</button>";
   }
