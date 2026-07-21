@@ -1,5 +1,6 @@
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/reportService.js";
 import { exportToCSV } from "../../utils/csvExport.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const CHART_COLORS = {
   revenue: "#e57722",
@@ -357,4 +358,4 @@ const ReportsView = {
   },
 };
 
-export default ReportsView;
+export default withLoading(ReportsView, Skeletons.reports());

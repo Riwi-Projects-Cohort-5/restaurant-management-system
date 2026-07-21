@@ -17,6 +17,7 @@ import { getState as getReservationState, loadReservations } from "../../store/r
 import { hasAnyRole } from "../../utils/roleContext.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 let subView = "main";
 let currentAreaFilter = "all";
@@ -1465,4 +1466,4 @@ const TablesView = {
   },
 };
 
-export default TablesView;
+export default withLoading(TablesView, Skeletons.tables());

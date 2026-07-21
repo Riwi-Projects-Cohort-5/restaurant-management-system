@@ -6,6 +6,7 @@ import { hasAnyRole } from "../../utils/roleContext.js";
 import { productModal } from "../../components/ui/ProductModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 import CheckboxField from "../../components/forms/CheckboxField.js";
 
 initMockCategories();
@@ -589,4 +590,6 @@ export function renderMenu(el) {
   }
 }
 
-export default { render: renderMenu, init: function () {}, destroy: function () {} };
+const MenuView = { render: renderMenu, init: function () {}, destroy: function () {} };
+
+export default withLoading(MenuView, Skeletons.menuCards());
