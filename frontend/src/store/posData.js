@@ -333,20 +333,24 @@ export async function updateAllKitchenOrderStatuses(
   newStatus,
   expectedCurrentStatus
 ) {
-  let lastResult;
-  const targetIds = expectedCurrentStatus
-    ? lineStatuses
-        .filter(function (ls) {
-          return ls.status === expectedCurrentStatus;
-        })
-        .map(function (ls) {
-          return ls.id;
-        })
-    : lineStatuses.map(function (ls) {
+  let lastResult, targetIds;
+  if (expectedCurrentStatus) {
+    targetIds = lineStatuses
+      .filter(function (ls) {
+        return ls.status === expectedCurrentStatus;
+      })
+      .map(function (ls) {
         return ls.id;
       });
-  if (targetIds.length === 0) {
-    return { success: false, error: "No kitchen order IDs match the expected status" };
+    if (targetIds.length === 0) {
+      targetIds = lineStatuses.map(function (ls) {
+        return ls.id;
+      });
+    }
+  } else {
+    targetIds = lineStatuses.map(function (ls) {
+      return ls.id;
+    });
   }
   for (const kid of targetIds) {
     lastResult = await updateKitchenOrderStatus(kid, newStatus, true);
