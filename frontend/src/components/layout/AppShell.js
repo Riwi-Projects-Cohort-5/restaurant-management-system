@@ -1,4 +1,4 @@
-import { getLogoPath, toggleTheme, isDark } from '../../utils/theme.js';
+import { getLogoPath, toggleTheme, isDark } from "../../utils/theme.js";
 
 const AppShell = {
   render: function (el) {
@@ -52,8 +52,12 @@ const AppShell = {
   renderSidebarHeader: function (el) {
     el.innerHTML =
       '<div class="flex items-center gap-3">' +
-      '<img src="' + getLogoPath('logo-01') + '" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
-      '<img src="' + getLogoPath('logo-03') + '" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
+      '<img src="' +
+      getLogoPath("logo-01") +
+      '" alt="El Fogón" draggable="false" class="h-[46px] w-auto">' +
+      '<img src="' +
+      getLogoPath("logo-03") +
+      '" alt="El Fogón Caribeño" draggable="false" class="w-[120px] h-auto">' +
       "</div>";
   },
 
@@ -205,7 +209,9 @@ const AppShell = {
       '<span class="absolute w-2 h-2 rounded-full bg-error-500 top-2 right-2 border-2 border-white"></span>' +
       "</button>" +
       '<button id="appShellThemeToggle" class="w-10 h-10 rounded-full border border-brand-300 bg-white text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700 flex items-center justify-center transition-colors duration-100" aria-label="Toggle theme">' +
-      '<i data-lucide="' + (isDark() ? 'moon' : 'sun') + '" class="w-[18px] h-[18px]"></i>' +
+      '<i data-lucide="' +
+      (isDark() ? "moon" : "sun") +
+      '" class="w-[18px] h-[18px]"></i>' +
       "</button>";
   },
 

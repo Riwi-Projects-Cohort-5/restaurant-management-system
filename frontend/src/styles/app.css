@@ -149,10 +149,10 @@
   --text-text-button: 14px;
   --text-text-heading: 28px;
 
-  --ring-brand: 0 0 0 3px rgba(229,119,34,0.15);
-  --ring-error: 0 0 0 3px rgba(239,68,68,0.15);
-  --ring-primary: 0 0 0 3px rgba(31,170,125,0.15);
-  --shadow-brand-hover: 0 6px 16px rgba(229,119,34,0.18);
+  --ring-brand: 0 0 0 3px rgba(229, 119, 34, 0.15);
+  --ring-error: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  --ring-primary: 0 0 0 3px rgba(31, 170, 125, 0.15);
+  --shadow-brand-hover: 0 6px 16px rgba(229, 119, 34, 0.18);
 }
 
 /* ── Dark Theme Tokens (El Fogón Caribeño Night Mode) ─
@@ -269,10 +269,10 @@
   --color-info-800: #c0d4e4;
   --color-info-900: #dce8f4;
 
-  --ring-brand: 0 0 0 3px rgba(74,125,141,0.3);
-  --ring-error: 0 0 0 3px rgba(160,96,96,0.3);
-  --ring-primary: 0 0 0 3px rgba(56,186,219,0.3);
-  --shadow-brand-hover: 0 6px 16px rgba(74,125,141,0.25);
+  --ring-brand: 0 0 0 3px rgba(74, 125, 141, 0.3);
+  --ring-error: 0 0 0 3px rgba(160, 96, 96, 0.3);
+  --ring-primary: 0 0 0 3px rgba(56, 186, 219, 0.3);
+  --shadow-brand-hover: 0 6px 16px rgba(74, 125, 141, 0.25);
 }
 
 /* ── Base styles (inside @layer base so Tailwind utilities can override) ── */
