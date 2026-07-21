@@ -218,21 +218,16 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Render deploy
+      - name: Trigger Render deploy via hook
         env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_PROD_SERVICE_ID: ${{ secrets.RENDER_PROD_SERVICE_ID }}
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           set -euo pipefail
-          if [ -z "${RENDER_PROD_SERVICE_ID}" ]; then
-            echo "::error::RENDER_PROD_SERVICE_ID secret is not set; cannot deploy backend to production."
+          if [ -z "${RENDER_DEPLOY_HOOK}" ]; then
+            echo "::error::RENDER_DEPLOY_HOOK secret is not set; cannot deploy backend to production."
             exit 1
           fi
-          curl -X POST "https://api.render.com/v1/services/${RENDER_PROD_SERVICE_ID}/deploys" \
-            -H "Authorization: Bearer ${RENDER_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -H "Accept: application/json" \
-            --fail-with-body
+          curl -X POST "${RENDER_DEPLOY_HOOK}" --fail-with-body
 
   # ---------------------------------------------------------------------------
   # Frontend production deploy — Vercel.
