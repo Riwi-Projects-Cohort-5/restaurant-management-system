@@ -25,31 +25,9 @@ services:
     healthCheckPath: /health
     autoDeploy: false
 
-  # Frontend — Vite-built static site served by Render's CDN.
-  - type: web
-    name: restaurant-frontend
-    runtime: static
-    buildCommand: cd frontend && pnpm install --frozen-lockfile && pnpm build
-    staticPublishPath: ./frontend/dist
-    envVars:
-      - key: VITE_API_URL
-        # Same-origin /api proxy in `vite.config.js` is dev-only; in production
-        # the SPA must target the deployed backend web service URL.
-        value: https://restaurant-backend.onrender.com
-    headers:
-      # Cache hashed assets aggressively, never cache the entry HTML.
-      - path: /assets/*
-        name: Cache-Control
-        value: public, max-age=31536000, immutable
-      - path: /index.html
-        name: Cache-Control
-        value: no-cache
-    # SPA fallback so client-side hash routing works on deep links.
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    autoDeploy: false
+# Frontend is deployed on Vercel (see vercel.json). The backend render.yaml only
+# manages the backend web service and its database.
+# Frontend production URL: https://restaurant-management-system.vercel.app (update as needed)
 
 databases:
   - name: restaurant-db
