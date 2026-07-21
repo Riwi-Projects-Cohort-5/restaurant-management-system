@@ -156,6 +156,7 @@ const AppShell = {
       themeBtn.addEventListener("click", function () {
         toggleTheme();
         const icon = themeBtn.querySelector("[data-lucide]");
+        const nextTheme = isDark() ? "dark" : "light";
         if (icon) {
           icon.setAttribute("data-lucide", isDark() ? "moon" : "sun");
           window.createIcons();
@@ -164,6 +165,7 @@ const AppShell = {
         if (sidebarHeader) {
           AppShell.renderSidebarHeader(sidebarHeader);
         }
+        window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: nextTheme } }));
         window.dispatchEvent(new Event("hashchange"));
       });
     }

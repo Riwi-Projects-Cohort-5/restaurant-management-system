@@ -172,7 +172,7 @@ const Dashboard = {
       const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
       html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + "</td>";
-      html += '<td class="px-4 py-3">Table ' + o.table + "</td>";
+      html += '<td class="px-4 py-3">Table ' + (o.table ? o.table.slice(0, 8) : "") + "</td>";
       html += '<td class="px-4 py-3">' + (o.server || "") + "</td>";
       html += '<td class="px-4 py-3">' + o.items.length + " items</td>";
       html += '<td class="px-4 py-3 font-semibold text-brand-800">$' + o.total.toFixed(2) + "</td>";
