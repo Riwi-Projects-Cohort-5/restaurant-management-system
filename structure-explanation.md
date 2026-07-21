@@ -1,596 +1,231 @@
-# Estructura del Repositorio
+# Repository structure
 
-El proyecto **Restaurant Management System** adopta una estructura de monorepositorio (*monorepo*), en la que todos los componentes que conforman la solución se encuentran centralizados en un único repositorio Git. Esta organización permite administrar de forma unificada el código fuente, la documentación, la infraestructura y las herramientas de automatización, facilitando el trabajo colaborativo, el control de versiones y la integración continua.
+The **Restaurant Management System** is a monorepo: every piece of the solution — backend, frontend, database, docs, infra, automation — lives in a single Git repository. This keeps source, documentation, infrastructure and tooling in sync and makes collaborative development easier.
 
-La estructura está organizada siguiendo el principio de **separación de responsabilidades (Separation of Concerns)**, donde cada directorio cumple un propósito específico dentro de la arquitectura del sistema.
+The layout follows **separation of concerns**: each top-level directory has one purpose.
 
----
-
-# Directorio `.github/`
-
-Este directorio almacena la configuración de **GitHub Actions**, el servicio de Integración y Despliegue Continuo (CI/CD) utilizado por el proyecto.
-
-Dentro de la carpeta **workflows/** se encuentran los flujos de automatización que permiten validar el código y ejecutar procesos de despliegue cada vez que se realizan cambios en el repositorio.
-
-## `backend.yml`
-
-Automatiza todas las tareas relacionadas con el backend, entre ellas:
-
-- Instalación de dependencias.
-- Verificación del código.
-- Ejecución de pruebas unitarias.
-- Validación de la construcción del proyecto.
-- Preparación para el despliegue.
-
-## `frontend.yml`
-
-Gestiona el flujo de integración del frontend.
-
-Entre sus responsabilidades se encuentran:
-
-- Instalación de paquetes mediante npm.
-- Compilación del proyecto Vite.
-- Ejecución de verificaciones del código.
-- Validación de la generación de la aplicación estática.
-
-## `deploy.yml`
-
-Centraliza el proceso de despliegue del sistema hacia el proveedor de infraestructura seleccionado.
-
-Dependiendo del entorno, este flujo puede encargarse de:
-
-- Construcción de imágenes Docker.
-- Publicación de contenedores.
-- Actualización de los servicios desplegados.
-- Ejecución de tareas posteriores al despliegue.
+Back to [README.md](README.md) · [docs/README.md](docs/README.md).
 
 ---
 
-# Directorio `backend/`
+## `.github/`
 
-Este módulo contiene toda la implementación del servidor desarrollada utilizando **Python** y **FastAPI**.
+GitHub Actions workflows (the project's CI/CD).
 
-Su responsabilidad principal consiste en exponer la API REST del sistema, aplicar las reglas de negocio y administrar el acceso a la base de datos.
+- `workflows/backend.yml` — install deps, lint (`ruff`), pytest (with a Postgres service container), build check. Deploys to Render's **preview** service on push to `develop`.
+- `workflows/frontend.yml` — install pnpm deps, `vite build`, lint (`pnpm lint`), prettier check.
+- `workflows/release.yml` — gates PRs to `main` (backend + frontend validation, **no deploy**). On push to `main` it computes a semver tag, publishes a GitHub Release using `.github/release.yml` to categorise PR notes, and triggers production deploys on Render for the backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`) services.
+- `release.yml` — auto-generated release notes categorisation (categories, excluded authors/labels, template).
 
-La estructura interna está diseñada siguiendo una arquitectura por capas, desacoplando la lógica de presentación, negocio y persistencia.
-
----
-
-## `app/`
-
-Es el núcleo del backend.
-
-Aquí se encuentra la totalidad del código fuente de la aplicación.
+See [docs/contributing.md](docs/contributing.md) for the release flow and required repository secrets.
 
 ---
 
-## `api/`
+## `backend/`
 
-Implementa la capa de presentación de la API.
+The FastAPI server. Source under `backend/app/`.
 
-Su función consiste en recibir solicitudes HTTP provenientes del frontend, validar los datos recibidos y delegar el procesamiento hacia la capa de servicios.
+### `app/api/`
 
-No contiene lógica de negocio compleja.
+Presentation layer. Receives HTTP, validates with Pydantic, delegates to services. No business logic.
 
-### `v1/`
+- `router.py` — main `APIRouter` that mounts every module router.
+- `v1/` — modular routers, one file per resource:
+  - `auth.py`, `users.py`, `categories.py`, `locations.py`, `tables.py`,
+  - `reservations.py`, `menu.py`, `orders.py`, `kitchen.py`, `inventory.py`,
+  - `payments.py`, `reports.py`, `settings.py`.
 
-Agrupa los endpoints correspondientes a la primera versión de la API.
+### `app/core/`
 
-Cada archivo representa un módulo funcional independiente.
+Cross-cutting configuration.
 
-### [`auth.py`](http://auth.py)
+- `config.py` — `Settings` (Pydantic Settings) + `get_settings()` cached helper.
+- `security.py` — JWT encode/decode, bcrypt password helpers.
+- `dependencies.py` — shared FastAPI deps: `get_db`, `get_current_user` (OAuth2 Bearer → `User`).
 
-Gestiona el proceso de autenticación y autorización.
+### `app/db/`
 
-Incluye funcionalidades como:
+Persistence layer.
 
-- Inicio de sesión.
-- Cierre de sesión.
-- Registro de usuarios.
-- Generación de tokens JWT.
-- Validación de credenciales.
-- Control de permisos y roles.
+- `database.py` — SQLAlchemy engine, `SessionLocal` factory, declarative `Base`.
+- `models/` — one model per file (User, Customer, Location, Table, Reservation, Category, MenuItem, Order, OrderItem, Payment, InventoryItem, InventoryMovement, KitchenOrder, Setting, Supplier, Purchase, PurchaseDetail, Recipe). `__init__.py` re-exports them all.
+- `schemas/` — Pydantic v2 input/output DTOs, mirroring the models.
+- `seed.py` — script that inserts reference data + a default admin.
 
----
+### `app/services/`
 
-### [`users.py`](http://users.py)
+Business logic. One service per module (`auth_service`, `user_service`, `table_service`, `reservation_service`, `menu_item_service`, `order_service`, `kitchen_service`, `inventory_service`, `payment_service`, `report_service`, `category_service`, `location_service`, `setting_service`, `supplier_service`, `purchase_service`, `recipe_service`). Services never run raw SQL; they call repositories.
 
-Gestiona toda la información relacionada con los usuarios del sistema.
+### `app/repositories/`
 
-Entre sus responsabilidades se encuentran:
+Single home for SQLAlchemy queries. `*_repository.py` per module. Services depend on these, never on the ORM directly.
 
-- Consulta de usuarios.
-- Creación de nuevos usuarios.
-- Actualización de perfiles.
-- Cambio de contraseñas.
-- Asignación de roles.
+### `app/utils/`
 
----
+Shared helpers.
 
-### [`reservations.py`](http://reservations.py)
+- `date_utils.py` — date/time formatting and parsing.
+- `pagination.py` — generic pagination helper (not yet enforced across endpoints).
+- `validators.py` — common input validators.
 
-Implementa todas las operaciones relacionadas con las reservas.
+### `app/main.py`
 
-Incluye:
+Application entry. Creates the FastAPI app, adds CORS middleware, mounts the main router under `settings.API_V1_PREFIX` (`/api/v1`) and defines the root `/` and `/health` endpoints. Swagger UI at `/docs`.
 
-- Registrar reservas.
-- Consultar disponibilidad.
-- Modificar reservas.
-- Cancelar reservas.
-- Confirmar reservas.
-- Consultar historial.
+### `alembic.ini`, `alembic/`
 
----
+Alembic config + migration scripts. Revisions live in `alembic/versions/` (currently `001_initial` → `006_fix_reservation_fk_on_delete`). Apply with `alembic upgrade head`.
 
-### [`tables.py`](http://tables.py)
+### `tests/`
 
-Administra las mesas del restaurante.
+- `conftest.py` — shared fixtures.
+- `test_health.py` — root + `/health`.
+- `test_models.py` — basic model sanity tests.
+- `test_locations.py`, `test_tables_location.py` — `Location` + `Table.location_id` relationship tests.
 
-Permite:
+### Root files
 
-- Crear mesas.
-- Editar información.
-- Cambiar estados.
-- Consultar disponibilidad.
-- Asignar mesas a reservas.
-
----
-
-### [`menu.py`](http://menu.py)
-
-Gestiona el menú ofrecido por el restaurante.
-
-Permite administrar:
-
-- Categorías.
-- Productos.
-- Disponibilidad.
-- Precios.
-- Descripciones.
+- `.env.example`, `.env` (gitignored) — environment configuration.
+- `entrypoint.sh` — Docker entry script (Alembic + uvicorn).
+- `Dockerfile` — backend image.
+- `requirements.txt` — pinned Python deps.
+- `ruff.toml` — ruff formatter/linter config.
+- `README.md` — backend-specific quick start (optional; authoritative README is the root one).
+- `.pytest_cache/`, `.ruff_cache/` — tool caches (gitignored).
 
 ---
 
-### [`orders.py`](http://orders.py)
+## `frontend/`
 
-Implementa el procesamiento de pedidos.
+The SPA. Vanilla JS + Tailwind v4 + Vite. No React/Vue.
 
-Entre sus funciones se encuentran:
+### `vite.config.js`
 
-- Crear pedidos.
-- Actualizar estados.
-- Agregar productos.
-- Eliminar productos.
-- Consultar pedidos activos.
-- Consultar historial.
+Dev server on port **3000**, HMR + a force-reload plugin, and a dev proxy `/api → http://localhost:8000` so the SPA talks to the local backend with the same-origin URL.
 
----
+### `public/`
 
-### [`kitchen.py`](http://kitchen.py)
+Static assets served directly (favicon, manifest, etc.).
 
-Administra el flujo operativo de cocina.
+### `src/main.js`
 
-Incluye funcionalidades como:
+Entry point and router. Holds a `routes` map keyed by hash path (`#/orders` → `PosView`, etc.), listens to `hashchange`, renders the AppShell first when `shell: true`, then mounts the view into `#main-content`. Bootstraps `initTheme()` and `initRoleSwitcher()`.
 
-- Recepción de pedidos.
-- Cambio de estados.
-- Priorización.
-- Seguimiento de preparación.
-- Notificación de pedidos listos.
+### `src/services/`
 
----
+HTTP layer. `api.js` wraps `fetch` with JWT Bearer header, JSON serialization, `URLSearchParams` for login, and auto-redirect to `#/login` on 401. Per-module services: `authService`, `menuService`, `reservationService`, `paymentService`, `inventoryService`, `locationService`, `reportService`.
 
-### [`inventory.py`](http://inventory.py)
+Legacy files (`mockUsers.js`, `mockReservations.js`, `mockProducts.js`, `mockPayments.js`, `mockInventory.js`, `mockReports.js`, `mockCategories.js`) are leftovers from the mock-only prototype and are **not imported by any other module** — kept for debugging, slated for removal.
 
-Gestiona el inventario del restaurante.
+### `src/store/`
 
-Permite:
+Reactive state. `index.js` exposes a 29-line `createStore()` factory (`getState`, `setState`, `subscribe`). One module store per feature: `auth`, `posData`, `reservations`, `payments`, `reports`, `inventory`, `menu`, `settings`.
 
-- Registrar ingredientes.
-- Actualizar existencias.
-- Registrar movimientos.
-- Controlar stock mínimo.
-- Consultar disponibilidad.
+### `src/utils/`
 
----
+Helpers.
 
-### [`payments.py`](http://payments.py)
+- `routeGuard.js` — `ROLES`, `ROLE_HOME`, `ROLE_ACCESS`, `getHomeRoute`, `isRouteAllowed`, `guard`, `guardRole`. Four roles (no `client`).
+- `theme.js` — light/dark toggle; persists `fogon-theme` in localStorage; applies `data-theme="dark"` on `<html>`.
+- `withLoading.js` — skeleton wrappers + `Skeletons.*` builders.
+- `roleContext.js` — small role helpers used by `RoleSwitcher`.
+- `csvExport.js` — exports tables to CSV (used by Reports).
 
-Administra el procesamiento de pagos.
+### `src/components/`
 
-Incluye:
+Reusable UI building blocks.
 
-- Registro de pagos.
-- Consulta de transacciones.
-- Estados de pago.
-- Métodos de pago.
-- Cierre de cuentas.
+- `layout/` — `AppShell`, `Sidebar`, `Topbar`. AppShell renders the chrome, exposes `render`, `updateTopbarTitle`, and a logout handler.
+- `ui/` — `Toast`, `ToastManager`, `Spinner`, `Skeleton`, plus modal primitives (`ConfirmModal`, `FormModal`, `ReservationModal`, `ProductModal`, `PaymentModal`, `InventoryItemModal`, `StatusStepper`, `StatCard`, `WelcomeBanner`).
+- `forms/` — `InputField`, `PasswordToggle`, `CheckboxField`, `SubmitButton` (with spinner wire-up).
+- `dashboard/` — `SalesChart` (chart.js), `TableStatusCard`.
+- `pos/` — `CartPanel` used by `PosView`.
+- `dev/` — `RoleSwitcher` for testing roles without logging out (dev-only).
 
----
+### `src/views/`
 
-### [`reports.py`](http://reports.py)
+One folder per screen. Each view exports `render(container)` (often async — fetches data first), an optional `init()` and `destroy()`.
 
-Genera la información estadística del sistema.
+- `auth/Login.js`
+- `dashboard/Dashboard.js`
+- `orders/PosView.js` — POS used by `/pos` and `/orders`
+- `kitchen/Kitchen.js`
+- `tables/Tables.js`
+- `reservations/list.js`
+- `menu/list.js`
+- `inventory/Inventory.js`
+- `payments/list.js`
+- `reports/Reports.js`
+- `settings/Settings.js`
 
-Entre los reportes disponibles se incluyen:
+### `src/styles/app.css`
 
-- Ventas.
-- Reservas.
-- Inventario.
-- Productos más vendidos.
-- Ingresos.
-- Desempeño operativo.
+Source of truth for design tokens. Tailwind v4 CSS-first: `@theme` block defines color, spacing, radius, typography, layout and animation custom properties for both light and `[data-theme="dark"]` themes.
 
----
+### `src/router/`
 
-### [`router.py`](http://router.py)
+Placeholder directory (only `.gitkeep`) reserved for a future router abstraction.
 
-Centraliza todas las rutas de la API.
+### Root files
 
-Su objetivo es registrar cada módulo bajo un prefijo común, simplificando la configuración del servidor y permitiendo mantener una estructura organizada conforme el sistema crece.
+- `package.json` — pinned to `pnpm@11.3.0`. Scripts: `dev`, `build`, `preview`, `lint`, `lint:fix`, `format`, `format:check`.
+- `eslint.config.js`, `.prettierrc`, etc. — lint/format config.
 
 ---
 
-# `core/`
+## `database/`
 
-Contiene la configuración global utilizada por toda la aplicación.
+PostgreSQL bootstrap materials complimenting Alembic.
 
-Los archivos de este módulo son utilizados transversalmente por todos los componentes del backend.
+- `init/01_schema.sql` — raw schema (used by the Docker entrypoint on first container start).
+- `seed/` — seed data SQL.
+- `Dockerfile` — PostgreSQL image override (PostgreSQL 16-alpine).
 
-## [`config.py`](http://config.py)
-
-Gestiona las variables de configuración del sistema.
-
-Entre ellas:
-
-- Variables de entorno.
-- Configuración de PostgreSQL.
-- Claves secretas.
-- URLs de servicios.
-- Parámetros generales.
+These scripts are convenience for non-Alembic environments; Alembic migrations under `backend/alembic/versions/` are the authoritative source of truth.
 
 ---
 
-## [`security.py`](http://security.py)
+## `docs/`
 
-Implementa todas las funciones relacionadas con la seguridad.
+Project documentation. Entry point: [docs/README.md](docs/README.md).
 
-Incluye:
-
-- Hash de contraseñas.
-- Generación de JWT.
-- Verificación de tokens.
-- Cifrado.
-- Políticas de autenticación.
-
----
-
-## [`dependencies.py`](http://dependencies.py)
-
-Centraliza las dependencias reutilizables de FastAPI.
-
-Permite compartir componentes como:
-
-- Conexión a base de datos.
-- Usuario autenticado.
-- Validaciones.
-- Control de permisos.
+- `README.md` — index.
+- `vision.md`, `architecture.md` — product context + architecture (C4 diagrams).
+- `backend/overview.md`, `backend/api-reference.md`, `backend/database-guide.md` — backend docs.
+- `backend/endpoints/` — per-module endpoint docs (`README.md` + one file per router module).
+- `frontend/overview.md`, `frontend/implementation-guide.md` — frontend docs.
+- `backend/user-credentials.md` — user creation + roles + bootstrap.
+- `contributing.md` — Git workflow, lint, testing.
+- `CHANGELOG.md` — documentation change log.
+- `ui/design-system/` — design tokens (light + dark), primitives, theme architecture.
+- `ui/feedback-system/` — Toast / Skeleton / Spinner primitives.
 
 ---
 
-# `db/`
+## `scripts/`
 
-Implementa la capa de persistencia.
+Shell helpers for common tasks.
 
-Toda la interacción con PostgreSQL se organiza dentro de este módulo.
-
----
-
-## [`database.py`](http://database.py)
-
-Inicializa la conexión con PostgreSQL.
-
-Administra:
-
-- Sesiones.
-- Pool de conexiones.
-- Configuración del ORM.
+- `dev.sh` — starts backend + frontend together.
+- `build.sh` — builds backend + frontend.
+- `deploy.sh` — wraps the production deploy.
 
 ---
 
-## `models/`
+## `.github/`, `docker-compose.yml`, `render.yaml`, `vercel.json`
 
-Contiene las entidades que representan las tablas de la base de datos.
-
-Cada modelo describe:
-
-- Columnas.
-- Relaciones.
-- Restricciones.
-- Llaves primarias y foráneas.
+- `docker-compose.yml` — PostgreSQL service (and an optional backend service).
+- `render.yaml` — production deployment manifest (backend web service + managed Postgres + frontend static site).
+- `vercel.json` — Vercel static hosting config for the frontend alternative deploy.
 
 ---
 
-## `schemas/`
-
-Define los esquemas utilizados para validar los datos que ingresan y salen de la API.
-
-Estos esquemas garantizan que toda la información cumpla con las reglas del negocio antes de ser procesada.
-
----
-
-## `migrations/`
-
-Almacena las migraciones de la base de datos.
-
-Permite versionar los cambios del esquema sin perder consistencia entre los diferentes entornos.
-
----
-
-# `services/`
-
-Implementa la lógica de negocio.
-
-Representa la capa donde se ejecutan las reglas funcionales del sistema.
-
-Los servicios reciben solicitudes desde los endpoints y coordinan el trabajo entre repositorios, modelos y componentes auxiliares.
-
-De esta manera, la lógica del negocio permanece desacoplada de la API.
-
----
-
-# `repositories/`
-
-Implementa el patrón Repository.
-
-Su objetivo es encapsular todas las operaciones de acceso a datos.
-
-Gracias a este patrón, los servicios no necesitan conocer cómo se realizan las consultas SQL ni interactuar directamente con el ORM.
-
-Esto mejora la mantenibilidad y facilita la realización de pruebas unitarias.
-
----
-
-# `utils/`
-
-Agrupa funciones auxiliares reutilizadas por distintos módulos del backend.
-
-Por ejemplo:
-
-- Formateo de fechas.
-- Validaciones comunes.
-- Conversión de datos.
-- Utilidades generales.
-
----
-
-# [`main.py`](http://main.py)
-
-Es el punto de entrada de la aplicación.
-
-Aquí se crea la instancia de FastAPI y se registran:
-
-- Rutas.
-- Middleware.
-- Configuración CORS.
-- Eventos de inicio y cierre.
-- Documentación automática.
-
----
-
-# `tests/`
-
-Contiene las pruebas automatizadas del backend.
-
-Su finalidad es verificar el correcto funcionamiento de:
-
-- Endpoints.
-- Servicios.
-- Repositorios.
-- Reglas de negocio.
-- Integraciones.
-
----
-
-# `frontend/`
-
-Este directorio contiene la aplicación cliente desarrollada como una **Single Page Application (SPA)** utilizando **Vite**.
-
-Su responsabilidad es proporcionar la interfaz gráfica que utilizan los distintos actores del sistema para interactuar con la API.
-
-La aplicación se comunica exclusivamente mediante solicitudes HTTP hacia el backend.
-
----
-
-## `public/`
-
-Contiene recursos públicos servidos directamente por el servidor web.
-
-Generalmente incluye:
-
-- favicon
-- manifest
-- imágenes estáticas
-- archivos públicos
-
----
-
-## `src/`
-
-Contiene todo el código fuente del frontend.
-
-Es el núcleo de la aplicación.
-
-### `assets/`
-
-Agrupa todos los recursos gráficos utilizados por la interfaz.
-
-Se organiza en:
-
-- icons/
-- images/
-- logos/
-- illustrations/
-- fonts/
-- animations/
-
-Esta separación facilita la reutilización de recursos visuales y mantiene una estructura ordenada.
-
----
-
-### `components/`
-
-Contiene componentes reutilizables de la interfaz.
-
-Se clasifican según su propósito:
-
-- **common/**: componentes compartidos por múltiples módulos.
-- **layout/**: estructura visual de la aplicación (navbar, sidebar, footer, header).
-- **forms/**: formularios reutilizables.
-- **ui/**: componentes básicos de interfaz como botones, tablas, modales, tarjetas y campos de entrada.
-
-Esta organización favorece la reutilización y evita la duplicación de código.
-
----
-
-### `views/`
-
-Cada carpeta representa una pantalla completa de la aplicación.
-
-Cada vista agrupa los componentes, lógica y servicios asociados a un módulo funcional específico, como autenticación, reservas, mesas, pedidos, cocina, inventario, pagos, reportes y configuración.
-
-Esta organización modular facilita el mantenimiento y permite escalar la aplicación incorporando nuevas funcionalidades sin afectar las existentes.
-
----
-
-### `router/`
-
-Define el sistema de navegación de la SPA.
-
-Configura las rutas públicas y protegidas, la carga de vistas y los mecanismos de control de acceso según el rol del usuario.
-
----
-
-### `services/`
-
-Implementa la comunicación con el backend mediante solicitudes HTTP.
-
-Centraliza las llamadas a la API, el manejo de respuestas y el tratamiento de errores.
-
----
-
-### `store/`
-
-Administra el estado global de la aplicación.
-
-Permite compartir información entre diferentes componentes sin necesidad de propagar datos manualmente mediante propiedades.
-
----
-
-### `utils/`
-
-Contiene funciones auxiliares reutilizadas por el frontend.
-
----
-
-### `styles/`
-
-Agrupa los estilos globales, variables CSS, tipografías y temas visuales utilizados en toda la interfaz.
-
----
-
-### `App.js`
-
-Componente raíz de la aplicación.
-
-Orquesta el montaje de las vistas y el funcionamiento general del frontend.
-
----
-
-### `main.js`
-
-Punto de entrada de Vite.
-
-Inicializa la aplicación y monta el componente principal sobre el DOM.
-
----
-
-# `database/`
-
-Este directorio reúne los recursos relacionados con la administración de PostgreSQL.
-
-Su contenido complementa al backend y facilita la preparación de distintos entornos.
-
-- **init/**: scripts ejecutados durante la creación inicial de la base de datos.
-- **seed/**: datos de prueba utilizados durante el desarrollo.
-- **backups/**: respaldos y copias de seguridad.
-- **Dockerfile**: definición del contenedor de PostgreSQL.
-
----
-
-# `docs/`
-
-Centraliza toda la documentación del proyecto.
-
-Puede incluir:
-
-- Documento de Visión.
-- Especificación de Requerimientos.
-- Documento de Arquitectura.
-- Diagramas C4.
-- Diagramas UML.
-- Manuales técnicos.
-- Manuales de usuario.
-- ADR (Architecture Decision Records).
-
-Mantener la documentación junto al código garantiza que ambas evolucionen de forma sincronizada.
-
----
-
-# `scripts/`
-
-Contiene scripts de automatización para facilitar tareas repetitivas durante el desarrollo.
-
-- [**dev.sh**](http://dev.sh) inicia el entorno de desarrollo.
-- [**build.sh**](http://build.sh) compila los componentes del sistema.
-- [**deploy.sh**](http://deploy.sh) ejecuta el proceso de despliegue.
-
----
-
-# Archivos raíz
-
-## `.gitignore`
-
-Define los archivos y directorios que no deben ser versionados por Git, como dependencias, archivos temporales y variables de entorno.
-
-## `docker-compose.yml`
-
-Orquesta los servicios que conforman el sistema, permitiendo iniciar el backend y la base de datos mediante un único comando.
-
-## `LICENSE`
-
-Especifica los términos de uso y distribución del proyecto.
-
-## [`README.md`](http://README.md)
-
-Documento principal del repositorio.
-
-Proporciona información general sobre el sistema, instrucciones de instalación, configuración y ejecución.
-
-## `.env.example`
-
-Plantilla de variables de entorno necesarias para configurar el proyecto en diferentes ambientes sin exponer información sensible.
-
----
-
-# Resumen arquitectónico
-
-La organización del repositorio refleja la arquitectura lógica del sistema:
-
-- El **backend** concentra la lógica de negocio, la exposición de servicios REST y la interacción con la base de datos.
-- El **frontend** implementa la interfaz de usuario como una SPA modular y desacoplada del servidor.
-- El directorio **database** contiene los recursos necesarios para inicializar y mantener PostgreSQL.
-- **docs** reúne toda la documentación funcional y técnica del proyecto.
-- **scripts** automatiza tareas comunes del ciclo de desarrollo.
-- **.github/workflows** implementa la integración y el despliegue continuo, asegurando procesos consistentes y repetibles.
-
-Esta estructura favorece la mantenibilidad, la escalabilidad y el desarrollo colaborativo, permitiendo que los distintos equipos trabajen de manera independiente sobre cada capa de la aplicación sin generar dependencias innecesarias.
+## Architectural summary
+
+- **Backend** (`backend/app/`) is layered: `api → services → repositories → models + db`. Centralised config and security in `core/`. Migrations via Alembic. Pydantic v2 schemas validate IO.
+- **Frontend** (`frontend/src/`) is a Vanilla JS SPA: it uses hash routing from `main.js`, reactive stores from `store/index.js`, an HTTP layer in `services/api.js`, role-guarded views and a Tailwind v4 design system with light/dark themes. It talks to the FastAPI backend exclusively.
+- **Database** (`database/`) provides init + seed SQL; the live schema is migrated by Alembic.
+- **Documentation** (`docs/`) keeps everything in sync and is the entry point for new contributors.
+- **Automation** (`scripts/`, `.github/workflows/`) orchestrates dev, build, deploy and CI.
+
+This separation improves maintainability, test isolation and parallel work between teams without creating cross-layer dependencies.

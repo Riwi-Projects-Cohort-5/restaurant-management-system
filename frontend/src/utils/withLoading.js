@@ -1,41 +1,41 @@
 ﻿import Skeleton from "../components/ui/Skeleton.js";
 
 /**
- * withLoading â€” wraps a view with a skeleton loading state.
- * Shows skeleton immediately, then swaps to real content after delay.
- * Also delays init() to match.
+ * withLoading — wraps a view with a skeleton loading state.
+ * Shows skeleton immediately, then swaps to real content as soon as the
+ * view's render() resolves (sync or async). No artificial delay.
+ * Also defers init() until after render completes.
  *
  * Usage:
- *   export default withLoading(DashboardView, Skeletons.dashboard(), 800);
+ *   export default withLoading(DashboardView, Skeletons.dashboard());
  */
-function withLoading(view, skeletonHtml, delay) {
-  delay = delay || 800;
+function withLoading(view, skeletonHtml) {
   const originalRender = view.render;
   const originalInit = view.init;
   const originalDestroy = view.destroy;
-  let _timer = null;
 
   return {
     render: function (el) {
       el.innerHTML = skeletonHtml;
-      _timer = setTimeout(function () {
-        originalRender.call(view, el);
+      const result = originalRender.call(view, el);
+      const done = function () {
         if (typeof window.createIcons === "function") {
           window.createIcons();
         }
         if (originalInit) {
           originalInit.call(view);
         }
-      }, delay);
+      };
+      if (result && typeof result.then === "function") {
+        result.then(done);
+      } else {
+        done();
+      }
     },
     init: function () {
-      // init is handled inside render after delay
+      // init is handled inside render after content is ready
     },
     destroy: function () {
-      if (_timer) {
-        clearTimeout(_timer);
-        _timer = null;
-      }
       if (originalDestroy) {
         originalDestroy.call(view);
       }
@@ -847,7 +847,7 @@ const Skeletons = {
       "</div>";
     html += "</div>";
     // 3-col kanban
-    html += '<div class="flex-1 grid grid-cols-3 gap-5 min-h-0">';
+    html += '<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 min-h-0">';
     const colColors = ["bg-brand-50", "bg-brand-50", "bg-brand-50"];
     for (let col = 0; col < 3; col++) {
       html += '<div class="flex flex-col rounded-xl overflow-hidden ' + colColors[col] + '">';
@@ -1310,15 +1310,19 @@ const Skeletons = {
  *     renderDetail(el, selectedId);
  *   }, 400);
  */
-function renderWithSkeleton(el, skeletonHtml, renderFn, delay) {
-  delay = delay || 400;
+function renderWithSkeleton(el, skeletonHtml, renderFn) {
   el.innerHTML = skeletonHtml;
-  setTimeout(function () {
-    renderFn();
+  const result = renderFn();
+  const done = function () {
     if (typeof window.createIcons === "function") {
       window.createIcons();
     }
-  }, delay);
+  };
+  if (result && typeof result.then === "function") {
+    result.then(done);
+  } else {
+    done();
+  }
 }
 
 window.withLoading = withLoading;

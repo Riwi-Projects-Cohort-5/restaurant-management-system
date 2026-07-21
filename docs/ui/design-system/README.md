@@ -29,7 +29,7 @@ Two themes are defined via CSS custom property overrides:
 | Theme | Selector | Colors |
 |-------|----------|--------|
 | **Light** | default (no selector) | Cobre/terracota brand, green primary, warm grays |
-| **Dark** | `[data-theme="dark"]` | Vasija oxidada (azul-teal con pátina), Azul Caribe primary, grises azulados nocturnos |
+| **Dark** | `[data-theme="dark"]` | Oxidized pot (teal blue with patina), Caribbean blue primary, nocturnal bluish grays |
 
 Theme state is managed by `frontend/src/utils/theme.js` — persisted in `localStorage` under key `fogon-theme`. Toggle applies `data-theme="dark"` to `<html>`.
 

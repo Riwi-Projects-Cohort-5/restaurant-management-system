@@ -5,6 +5,7 @@ import { hasAnyRole } from "../../utils/roleContext.js";
 import { reservationModal } from "../../components/ui/ReservationModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -645,10 +646,12 @@ export async function renderReservations(container) {
   }
 }
 
-export default {
+const ReservationsView = {
   render: renderReservations,
   init: function () {},
   destroy: function () {
     _eventsEl = null;
   },
 };
+
+export default withLoading(ReservationsView, Skeletons.reservationsTable());

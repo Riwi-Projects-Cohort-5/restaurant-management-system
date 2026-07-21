@@ -5,6 +5,7 @@ import {
   updateAllKitchenOrderStatuses,
 } from "../../store/posData.js";
 import { hasAnyRole } from "../../utils/roleContext.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const KITCHEN_STATUS_MAP = {
   new: "pending",
@@ -178,7 +179,7 @@ const KitchenView = {
     html += '<span class="w-3 h-3 rounded-full bg-error-500"></span> Urgent (&gt;15 min)';
     html += "</div></div>";
 
-    html += '<div class="flex-1 grid grid-cols-3 gap-5 min-h-0">';
+    html += '<div class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 min-h-0">';
     cols.forEach(function (col) {
       html += renderColumn(col);
     });
@@ -231,4 +232,4 @@ const KitchenView = {
   },
 };
 
-export default KitchenView;
+export default withLoading(KitchenView, Skeletons.kitchen());

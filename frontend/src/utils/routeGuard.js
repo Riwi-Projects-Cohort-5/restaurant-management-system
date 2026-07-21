@@ -1,6 +1,5 @@
 const ROLES = {
   ADMIN: "admin",
-  CLIENT: "client",
   WAITER: "waiter",
   CHEF: "chef",
   CASHIER: "cashier",
@@ -8,7 +7,6 @@ const ROLES = {
 
 const ROLE_HOME = {
   [ROLES.ADMIN]: "/admin",
-  [ROLES.CLIENT]: "/dashboard",
   [ROLES.WAITER]: "/orders",
   [ROLES.CHEF]: "/kitchen",
   [ROLES.CASHIER]: "/payments",
@@ -16,14 +14,13 @@ const ROLE_HOME = {
 
 const ROLE_ACCESS = {
   "/admin": [ROLES.ADMIN],
-  "/dashboard": [ROLES.ADMIN, ROLES.CLIENT],
+  "/dashboard": [ROLES.ADMIN],
   "/orders": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
   "/pos": [ROLES.ADMIN, ROLES.WAITER, ROLES.CHEF],
   "/kitchen": [ROLES.ADMIN, ROLES.CHEF],
   "/tables": [ROLES.ADMIN, ROLES.WAITER],
   "/payments": [ROLES.ADMIN, ROLES.CASHIER],
   "/reservations": [ROLES.ADMIN],
-  "/reservation-status": [ROLES.CLIENT],
   "/inventory": [ROLES.ADMIN],
   "/reports": [ROLES.ADMIN],
   "/settings": [ROLES.ADMIN],

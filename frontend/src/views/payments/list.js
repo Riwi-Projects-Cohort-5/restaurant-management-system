@@ -6,6 +6,7 @@ import { hasAnyRole } from "../../utils/roleContext.js";
 import { paymentModal } from "../../components/ui/PaymentModal.js";
 import { confirmModal } from "../../components/ui/ConfirmModal.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { withLoading, Skeletons } from "../../utils/withLoading.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -642,4 +643,6 @@ export async function renderPayments(el) {
   }
 }
 
-export default { render: renderPayments, init: function () {}, destroy: function () {} };
+const PaymentsView = { render: renderPayments, init: function () {}, destroy: function () {} };
+
+export default withLoading(PaymentsView, Skeletons.paymentsTable());
