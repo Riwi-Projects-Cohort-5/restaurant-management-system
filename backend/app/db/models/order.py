@@ -13,6 +13,8 @@ from app.db.database import Base
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
+    READY = "ready"
+    SERVED = "served"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
@@ -24,7 +26,7 @@ class Order(Base):
     waiter_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     table_id = Column(UUID(as_uuid=True), ForeignKey("tables.id"), nullable=False)
     reservation_id = Column(String(30), ForeignKey("reservations.id", ondelete="SET NULL"), nullable=True)
-    status = Column(SAEnum("pending", "in_progress", "completed", "cancelled", name="orderstatus", create_type=False), nullable=False, default="pending")
+    status = Column(SAEnum("pending", "in_progress", "ready", "served", "completed", "cancelled", name="orderstatus", create_type=False), nullable=False, default="pending")
     total = Column(Numeric(10, 2), default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
