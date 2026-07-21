@@ -88,11 +88,17 @@ def registrar_pago(
     """
     service = PaymentService(db)
     # create recibe parámetros separados, no el objeto data directamente
-    payment = service.create(
-        order_id=data.order_id,
-        amount=data.amount,
-        method=data.method
-    )
+    try:
+        payment = service.create(
+            order_id=data.order_id,
+            amount=data.amount,
+            method=data.method
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not payment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

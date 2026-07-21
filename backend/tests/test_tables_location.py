@@ -1,46 +1,6 @@
-import uuid
-
-from fastapi.testclient import TestClient
-
-from app.core.security import create_access_token, get_password_hash
-from app.db.database import get_db
 from app.db.models.location import Location
 from app.db.models.table import Table, TableStatus
-from app.db.models.user import User, UserRole
-from app.main import app
-from tests.conftest import TestingSessionLocal
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-client = TestClient(app)
-
-
-def _create_test_user(db) -> User:
-    user = User(
-        id=uuid.uuid4(),
-        username="testadmin",
-        email="test@test.com",
-        hashed_password=get_password_hash("test123"),
-        full_name="Test Admin",
-        role=UserRole.ADMIN,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-
-def _auth_header(user_id: uuid.UUID) -> dict:
-    token = create_access_token(data={"sub": str(user_id)})
-    return {"Authorization": f"Bearer {token}"}
+from tests.conftest import _auth_header, _create_test_user, client
 
 
 class TestTableWithLocation:
@@ -54,7 +14,7 @@ class TestTableWithLocation:
         db_session.refresh(loc)
 
         response = client.post(
-            "/api/v1/api/v1/tables/",
+            "/api/v1/tables/",
             json={"number": 10, "capacity": 4, "location_id": str(loc.id)},
             headers=headers,
         )
@@ -68,7 +28,7 @@ class TestTableWithLocation:
         headers = _auth_header(user.id)
 
         response = client.post(
-            "/api/v1/api/v1/tables/",
+            "/api/v1/tables/",
             json={"number": 11, "capacity": 2},
             headers=headers,
         )
@@ -88,7 +48,7 @@ class TestTableWithLocation:
         db_session.commit()
         db_session.refresh(table)
 
-        response = client.get(f"/api/v1/api/v1/tables/{table.id}")
+        response = client.get(f"/api/v1/tables/{table.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["location_id"] == str(loc.id)
@@ -112,7 +72,7 @@ class TestTableWithLocation:
         db_session.refresh(table)
 
         response = client.put(
-            f"/api/v1/api/v1/tables/{table.id}",
+            f"/api/v1/tables/{table.id}",
             json={"location_id": str(loc2.id)},
             headers=headers,
         )
@@ -130,7 +90,7 @@ class TestTableWithLocation:
         db_session.add_all([table1, table2])
         db_session.commit()
 
-        response = client.get("/api/v1/api/v1/tables/")
+        response = client.get("/api/v1/tables/")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
@@ -156,7 +116,7 @@ class TestTableWithLocation:
         db_session.commit()
         db_session.refresh(table)
 
-        response = client.delete(f"/api/v1/api/v1/locations/{loc.id}", headers=headers)
+        response = client.delete(f"/api/v1/locations/{loc.id}", headers=headers)
         assert response.status_code == 204
 
         db_session.refresh(table)
@@ -173,7 +133,7 @@ class TestTableWithLocation:
         db_session.commit()
         db_session.refresh(table)
 
-        response = client.get(f"/api/v1/api/v1/tables/{table.id}")
+        response = client.get(f"/api/v1/tables/{table.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["location_id"] == str(loc.id)

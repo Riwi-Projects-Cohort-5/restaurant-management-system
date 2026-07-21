@@ -24,7 +24,7 @@ from app.db.schemas.reservation import (
     ReservationOut,
     ReservationUpdate,
 )
-from app.services.reservation_service import ReservationService
+from app.services.reservation_service import InvalidEnumValueError, ReservationService
 
 router = APIRouter(prefix="/reservations", tags=["Reservations"])
 
@@ -116,9 +116,15 @@ def actualizar_reservacion(
 ):
     """Actualiza datos o estado de una reservación. Requiere autenticación."""
     service = ReservationService(db)
-    updated = service.update(
-        reservation_id, data.model_dump(exclude_none=True)
-    )
+    try:
+        updated = service.update(
+            reservation_id, data.model_dump(exclude_none=True)
+        )
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
