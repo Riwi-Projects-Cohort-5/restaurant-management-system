@@ -1,6 +1,29 @@
 import { getDailySales } from "../../services/reportService.js";
+import { isDark } from "../../utils/theme.js";
 
 let chartInstance = null;
+
+function chartTokens() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = function (name) {
+    return cs.getPropertyValue(name).trim();
+  };
+  return {
+    thisWeek: v("--color-brand-500") || "#E57722",
+    lastWeek: v("--color-brand-300") || "#F2BA7A",
+    axisTick: v("--color-secondary-500") || "#958877",
+    tooltipBg: v("--color-neutral-900") || "#1E1B16",
+    tooltipTitle: v("--color-brand-50") || "#FEFAF5",
+    tooltipBody: v("--color-neutral-100") || "#E8E3DA",
+    tooltipBorder: v("--color-brand-300") || "#3D352A",
+    grid: isDark() ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+  };
+}
+
+function onThemeChange() {
+  SalesChart.destroy();
+  SalesChart.init();
+}
 
 const SalesChart = {
   renderLegend: function () {
@@ -51,6 +74,8 @@ const SalesChart = {
     while (thisWeekRevenue.length < 7) thisWeekRevenue.push(0);
     while (lastWeekRevenue.length < 7) lastWeekRevenue.push(0);
 
+    const tokens = chartTokens();
+
     const ctx = canvas.getContext("2d");
     chartInstance = new Chart(ctx, {
       type: "bar",
@@ -60,14 +85,14 @@ const SalesChart = {
           {
             label: "This Week",
             data: thisWeekRevenue.slice(0, 7),
-            backgroundColor: "#E57722",
+            backgroundColor: tokens.thisWeek,
             borderRadius: 6,
             barPercentage: 0.6,
           },
           {
             label: "Last Week",
             data: lastWeekRevenue.slice(0, 7),
-            backgroundColor: "#F2BA7A",
+            backgroundColor: tokens.lastWeek,
             borderRadius: 6,
             barPercentage: 0.6,
           },
@@ -79,10 +104,10 @@ const SalesChart = {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "#1E1B16",
-            titleColor: "#FEFAF5",
-            bodyColor: "#E8E3DA",
-            borderColor: "#3D352A",
+            backgroundColor: tokens.tooltipBg,
+            titleColor: tokens.tooltipTitle,
+            bodyColor: tokens.tooltipBody,
+            borderColor: tokens.tooltipBorder,
             borderWidth: 1,
             padding: 12,
             cornerRadius: 8,
@@ -96,13 +121,13 @@ const SalesChart = {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: "#958877", font: { size: 12, weight: 500 } },
+            ticks: { color: tokens.axisTick, font: { size: 12, weight: 500 } },
             border: { display: false },
           },
           y: {
-            grid: { color: "rgba(0,0,0,0.06)", drawBorder: false },
+            grid: { color: tokens.grid, drawBorder: false },
             ticks: {
-              color: "#958877",
+              color: tokens.axisTick,
               font: { size: 11 },
               callback: function (v) {
                 return "$" + (v / 1000).toFixed(0) + "k";
@@ -113,9 +138,12 @@ const SalesChart = {
         },
       },
     });
+
+    window.addEventListener("themechange", onThemeChange);
   },
 
   destroy: function () {
+    window.removeEventListener("themechange", onThemeChange);
     if (chartInstance) {
       chartInstance.destroy();
       chartInstance = null;

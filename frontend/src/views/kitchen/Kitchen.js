@@ -14,6 +14,12 @@ const KITCHEN_STATUS_MAP = {
   served: "delivered",
 };
 
+const FROM_STATUS_MAP = {
+  preparing: "pending",
+  ready: "preparing",
+  served: "ready",
+};
+
 async function moveOrder(id, newStatus) {
   const order = kitchenOrders.find(function (o) {
     return o.id === id || o.fullId === id;
@@ -21,15 +27,11 @@ async function moveOrder(id, newStatus) {
   if (!order) return;
 
   const backendStatus = KITCHEN_STATUS_MAP[newStatus];
-  if (backendStatus && order.kitchenIds && order.kitchenIds.length > 0) {
-    await updateAllKitchenOrderStatuses(order.kitchenIds, backendStatus);
-  } else {
-    if (newStatus === "served") {
-      const idx = kitchenOrders.indexOf(order);
-      if (idx > -1) kitchenOrders.splice(idx, 1);
-    } else {
-      order.status = newStatus;
-    }
+  if (backendStatus && order.lineStatuses && order.lineStatuses.length > 0) {
+    const expectedCurrent = FROM_STATUS_MAP[newStatus]
+      ? KITCHEN_STATUS_MAP[FROM_STATUS_MAP[newStatus]]
+      : null;
+    await updateAllKitchenOrderStatuses(order.lineStatuses, backendStatus, expectedCurrent);
   }
   const el = document.getElementById("current-view");
   if (el) {

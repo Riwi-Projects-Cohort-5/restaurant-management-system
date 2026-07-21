@@ -47,10 +47,12 @@ class KitchenService:
         if not kitchen_orders:
             return
         statuses = [ko.status for ko in kitchen_orders]
-        if any(s == KitchenOrderStatus.PREPARING for s in statuses):
+        if all(s == KitchenOrderStatus.DELIVERED for s in statuses):
+            new_status = OrderStatus.SERVED
+        elif any(s == KitchenOrderStatus.PREPARING for s in statuses):
             new_status = OrderStatus.IN_PROGRESS
-        elif all(s in (KitchenOrderStatus.READY, KitchenOrderStatus.DELIVERED) for s in statuses):
-            new_status = OrderStatus.COMPLETED
+        elif any(s == KitchenOrderStatus.READY for s in statuses):
+            new_status = OrderStatus.IN_PROGRESS
         elif all(s == KitchenOrderStatus.PENDING for s in statuses):
             new_status = OrderStatus.PENDING
         else:

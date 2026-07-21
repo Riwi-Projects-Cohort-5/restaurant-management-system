@@ -1,16 +1,24 @@
 import { getSalesReport, getTopProducts, getDailySales } from "../../services/reportService.js";
 import { exportToCSV } from "../../utils/csvExport.js";
 import { withLoading, Skeletons } from "../../utils/withLoading.js";
+import { isDark } from "../../utils/theme.js";
 
-const CHART_COLORS = {
-  revenue: "#e57722",
-  orders: "#f2ba7a",
-  axisTick: "#958877",
-  tooltipBg: "#1e1b16",
-  tooltipTitle: "#fefaf5",
-  tooltipBody: "#e8e3da",
-  tooltipBorder: "#3d352a",
-};
+function chartColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const v = function (name) {
+    return cs.getPropertyValue(name).trim();
+  };
+  return {
+    revenue: v("--color-brand-500") || "#e57722",
+    orders: v("--color-brand-300") || "#f2ba7a",
+    axisTick: v("--color-secondary-500") || "#958877",
+    tooltipBg: v("--color-neutral-900") || "#1e1b16",
+    tooltipTitle: v("--color-brand-50") || "#fefaf5",
+    tooltipBody: v("--color-neutral-100") || "#e8e3da",
+    tooltipBorder: v("--color-brand-300") || "#3d352a",
+    grid: isDark() ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+  };
+}
 
 let startDate = "";
 let endDate = "";
@@ -34,6 +42,8 @@ function renderBarChart(data) {
     chartInstance = null;
   }
 
+  const colors = chartColors();
+
   const ctx = canvas.getContext("2d");
   chartInstance = new Chart(ctx, {
     type: "bar",
@@ -47,7 +57,7 @@ function renderBarChart(data) {
           data: data.map(function (d) {
             return d.revenue;
           }),
-          backgroundColor: CHART_COLORS.revenue,
+          backgroundColor: colors.revenue,
           borderRadius: 6,
           barPercentage: 0.6,
         },
@@ -56,7 +66,7 @@ function renderBarChart(data) {
           data: data.map(function (d) {
             return d.orders * 50;
           }),
-          backgroundColor: CHART_COLORS.orders,
+          backgroundColor: colors.orders,
           borderRadius: 6,
           barPercentage: 0.6,
         },
@@ -68,10 +78,10 @@ function renderBarChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: CHART_COLORS.tooltipBg,
-          titleColor: CHART_COLORS.tooltipTitle,
-          bodyColor: CHART_COLORS.tooltipBody,
-          borderColor: CHART_COLORS.tooltipBorder,
+          backgroundColor: colors.tooltipBg,
+          titleColor: colors.tooltipTitle,
+          bodyColor: colors.tooltipBody,
+          borderColor: colors.tooltipBorder,
           borderWidth: 1,
           padding: 12,
           cornerRadius: 8,
@@ -91,13 +101,13 @@ function renderBarChart(data) {
       scales: {
         x: {
           grid: { display: false },
-          ticks: { color: CHART_COLORS.axisTick, font: { size: 12, weight: 500 } },
+          ticks: { color: colors.axisTick, font: { size: 12, weight: 500 } },
           border: { display: false },
         },
         y: {
-          grid: { color: "rgba(0,0,0,0.06)", drawBorder: false },
+          grid: { color: colors.grid, drawBorder: false },
           ticks: {
-            color: CHART_COLORS.axisTick,
+            color: colors.axisTick,
             font: { size: 11 },
             callback: function (v) {
               return "$" + (v / 1000).toFixed(1) + "k";
@@ -348,8 +358,19 @@ function renderStatCard(label, value, icon, iconBg) {
 
 const ReportsView = {
   render: render,
-  init: function () {},
+  init: function () {
+    this._onThemeChange = function () {
+      eventsAttached = false;
+      const el = document.querySelector("#current-view .space-y-5");
+      if (el) render(el.parentElement || document.getElementById("current-view"));
+    };
+    window.addEventListener("themechange", this._onThemeChange);
+  },
   destroy: function () {
+    if (this._onThemeChange) {
+      window.removeEventListener("themechange", this._onThemeChange);
+      this._onThemeChange = null;
+    }
     eventsAttached = false;
     if (chartInstance) {
       chartInstance.destroy();
