@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.db.models.order import OrderStatus
 from app.db.models.payment import Payment, PaymentMethod, PaymentStatus
 from app.repositories.order_repository import OrderRepository
 from app.repositories.payment_repository import PaymentRepository
@@ -31,6 +32,8 @@ class PaymentService:
         order = self.order_repo.get_by_id(order_id)
         if not order:
             return None
+        if order.status != OrderStatus.SERVED:
+            raise ValueError("La orden debe estar 'served' para registrar un pago.")
         if amount <= 0:
             raise ValueError("El monto del pago debe ser mayor a 0.")
         if amount > order.total:
@@ -43,7 +46,10 @@ class PaymentService:
             order_id=order_id, amount=amount,
             method=method_enum, status=PaymentStatus.COMPLETED,
         )
-        return self.repo.create(payment)
+        result = self.repo.create(payment)
+        order.status = OrderStatus.COMPLETED
+        self.order_repo.db.commit()
+        return result
 
     def update_status(self, payment_id: UUID, new_status: str) -> Optional[Payment]:
         payment = self.repo.get_by_id(payment_id)

@@ -11,7 +11,7 @@ const enabledMethods = { cash: true, card: true, transfer: true };
 
 class PaymentModal {
   async show({ title = "New Payment" } = {}) {
-    const unpaidOrders = allOrders.filter((o) => o.status === "completed");
+    const unpaidOrders = allOrders.filter((o) => o.status === "served");
 
     const orderOptions = [
       { value: "", label: "Select an order..." },
