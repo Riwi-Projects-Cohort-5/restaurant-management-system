@@ -14,7 +14,6 @@ import Menu from "./views/menu/list.js";
 import Inventory from "./views/inventory/Inventory.js";
 import Reports from "./views/reports/Reports.js";
 import Settings from "./views/settings/Settings.js";
-import { getToken } from "./services/api.js";
 
 window.createIcons = function () {
   createIcons({ icons });

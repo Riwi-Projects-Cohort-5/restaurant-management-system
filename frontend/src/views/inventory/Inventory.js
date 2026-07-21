@@ -12,28 +12,28 @@ const UNITS = [
   { id: "lb", name: "Pounds" },
 ];
 
-var subView = "list";
-var selectedId = null;
-var activeFilter = "all";
-var searchQuery = "";
+let subView = "list";
+let selectedId = null;
+let activeFilter = "all";
+let searchQuery = "";
 
 function stockStatus(item) {
-  var qty = parseFloat(item.quantity);
-  var min = parseFloat(item.min_stock);
+  const qty = parseFloat(item.quantity);
+  const min = parseFloat(item.min_stock);
   if (!item.is_active) return "inactive";
   if (qty <= min) return "low_stock";
   return "active";
 }
 
 function statusBadge(item) {
-  var status = stockStatus(item);
-  var labels = { active: "In Stock", low_stock: "Low Stock", inactive: "Inactive" };
-  var colors = {
+  const status = stockStatus(item);
+  const labels = { active: "In Stock", low_stock: "Low Stock", inactive: "Inactive" };
+  const colors = {
     active: "bg-success-100 text-success-700",
     low_stock: "bg-error-100 text-error-700",
     inactive: "bg-neutral-100 text-neutral-600",
   };
-  var dots = { active: "bg-success-500", low_stock: "bg-error-500", inactive: "bg-neutral-500" };
+  const dots = { active: "bg-success-500", low_stock: "bg-error-500", inactive: "bg-neutral-500" };
   return (
     '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ' +
     colors[status] +
@@ -47,11 +47,11 @@ function statusBadge(item) {
 }
 
 function stockBar(item) {
-  var qty = parseFloat(item.quantity);
-  var min = parseFloat(item.min_stock);
-  var max = Math.max(qty, min * 2, 1);
-  var pct = Math.min((qty / max) * 100, 100);
-  var barColor = qty <= min ? "bg-error-500" : "bg-success-500";
+  const qty = parseFloat(item.quantity);
+  const min = parseFloat(item.min_stock);
+  const max = Math.max(qty, min * 2, 1);
+  const pct = Math.min((qty / max) * 100, 100);
+  const barColor = qty <= min ? "bg-error-500" : "bg-success-500";
   return (
     '<div class="flex items-center gap-2">' +
     '<div class="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">' +
@@ -69,8 +69,8 @@ function stockBar(item) {
 }
 
 function getFiltered() {
-  var all = inventoryStore.getState().items;
-  var filtered = all;
+  const all = inventoryStore.getState().items;
+  let filtered = all;
 
   if (activeFilter === "low_stock") {
     filtered = filtered.filter(function (i) {
@@ -87,7 +87,7 @@ function getFiltered() {
   }
 
   if (searchQuery) {
-    var q = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     filtered = filtered.filter(function (i) {
       return i.name.toLowerCase().includes(q) || i.unit.toLowerCase().includes(q);
     });
@@ -97,7 +97,7 @@ function getFiltered() {
 }
 
 function formatDate(dateStr) {
-  var date = new Date(dateStr);
+  const date = new Date(dateStr);
   return (
     date.toLocaleDateString() +
     " " +
@@ -108,9 +108,9 @@ function formatDate(dateStr) {
 /* ── List View ── */
 
 function renderList(el) {
-  var items = getFiltered();
-  var allItems = inventoryStore.getState().items;
-  var counts = { all: allItems.length };
+  const items = getFiltered();
+  const allItems = inventoryStore.getState().items;
+  const counts = { all: allItems.length };
   counts.active = allItems.filter(function (i) {
     return i.is_active && stockStatus(i) !== "low_stock";
   }).length;
@@ -121,7 +121,7 @@ function renderList(el) {
     return !i.is_active;
   }).length;
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div><h2 class="text-xl font-semibold text-brand-900 font-display">Inventory</h2>';
@@ -143,14 +143,14 @@ function renderList(el) {
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
-  var tabs = [
+  const tabs = [
     { key: "all", label: "All" },
     { key: "active", label: "In Stock" },
     { key: "low_stock", label: "Low Stock" },
     { key: "inactive", label: "Inactive" },
   ];
   tabs.forEach(function (tab) {
-    var isActive = activeFilter === tab.key;
+    const isActive = activeFilter === tab.key;
     html +=
       '<button data-filter="' +
       tab.key +
@@ -186,7 +186,7 @@ function renderList(el) {
   html += '<div class="overflow-x-auto">';
   html += '<table class="w-full">';
   html += '<thead><tr class="border-b-2 border-brand-100">';
-  var cols = ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"];
+  const cols = ["Item", "Unit", "Stock Level", "Min Stock", "Status", "Updated", "Actions"];
   cols.forEach(function (c) {
     html +=
       '<th class="px-5 py-3 text-left text-xs font-bold text-brand-700 uppercase tracking-wider bg-brand-50">' +
@@ -208,7 +208,7 @@ function renderList(el) {
     html += "</div></td></tr>";
   } else {
     items.forEach(function (item, i) {
-      var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+      const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html +=
         '<tr class="' +
         zebra +
@@ -257,17 +257,17 @@ function renderList(el) {
 /* ── Detail View ── */
 
 async function renderDetail(el, itemId) {
-  var item = await inventoryService.getItemById(itemId);
+  const item = await inventoryService.getItemById(itemId);
   if (!item) {
     renderList(el);
     return;
   }
 
-  var movements = (await inventoryService.getMovementsByItem(itemId)).sort(function (a, b) {
+  const movements = (await inventoryService.getMovementsByItem(itemId)).sort(function (a, b) {
     return new Date(b.created_at) - new Date(a.created_at);
   });
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html += '<div class="flex items-center gap-3">';
@@ -306,11 +306,11 @@ async function renderDetail(el, itemId) {
   html += '<h3 class="text-sm font-bold text-brand-800 uppercase tracking-wider">Stock Level</h3>';
   html += "</div>";
   html += '<div class="p-5">';
-  var qty = parseFloat(item.quantity);
-  var min = parseFloat(item.min_stock);
-  var max = Math.max(qty, min * 2, 1);
-  var pct = Math.min((qty / max) * 100, 100);
-  var barColor = qty <= min ? "bg-error-500" : "bg-success-500";
+  const qty = parseFloat(item.quantity);
+  const min = parseFloat(item.min_stock);
+  const max = Math.max(qty, min * 2, 1);
+  const pct = Math.min((qty / max) * 100, 100);
+  const barColor = qty <= min ? "bg-error-500" : "bg-success-500";
   html +=
     '<div class="flex items-center gap-3 mb-2"><span class="text-sm font-semibold text-secondary-600">' +
     qty +
@@ -381,9 +381,9 @@ async function renderDetail(el, itemId) {
     html += "</tr></thead>";
     html += "<tbody>";
     movements.forEach(function (m) {
-      var typeColor = m.type === "in" ? "text-success-700" : "text-error-700";
-      var typeBg = m.type === "in" ? "bg-success-100" : "bg-error-100";
-      var typeIcon = m.type === "in" ? "arrow-down-left" : "arrow-up-right";
+      const typeColor = m.type === "in" ? "text-success-700" : "text-error-700";
+      const typeBg = m.type === "in" ? "bg-success-100" : "bg-error-100";
+      const typeIcon = m.type === "in" ? "arrow-down-left" : "arrow-up-right";
       html += '<tr class="border-b border-brand-100">';
       html +=
         '<td class="px-5 py-3"><span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ' +
@@ -418,14 +418,14 @@ async function renderDetail(el, itemId) {
 }
 
 function renderMovementForm(el, itemId, type) {
-  var form = el.querySelector("#movement-form");
+  const form = el.querySelector("#movement-form");
   if (!form) return;
 
-  var title = type === "in" ? "Stock In" : "Stock Out";
-  var btnColor =
+  const title = type === "in" ? "Stock In" : "Stock Out";
+  const btnColor =
     type === "in" ? "bg-success-600 hover:bg-success-700" : "bg-accent-600 hover:bg-accent-700";
 
-  var html = '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden mb-5">';
+  let html = '<div class="bg-white border border-brand-300 rounded-xl overflow-hidden mb-5">';
   html +=
     '<div class="px-5 py-4 border-b border-brand-100 bg-brand-50 flex items-center justify-between">';
   html +=
@@ -458,17 +458,17 @@ function renderMovementForm(el, itemId, type) {
 
   form.innerHTML = html;
   window.createIcons();
-  var qtyInput = document.getElementById("movement-qty");
+  const qtyInput = document.getElementById("movement-qty");
   if (qtyInput) qtyInput.focus();
 }
 
 /* ── Create / Edit Form ── */
 
 async function renderForm(el, itemId) {
-  var isEdit = !!itemId;
-  var item = isEdit ? await inventoryService.getItemById(itemId) : null;
+  const isEdit = !!itemId;
+  const item = isEdit ? await inventoryService.getItemById(itemId) : null;
 
-  var html = '<div class="space-y-5">';
+  let html = '<div class="space-y-5">';
 
   html += '<div class="flex items-center justify-between">';
   html +=
@@ -556,7 +556,7 @@ async function renderForm(el, itemId) {
   el.innerHTML = html;
   setupFormEvents(el);
   window.createIcons();
-  var nameInput = document.getElementById("inv-name");
+  const nameInput = document.getElementById("inv-name");
   if (nameInput) nameInput.focus();
 }
 
@@ -564,9 +564,9 @@ async function renderForm(el, itemId) {
 
 function setupListEvents(el) {
   el.addEventListener("click", async function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) {
-      var filterBtn = e.target.closest("[data-filter]");
+      const filterBtn = e.target.closest("[data-filter]");
       if (filterBtn) {
         activeFilter = filterBtn.getAttribute("data-filter");
         renderList(el);
@@ -574,7 +574,7 @@ function setupListEvents(el) {
       return;
     }
 
-    var action = btn.getAttribute("data-action");
+    const action = btn.getAttribute("data-action");
 
     if (action === "create-item") {
       subView = "create";
@@ -598,7 +598,7 @@ function setupListEvents(el) {
     }
   });
 
-  var searchInput = el.querySelector("#inv-search");
+  const searchInput = el.querySelector("#inv-search");
   if (searchInput) {
     searchInput.addEventListener("input", function (e) {
       searchQuery = e.target.value;
@@ -609,10 +609,10 @@ function setupListEvents(el) {
 
 function setupDetailEvents(el, itemId) {
   el.addEventListener("click", async function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.getAttribute("data-action");
+    const action = btn.getAttribute("data-action");
 
     if (action === "back-to-list") {
       subView = "list";
@@ -626,21 +626,25 @@ function setupDetailEvents(el, itemId) {
     } else if (action === "stock-out") {
       renderMovementForm(el, itemId, "out");
     } else if (action === "cancel-movement") {
-      var form = el.querySelector("#movement-form");
+      const form = el.querySelector("#movement-form");
       if (form) form.innerHTML = "";
     } else if (action === "submit-movement") {
-      var qtyInput = el.querySelector("#movement-qty");
-      var reasonInput = el.querySelector("#movement-reason");
-      var qty = parseFloat(qtyInput ? qtyInput.value : 0);
-      var reason = reasonInput ? reasonInput.value.trim() : "";
-      var type = btn.getAttribute("data-movement-type");
+      const qtyInput = el.querySelector("#movement-qty");
+      const reasonInput = el.querySelector("#movement-reason");
+      const qty = parseFloat(qtyInput ? qtyInput.value : 0);
+      const reason = reasonInput ? reasonInput.value.trim() : "";
+      const type = btn.getAttribute("data-movement-type");
 
       if (!qty || qty <= 0) {
         alert("Please enter a valid quantity");
         return;
       }
 
-      await inventoryService.registerMovement(itemId, { type: type, quantity: qty, reason: reason || "" });
+      await inventoryService.registerMovement(itemId, {
+        type: type,
+        quantity: qty,
+        reason: reason || "",
+      });
       await inventoryStore.refreshItems();
       await renderDetail(el, itemId);
     } else if (action === "delete-item") {
@@ -656,11 +660,11 @@ function setupDetailEvents(el, itemId) {
 
   el.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
-      var submitBtn = el.querySelector('[data-action="submit-movement"]');
+      const submitBtn = el.querySelector('[data-action="submit-movement"]');
       if (submitBtn) submitBtn.click();
     }
     if (e.key === "Escape") {
-      var form = el.querySelector("#movement-form");
+      const form = el.querySelector("#movement-form");
       if (form && form.innerHTML) {
         form.innerHTML = "";
       }
@@ -670,22 +674,22 @@ function setupDetailEvents(el, itemId) {
 
 function setupFormEvents(el) {
   el.addEventListener("click", async function (e) {
-    var btn = e.target.closest("[data-action]");
+    const btn = e.target.closest("[data-action]");
     if (!btn) return;
 
-    var action = btn.getAttribute("data-action");
+    const action = btn.getAttribute("data-action");
 
     if (action === "back-to-list") {
       subView = "list";
       selectedId = null;
       renderList(el);
     } else if (action === "save-item") {
-      var itemId = btn.getAttribute("data-item-id");
-      var name = (document.getElementById("inv-name") || {}).value || "";
-      var unit = (document.getElementById("inv-unit") || {}).value || "";
-      var quantity = parseFloat((document.getElementById("inv-quantity") || {}).value) || 0;
-      var minStock = parseFloat((document.getElementById("inv-min-stock") || {}).value) || 0;
-      var active = (document.getElementById("inv-active") || {}).checked;
+      const itemId = btn.getAttribute("data-item-id");
+      const name = (document.getElementById("inv-name") || {}).value || "";
+      const unit = (document.getElementById("inv-unit") || {}).value || "";
+      const quantity = parseFloat((document.getElementById("inv-quantity") || {}).value) || 0;
+      const minStock = parseFloat((document.getElementById("inv-min-stock") || {}).value) || 0;
+      const active = (document.getElementById("inv-active") || {}).checked;
 
       if (!name.trim()) {
         alert("Please enter a name");
@@ -696,7 +700,7 @@ function setupFormEvents(el) {
         return;
       }
 
-      var data = {
+      const data = {
         name: name.trim(),
         unit: unit,
         quantity: quantity,
@@ -720,7 +724,7 @@ function setupFormEvents(el) {
 
 /* ── Export ── */
 
-var InventoryView = {
+const InventoryView = {
   render: async function (el) {
     await inventoryStore.loadItems();
 

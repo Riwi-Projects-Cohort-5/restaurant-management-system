@@ -1,4 +1,4 @@
-import { apiLogin, apiGet, apiPost, apiDelete, apiPut, getToken, removeToken } from "./api.js";
+import { apiLogin, apiGet, apiPost, apiDelete, apiPut, removeToken } from "./api.js";
 
 const SESSION_KEY = "rms_session";
 

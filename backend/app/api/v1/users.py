@@ -63,8 +63,6 @@ def obtener_usuario_actual(
     Retorna:
         UserOut con los datos del usuario autenticado.
     """
-    service = UserService(db)
-
     user = current_user
 
     if not user:

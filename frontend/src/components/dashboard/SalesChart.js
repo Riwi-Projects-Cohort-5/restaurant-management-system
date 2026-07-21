@@ -5,8 +5,10 @@ let chartInstance = null;
 const SalesChart = {
   renderLegend: function () {
     let html = '<div class="flex gap-2 mb-4">';
-    html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> This Week</span>';
-    html += '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500">Last Week</span>';
+    html +=
+      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> This Week</span>';
+    html +=
+      '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-500">Last Week</span>';
     html += "</div>";
     return html;
   },
@@ -32,11 +34,15 @@ const SalesChart = {
 
     try {
       thisWeekData = await getDailySales(thisWeekStart.toISOString(), now.toISOString());
-    } catch {}
+    } catch {
+      /* silent */
+    }
 
     try {
       lastWeekData = await getDailySales(lastWeekStart.toISOString(), lastWeekEnd.toISOString());
-    } catch {}
+    } catch {
+      /* silent */
+    }
 
     const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const thisWeekRevenue = thisWeekData.map((d) => d.revenue || 0);

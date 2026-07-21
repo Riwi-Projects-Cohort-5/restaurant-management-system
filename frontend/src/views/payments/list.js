@@ -11,15 +11,15 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-  pending:   { bg: "bg-info-100",    text: "text-info-700",    dot: "bg-info-500" },
+  pending: { bg: "bg-info-100", text: "text-info-700", dot: "bg-info-500" },
   completed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
-  refunded:  { bg: "bg-accent-100",  text: "text-accent-700",  dot: "bg-accent-500" },
-  failed:    { bg: "bg-error-100",   text: "text-error-700",   dot: "bg-error-500" },
+  refunded: { bg: "bg-accent-100", text: "text-accent-700", dot: "bg-accent-500" },
+  failed: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },
 };
 
 const PAYMENT_METHODS = [
-  { id: "cash",     name: "Cash",     icon: "banknote" },
-  { id: "card",     name: "Card",     icon: "credit-card" },
+  { id: "cash", name: "Cash", icon: "banknote" },
+  { id: "card", name: "Card", icon: "credit-card" },
   { id: "transfer", name: "Transfer", icon: "banknote" },
 ];
 
@@ -332,7 +332,7 @@ async function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Cashier</div>';
-  html +=     '<div class="text-lg font-bold text-brand-900">—</div>';
+  html += '<div class="text-lg font-bold text-brand-900">—</div>';
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
@@ -355,10 +355,7 @@ async function renderDetail(el, paymentId) {
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
   html +=
     '<div class="text-xs font-bold text-secondary-500 uppercase tracking-wider mb-1">Reference</div>';
-  html +=
-    '<div class="text-sm font-semibold text-brand-900">' +
-    "—" +
-    "</div>";
+  html += '<div class="text-sm font-semibold text-brand-900">' + "—" + "</div>";
   html += "</div>";
 
   html += '<div class="bg-brand-50 border border-brand-200 rounded-lg p-4 text-center">';
@@ -691,7 +688,6 @@ function setupNewPaymentEvents(el) {
         return;
       }
 
-      const user = currentUser || { username: "guest" };
       const result = await paymentService.createPayment({
         order_id: orderId,
         amount: amount,

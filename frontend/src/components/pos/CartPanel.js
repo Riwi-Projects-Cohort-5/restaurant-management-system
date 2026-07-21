@@ -1,4 +1,4 @@
-import { allOrders, recalcOrder, createOrder, addOrderItem, saveDraft } from "../../store/posData.js";
+import { createOrder, addOrderItem, saveDraft } from "../../store/posData.js";
 
 let cartItems = [];
 
@@ -70,7 +70,8 @@ function CartPanel() {
   html += "</div>";
 
   html += '<div class="mt-3">';
-  html += '<textarea id="cart-kitchen-note" rows="2" placeholder="Kitchen note (allergy, substitution...)" class="w-full border border-brand-300 rounded-md p-2 text-xs text-neutral-700 resize-none focus:outline-none focus:border-brand-500"></textarea>';
+  html +=
+    '<textarea id="cart-kitchen-note" rows="2" placeholder="Kitchen note (allergy, substitution...)" class="w-full border border-brand-300 rounded-md p-2 text-xs text-neutral-700 resize-none focus:outline-none focus:border-brand-500"></textarea>';
   html += "</div>";
 
   html += '<div class="flex gap-2 mt-2">';

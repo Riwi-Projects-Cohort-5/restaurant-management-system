@@ -10,9 +10,9 @@ const STATUS_LABELS = {
 };
 
 const STATUS_COLORS = {
-  pending:   { bg: "bg-accent-100",   text: "text-accent-700",   dot: "bg-accent-500" },
-  confirmed: { bg: "bg-success-100",  text: "text-success-700",  dot: "bg-success-500" },
-  cancelled: { bg: "bg-error-100",    text: "text-error-700",    dot: "bg-error-500" },
+  pending: { bg: "bg-accent-100", text: "text-accent-700", dot: "bg-accent-500" },
+  confirmed: { bg: "bg-success-100", text: "text-success-700", dot: "bg-success-500" },
+  cancelled: { bg: "bg-error-100", text: "text-error-700", dot: "bg-error-500" },
   completed: { bg: "bg-secondary-100", text: "text-secondary-700", dot: "bg-secondary-500" },
 };
 
@@ -407,8 +407,7 @@ function renderConfirmTablePanel(el) {
       html += "</div>";
       html += "</div>";
       if (isSelected) {
-        html +=
-          '<i data-lucide="check-circle" class="w-5 h-5 text-primary-500 shrink-0"></i>';
+        html += '<i data-lucide="check-circle" class="w-5 h-5 text-primary-500 shrink-0"></i>';
       }
       html += "</button>";
     });
@@ -458,11 +457,12 @@ function renderNewReservationForm(el) {
   html += renderFormField("res-date", "Date", "date", "", true);
   html += renderFormField("res-time", "Time", "time", "", true);
   html += renderFormField("res-party-size", "Party Size", "number", "4", true);
-  html += '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Table<select id="res-table-num" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white"><option value="">-- Optional --</option>';
+  html +=
+    '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Table<select id="res-table-num" class="border border-brand-200 rounded-md px-3 py-2 text-sm bg-white"><option value="">-- Optional --</option>';
   tables.forEach(function (t) {
-    html += '<option value="' + t.id + '">Table ' + t.number + ' (' + t.seats + ' seats)</option>';
+    html += '<option value="' + t.id + '">Table ' + t.number + " (" + t.seats + " seats)</option>";
   });
-  html += '</select></label>';
+  html += "</select></label>";
   html += "</div>";
   html += '<div class="mt-4">';
   html +=
@@ -733,4 +733,10 @@ export async function renderReservations(container) {
   }
 }
 
-export default { render: renderReservations, init: function () {}, destroy: function () { _eventsEl = null; } };
+export default {
+  render: renderReservations,
+  init: function () {},
+  destroy: function () {
+    _eventsEl = null;
+  },
+};

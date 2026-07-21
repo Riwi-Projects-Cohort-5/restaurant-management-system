@@ -1,7 +1,7 @@
 import { createStore } from "./index.js";
 import * as reportService from "../services/reportService.js";
 
-var reportsStore = createStore({
+const reportsStore = createStore({
   sales: null,
   topProducts: [],
   dailySales: [],
@@ -9,22 +9,22 @@ var reportsStore = createStore({
 });
 
 export async function loadSalesReport(startDate, endDate) {
-  var sales = await reportService.getSalesReport(startDate, endDate);
+  const sales = await reportService.getSalesReport(startDate, endDate);
   reportsStore.setState({ sales: sales });
 }
 
 export async function loadTopProducts(startDate, endDate, limit) {
-  var products = await reportService.getTopProducts(startDate, endDate, limit);
+  const products = await reportService.getTopProducts(startDate, endDate, limit);
   reportsStore.setState({ topProducts: products });
 }
 
 export async function loadDailySales(startDate, endDate) {
-  var daily = await reportService.getDailySales(startDate, endDate);
+  const daily = await reportService.getDailySales(startDate, endDate);
   reportsStore.setState({ dailySales: daily });
 }
 
 export async function loadTodayStats() {
-  var stats = await reportService.getTodayStats();
+  const stats = await reportService.getTodayStats();
   reportsStore.setState({ todayStats: stats });
 }
 

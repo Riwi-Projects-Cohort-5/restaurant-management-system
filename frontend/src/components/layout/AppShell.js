@@ -45,25 +45,63 @@ const AppShell = {
       {
         label: "Main",
         items: [
-          { icon: "layout-dashboard", label: "Dashboard", path: "/dashboard", badge: "", roles: ["admin", "client"] },
-          { icon: "shopping-cart", label: "POS / Orders", path: "/pos", badge: "3", roles: ["admin", "waiter"] },
-          { icon: "chef-hat", label: "Kitchen", path: "/kitchen", badge: "5", roles: ["admin", "chef"] },
-          { icon: "square", label: "Tables", path: "/tables", badge: "", roles: ["admin", "waiter"] },
+          {
+            icon: "layout-dashboard",
+            label: "Dashboard",
+            path: "/dashboard",
+            badge: "",
+            roles: ["admin", "client"],
+          },
+          {
+            icon: "shopping-cart",
+            label: "POS / Orders",
+            path: "/pos",
+            badge: "3",
+            roles: ["admin", "waiter"],
+          },
+          {
+            icon: "chef-hat",
+            label: "Kitchen",
+            path: "/kitchen",
+            badge: "5",
+            roles: ["admin", "chef"],
+          },
+          {
+            icon: "square",
+            label: "Tables",
+            path: "/tables",
+            badge: "",
+            roles: ["admin", "waiter"],
+          },
         ],
       },
       {
         label: "Management",
         items: [
-          { icon: "calendar", label: "Reservations", path: "/reservations", badge: "", roles: ["admin"] },
+          {
+            icon: "calendar",
+            label: "Reservations",
+            path: "/reservations",
+            badge: "",
+            roles: ["admin"],
+          },
           { icon: "utensils", label: "Menu", path: "/menu", badge: "", roles: ["*"] },
           { icon: "package", label: "Inventory", path: "/inventory", badge: "", roles: ["admin"] },
-          { icon: "credit-card", label: "Payments", path: "/payments", badge: "", roles: ["admin", "cashier"] },
+          {
+            icon: "credit-card",
+            label: "Payments",
+            path: "/payments",
+            badge: "",
+            roles: ["admin", "cashier"],
+          },
           { icon: "bar-chart-3", label: "Reports", path: "/reports", badge: "", roles: ["admin"] },
         ],
       },
       {
         label: "System",
-        items: [{ icon: "settings", label: "Settings", path: "/settings", badge: "", roles: ["admin"] }],
+        items: [
+          { icon: "settings", label: "Settings", path: "/settings", badge: "", roles: ["admin"] },
+        ],
       },
     ];
 

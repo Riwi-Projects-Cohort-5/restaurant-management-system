@@ -1,7 +1,7 @@
 import WelcomeBanner from "../../components/ui/WelcomeBanner.js";
 import StatCard from "../../components/ui/StatCard.js";
 import SalesChart from "../../components/dashboard/SalesChart.js";
-import { allOrders, loadOrders, loadTables, tables } from "../../store/posData.js";
+import { allOrders, loadOrders } from "../../store/posData.js";
 import { apiGet } from "../../services/api.js";
 
 const Dashboard = {
@@ -13,26 +13,38 @@ const Dashboard = {
 
     try {
       stats = await apiGet("/api/v1/reports/today-stats");
-    } catch {}
+    } catch {
+      /* silent */
+    }
 
     try {
       tableStatus = await apiGet("/api/v1/tables/status");
-    } catch {}
+    } catch {
+      /* silent */
+    }
 
     await loadOrders();
 
     const recentOrders = allOrders.slice(0, 5);
 
     const statusMap = {
-      draft: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span> Draft</span>',
-      completed: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-success-100 text-success-700"><span class="w-1.5 h-1.5 rounded-full bg-success-500"></span> Completed</span>',
-      preparing: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Preparing</span>',
-      ready: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Ready</span>',
-      served: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-800"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Served</span>',
+      draft:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"><span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span> Draft</span>',
+      completed:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-success-100 text-success-700"><span class="w-1.5 h-1.5 rounded-full bg-success-500"></span> Completed</span>',
+      preparing:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Preparing</span>',
+      ready:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700"><span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span> Ready</span>',
+      served:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-800"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> Served</span>',
       new: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-info-100 text-info-700"><span class="w-1.5 h-1.5 rounded-full bg-info-500"></span> New</span>',
-      pending: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-info-100 text-info-700"><span class="w-1.5 h-1.5 rounded-full bg-info-500"></span> Pending</span>',
-      in_progress: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> In Progress</span>',
-      cancelled: '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-error-100 text-error-700"><span class="w-1.5 h-1.5 rounded-full bg-error-500"></span> Cancelled</span>',
+      pending:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-info-100 text-info-700"><span class="w-1.5 h-1.5 rounded-full bg-info-500"></span> Pending</span>',
+      in_progress:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-accent-100 text-accent-700"><span class="w-1.5 h-1.5 rounded-full bg-accent-500"></span> In Progress</span>',
+      cancelled:
+        '<span class="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-error-100 text-error-700"><span class="w-1.5 h-1.5 rounded-full bg-error-500"></span> Cancelled</span>',
     };
 
     let html = '<div class="space-y-0">';
@@ -41,14 +53,20 @@ const Dashboard = {
     html += '<div class="flex items-center justify-between mb-6">';
     html += '<h2 class="text-[22px] font-bold text-brand-900">Overview</h2>';
     html += '<div class="flex gap-3">';
-    html += '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-primary-600 text-white border-primary-600 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
+    html +=
+      '<button class="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold border bg-primary-600 text-white border-primary-600 cursor-pointer"><i data-lucide="plus" class="w-4 h-4"></i> New Order</button>';
     html += "</div>";
     html += "</div>";
 
     html += '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">';
     html += StatCard({
       label: "Total Revenue",
-      value: "$" + (stats.revenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      value:
+        "$" +
+        (stats.revenue || 0).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
       change: "today",
       icon: "dollar-sign",
       iconBg: "bg-brand-100 text-brand-700",
@@ -63,7 +81,10 @@ const Dashboard = {
     html += StatCard({
       label: "Active Tables",
       value: (stats.active_tables || 0) + " / " + (stats.total_tables || 0),
-      change: stats.total_tables > 0 ? Math.round((stats.active_tables / stats.total_tables) * 100) + "% occupancy" : "N/A",
+      change:
+        stats.total_tables > 0
+          ? Math.round((stats.active_tables / stats.total_tables) * 100) + "% occupancy"
+          : "N/A",
       icon: "users",
       iconBg: "bg-accent-100 text-accent-700",
       changeNeutral: true,
@@ -87,16 +108,33 @@ const Dashboard = {
     html += "</div>";
 
     html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-5">';
-    html += '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
+    html +=
+      '<h3 class="text-base font-semibold text-primary-700 font-display mb-4">Table Status</h3>';
     html += '<div class="flex flex-col gap-4">';
-    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">' + (tableStatus.available || 0) + ' tables</span></div>';
-    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">' + (tableStatus.occupied || 0) + ' tables</span></div>';
-    html += '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">' + (tableStatus.reserved || 0) + ' tables</span></div>';
-    var total = tableStatus.total || 1;
-    var occPct = Math.round((tableStatus.occupied / total) * 100);
-    var resPct = Math.round((tableStatus.reserved / total) * 100);
-    var avPct = 100 - occPct - resPct;
-    html += '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500" style="width:' + occPct + '%"></div><div class="bg-accent-500" style="width:' + resPct + '%"></div><div class="bg-success-500" style="width:' + avPct + '%"></div></div></div>';
+    html +=
+      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-success-500"></span><span class="text-sm">Available</span></div><span class="text-sm font-semibold">' +
+      (tableStatus.available || 0) +
+      " tables</span></div>";
+    html +=
+      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-error-500"></span><span class="text-sm">Occupied</span></div><span class="text-sm font-semibold">' +
+      (tableStatus.occupied || 0) +
+      " tables</span></div>";
+    html +=
+      '<div class="flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full bg-accent-500"></span><span class="text-sm">Reserved</span></div><span class="text-sm font-semibold">' +
+      (tableStatus.reserved || 0) +
+      " tables</span></div>";
+    const total = tableStatus.total || 1;
+    const occPct = Math.round((tableStatus.occupied / total) * 100);
+    const resPct = Math.round((tableStatus.reserved / total) * 100);
+    const avPct = 100 - occPct - resPct;
+    html +=
+      '<div class="mt-2"><div class="h-2 rounded-full overflow-hidden flex bg-neutral-100"><div class="bg-error-500" style="width:' +
+      occPct +
+      '%"></div><div class="bg-accent-500" style="width:' +
+      resPct +
+      '%"></div><div class="bg-success-500" style="width:' +
+      avPct +
+      '%"></div></div></div>';
     html += "</div>";
     html += "</div>";
     html += "</div>";
@@ -104,16 +142,19 @@ const Dashboard = {
     html += '<div class="bg-white border border-brand-300 rounded-xl shadow-sm p-0">';
     html += '<div class="flex items-center justify-between px-5 pt-5 pb-4">';
     html += '<h3 class="text-base font-semibold text-primary-700 font-display">Recent Orders</h3>';
-    html += '<a href="#/pos" class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 cursor-pointer">View All</a>';
+    html +=
+      '<a href="#/pos" class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-brand-100 text-brand-700 cursor-pointer">View All</a>';
     html += "</div>";
     html += '<div class="overflow-x-auto">';
     html += '<table class="w-full text-sm text-left">';
-    html += '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
-    html += '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th>';
+    html +=
+      '<thead><tr class="text-xs font-bold text-brand-700 uppercase tracking-wide border-b-2 border-brand-300 bg-brand-50">';
+    html +=
+      '<th class="px-4 py-3">Order</th><th class="px-4 py-3">Table</th><th class="px-4 py-3">Server</th><th class="px-4 py-3">Items</th><th class="px-4 py-3">Total</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Time</th>';
     html += "</tr></thead>";
     html += "<tbody>";
     recentOrders.forEach(function (o, i) {
-      var zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
+      const zebra = i % 2 === 0 ? "bg-white" : "bg-brand-50/50";
       html += '<tr class="' + zebra + ' cursor-pointer border-b border-brand-100">';
       html += '<td class="px-4 py-3 font-semibold text-brand-800">#' + o.id + "</td>";
       html += '<td class="px-4 py-3">Table ' + o.table + "</td>";
