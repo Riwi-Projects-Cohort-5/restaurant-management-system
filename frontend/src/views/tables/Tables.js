@@ -411,12 +411,6 @@ function renderTableDetailCard(t) {
         '<button data-action="reserve" data-table-id="' +
         t.id +
         '" class="h-9 px-3 text-xs font-semibold rounded-lg bg-transparent text-brand-600 hover:bg-brand-50 border border-brand-300 cursor-pointer">Reserve</button>';
-      html += "</div>";
-      html += '<div class="flex gap-2 mt-2">';
-      html +=
-        '<button data-action="open-order" data-table-id="' +
-        t.id +
-        '" class="flex-1 h-9 px-3 text-xs font-semibold rounded-lg bg-accent-400 hover:bg-accent-500 text-white border-0 cursor-pointer">Open Order</button>';
       html += "</div></div>";
     }
   }
