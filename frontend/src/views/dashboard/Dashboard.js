@@ -189,6 +189,7 @@ const Dashboard = {
     const newOrderBtn = el.querySelector('[data-action="new-order"]');
     if (newOrderBtn) {
       newOrderBtn.addEventListener("click", function () {
+        window._openOrderTableId = "new";
         window.navigate("/pos");
       });
     }
