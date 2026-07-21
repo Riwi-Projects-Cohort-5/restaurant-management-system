@@ -26,10 +26,11 @@
  *   }
  */
 
-import { createIcons, Eye, EyeOff } from "lucide";
+import { createIcons, Eye, EyeOff, Sun, Moon } from "lucide";
 import * as authStore from "../../store/auth.js";
 import { getHomeRoute } from "../../utils/routeGuard.js";
 import { toast } from "../../components/ui/ToastManager.js";
+import { getLogoPath, getScenePath, toggleTheme, isDark } from "../../utils/theme.js";
 import "../../components/forms/InputField.js";
 import "../../components/forms/CheckboxField.js";
 import "../../components/forms/SubmitButton.js";
@@ -37,17 +38,31 @@ import "../../components/forms/PasswordToggle.js";
 
 export function render(container) {
   container.innerHTML = `
-    <div class="grid w-full min-h-screen overflow-hidden
-                lg:grid-cols-[2fr_1fr]" id="loginPage">
+    <div class="relative w-full min-h-screen overflow-hidden" id="loginPage">
+
+      <button id="themeToggleBtn" type="button"
+              class="absolute top-4 right-4 z-50
+                     w-10 h-10 rounded-full
+                     border border-brand-300 bg-white/80 backdrop-blur-sm
+                     text-brand-600 hover:bg-brand-100 hover:border-brand-400 hover:text-brand-700
+                     flex items-center justify-center
+                     transition-colors duration-200
+                     cursor-pointer"
+              aria-label="Cambiar tema">
+        <i data-lucide="${isDark() ? "sun" : "moon"}" class="w-[18px] h-[18px]"></i>
+      </button>
+
+      <div class="grid w-full min-h-screen
+                  lg:grid-cols-[2fr_1fr]">
 
       <!-- ═══════════════════════════════════════════
-           BRAND PANEL — Sun Scene SVG
+           BRAND PANEL — Scene SVG (Sun/Moon)
            ═══════════════════════════════════════════ -->
       <aside class="relative overflow-hidden
                     max-lg:absolute max-lg:inset-0 max-lg:z-0
                     max-md:hidden" aria-hidden="true">
-        <img src="/logos/sun-scene.svg" alt="" class="absolute inset-0 w-full h-full object-cover object-bottom" draggable="false">
-        <img src="/logos/logo-02.png" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
+        <img src="${getScenePath()}" alt="" class="absolute inset-0 w-full h-full object-cover object-bottom" draggable="false">
+        <img src="${getLogoPath("logo-02")}" alt="El Fogón" class="absolute z-10 top-60 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] max-w-[798px] object-contain max-lg:hidden" draggable="false">
       </aside>
 
       <!-- ═══════════════════════════════════════════
@@ -60,8 +75,8 @@ export function render(container) {
 
         <!-- Tablet: dual logos -->
         <div class="hidden md:max-lg:flex items-center gap-4 mb-8">
-          <img src="/logos/logo-01.png" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
-          <img src="/logos/logo-03.png" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
+          <img src="${getLogoPath("logo-01")}" alt="El Fogón" class="h-auto w-[147px] object-contain" draggable="false">
+          <img src="${getLogoPath("logo-03")}" alt="El Fogón" class="h-auto w-[277px] object-contain" draggable="false">
         </div>
 
         <form class="login-form flex flex-col gap-8 w-full max-w-[380px]
@@ -70,9 +85,9 @@ export function render(container) {
           <!-- Header -->
           <header class="flex flex-col items-center gap-5">
             <img class="logo h-[220px] w-auto pb-8 object-contain hidden lg:block"
-                 src="/logos/logo-01.png" alt="El Fogón" draggable="false">
+                 src="${getLogoPath("logo-01")}" alt="El Fogón" draggable="false">
             <img class="logo h-[300px] w-auto pb-8 object-contain md:hidden"
-                 src="/logos/logo-00.png" alt="El Fogón" draggable="false">
+                 src="${getLogoPath("logo-00")}" alt="El Fogón" draggable="false">
             <div class="flex flex-col gap-3">
               <h1 class="text-heading font-semibold leading-snug text-neutral-900">Good to see you again</h1>
               <p class="text-sm font-normal leading-normal text-neutral-600">Sign in to manage tables, orders, and reservations.</p>
@@ -104,6 +119,7 @@ export function render(container) {
         </form>
       </main>
 
+    </div>
     </div>
   `;
 }
@@ -179,8 +195,40 @@ export function init() {
     icons: {
       Eye,
       EyeOff,
+      Sun,
+      Moon,
     },
   });
+
+  // Theme toggle button
+  const themeBtn = document.getElementById("themeToggleBtn");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", function () {
+      toggleTheme();
+      const newDark = isDark();
+      themeBtn.innerHTML = `<i data-lucide="${newDark ? "sun" : "moon"}" class="w-[18px] h-[18px]"></i>`;
+      createIcons({ icons: { Sun, Moon } });
+
+      // Update scene and logos
+      const sceneImg = document.querySelector("#loginPage img[src*='-scene.svg']");
+      if (sceneImg) sceneImg.src = getScenePath();
+
+      const panelLogo = document.querySelector("#loginPage img[src*='logo-02']");
+      if (panelLogo) panelLogo.src = getLogoPath("logo-02");
+
+      const tabletLogos = document.querySelectorAll("#loginPage .hidden.md\\:max-lg\\:flex img");
+      if (tabletLogos.length >= 2) {
+        tabletLogos[0].src = getLogoPath("logo-01");
+        tabletLogos[1].src = getLogoPath("logo-03");
+      }
+
+      const desktopLogo = document.querySelector("#loginPage .hidden.lg\\:block.logo");
+      if (desktopLogo) desktopLogo.src = getLogoPath("logo-01");
+
+      const mobileLogo = document.querySelector("#loginPage .md\\:hidden.logo");
+      if (mobileLogo) mobileLogo.src = getLogoPath("logo-00");
+    });
+  }
 
   const form = document.getElementById("loginForm");
   const errorBox = document.getElementById("login-error");

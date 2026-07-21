@@ -154,7 +154,7 @@ async function renderList(el) {
       const emoji = product.image_url || getCategoryEmoji(product.category_id);
 
       html +=
-        '<div class="bg-white border border-brand-300 rounded-xl p-4 flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[0_6px_16px_rgba(229,119,34,0.18)] transition-all">';
+        '<div class="bg-white border border-brand-300 rounded-xl p-4 flex flex-col items-center text-center hover:border-brand-500 hover:shadow-[var(--shadow-brand-hover)] transition-all">';
 
       if (product.image_url) {
         html +=

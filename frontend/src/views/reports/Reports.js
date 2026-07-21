@@ -239,11 +239,11 @@ async function render(el) {
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">Start Date<input type="date" id="report-start" value="' +
     startDate +
-    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
     '<label class="flex flex-col gap-1 text-xs font-semibold text-secondary-600">End Date<input type="date" id="report-end" value="' +
     endDate +
-    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[0_0_0_3px_rgba(229,119,34,0.15)] transition-all" /></label>';
+    '" class="border border-brand-200 rounded-lg px-3 py-2 text-sm text-neutral-700 bg-white cursor-pointer outline-none focus:border-brand-500 focus:shadow-[var(--ring-brand)] transition-all" /></label>';
   html +=
     '<button data-action="generate-report" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Generate</button>';
   html += "</div></div>";
