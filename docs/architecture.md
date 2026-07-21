@@ -145,16 +145,16 @@ cd frontend && pnpm dev        # :5173 (Vite, VITE_API_URL → http://localhost:
 
 ### Production
 
-Configured via `render.yaml`:
+Configured via `render.yaml` (backend) and `vercel.json` (frontend):
 
-- Backend: Docker web service running `uvicorn`, Python 3.13.
-- Frontend: Vite-built static site served by Render's CDN, with SPA fallback for hash routing.
-- Database: managed PostgreSQL.
+- Backend: Docker web service running `uvicorn`, Python 3.13, deployed on **Render**.
+- Frontend: Vite-built static site, deployed on **Vercel** with SPA fallback for hash routing (`vercel.json` rewrites).
+- Database: managed PostgreSQL on Render.
 
 Deploys are triggered by the **release** workflow in `.github/workflows/release.yml`:
 
-- On a PR targeting `main`: a validation gate runs (backend lint + tests, frontend lint + prettier + build). No deploy. The PR can only merge once this gate is green (`Render Production` secrets `RENDER_API_KEY`, `RENDER_PROD_SERVICE_ID`, `RENDER_PROD_FRONTEND_SERVICE_ID` are referenced by the deploy jobs but not required for the gate).
-- On push to `main` (a merged release PR): a semver tag is computed from the previous tag and pushed, a GitHub Release is published (notes generated from `.github/release.yml`), and the production backend + frontend services on Render are triggered via their deploy hooks.
+- On a PR targeting `main`: a validation gate runs (backend lint + tests, frontend lint + prettier + build). No deploy. The PR can only merge once this gate is green.
+- On push to `main` (a merged release PR): a semver tag is computed from the previous tag and pushed, a GitHub Release is published (notes generated from `.github/release.yml`), the backend deploys to **Render** via API hook, and the frontend deploys to **Vercel** via CLI (or auto-deploy if Vercel is linked to the repo).
 
 See [contributing.md](contributing.md) for the release flow and the secrets/branch protection rules.
 

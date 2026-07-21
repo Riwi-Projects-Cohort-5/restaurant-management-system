@@ -14,7 +14,7 @@ GitHub Actions workflows (the project's CI/CD).
 
 - `workflows/backend.yml` — install deps, lint (`ruff`), pytest (with a Postgres service container), build check. Deploys to Render's **preview** service on push to `develop`.
 - `workflows/frontend.yml` — install pnpm deps, `vite build`, lint (`pnpm lint`), prettier check.
-- `workflows/release.yml` — gates PRs to `main` (backend + frontend validation, **no deploy**). On push to `main` it computes a semver tag, publishes a GitHub Release using `.github/release.yml` to categorise PR notes, and triggers production deploys on Render for the backend (`RENDER_PROD_SERVICE_ID`) and frontend (`RENDER_PROD_FRONTEND_SERVICE_ID`) services.
+- `workflows/release.yml` — gates PRs to `main` (backend + frontend validation, **no deploy**). On push to `main` it computes a semver tag, publishes a GitHub Release using `.github/release.yml` to categorise PR notes, and triggers production deploys: backend to **Render** (`RENDER_PROD_SERVICE_ID`), frontend to **Vercel** (via `VERCEL_TOKEN`).
 - `release.yml` — auto-generated release notes categorisation (categories, excluded authors/labels, template).
 
 See [docs/contributing.md](docs/contributing.md) for the release flow and required repository secrets.
@@ -215,8 +215,8 @@ Shell helpers for common tasks.
 ## `.github/`, `docker-compose.yml`, `render.yaml`, `vercel.json`
 
 - `docker-compose.yml` — PostgreSQL service (and an optional backend service).
-- `render.yaml` — production deployment manifest (backend web service + managed Postgres + frontend static site).
-- `vercel.json` — Vercel static hosting config for the frontend alternative deploy.
+- `render.yaml` — production deployment manifest for the backend (Docker web service + managed Postgres). Frontend is deployed via Vercel (`vercel.json`).
+- `vercel.json` — Vercel static hosting config for the frontend SPA (pnpm build, SPA fallback rewrites).
 
 ---
 
