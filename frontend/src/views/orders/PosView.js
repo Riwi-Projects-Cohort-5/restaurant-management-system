@@ -1076,6 +1076,21 @@ const PosView = {
       window.createIcons();
       return;
     }
+    const openOrderId = window._openOrderId;
+    if (openOrderId) {
+      window._openOrderId = null;
+      const matched = allOrders.find(function (o) {
+        return o.fullId === openOrderId || o.id === openOrderId;
+      });
+      if (matched) {
+        subView = "detail";
+        selectedOrderId = matched.id;
+        editingOrder = null;
+        renderOrderDetail(el, matched.id);
+        window.createIcons();
+        return;
+      }
+    }
     if (subView === "new") {
       renderNewOrder(el);
     } else if (subView === "detail" && selectedOrderId) {
@@ -1096,12 +1111,36 @@ const PosView = {
       }
     };
     window.addEventListener("cart:sent", this._onCartSent);
+
+    this._onOrdersUpdated = async function () {
+      if (!_lastContainer) return;
+      await loadOrders();
+      if (subView === "detail" && selectedOrderId) {
+        const stillExists = allOrders.find(function (o) {
+          return o.id === selectedOrderId;
+        });
+        if (stillExists) {
+          renderOrderDetail(_lastContainer, selectedOrderId);
+        } else {
+          subView = "orders";
+          renderOrderList(_lastContainer);
+        }
+      } else {
+        renderOrderList(_lastContainer);
+      }
+      window.createIcons();
+    };
+    window.addEventListener("orders:updated", this._onOrdersUpdated);
   },
   destroy: function () {
     editingOrder = null;
     if (this._onCartSent) {
       window.removeEventListener("cart:sent", this._onCartSent);
       this._onCartSent = null;
+    }
+    if (this._onOrdersUpdated) {
+      window.removeEventListener("orders:updated", this._onOrdersUpdated);
+      this._onOrdersUpdated = null;
     }
   },
 };

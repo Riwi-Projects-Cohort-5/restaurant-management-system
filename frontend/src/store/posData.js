@@ -263,6 +263,7 @@ export async function updateOrderStatus(orderId, frontendStatus) {
     const result = await apiPut("/api/v1/orders/" + orderId + "/status", { status: backendStatus });
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
@@ -274,6 +275,7 @@ export async function deleteOrder(orderId) {
     await apiDelete("/api/v1/orders/" + orderId);
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true };
   } catch (err) {
     return { success: false, error: err.message };
@@ -287,6 +289,7 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
     });
     await loadOrders();
     await loadKitchenOrders();
+    window.dispatchEvent(new CustomEvent("orders:updated"));
     return { success: true, order: result };
   } catch (err) {
     return { success: false, error: err.message };
