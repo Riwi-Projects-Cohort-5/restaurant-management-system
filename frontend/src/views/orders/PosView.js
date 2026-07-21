@@ -19,6 +19,7 @@ import {
 } from "../../store/posData.js";
 import CartPanel, { loadDraftItems } from "../../components/pos/CartPanel.js";
 import { exportToCSV } from "../../utils/csvExport.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 let subView = "orders";
 let activeFilter = "all";
@@ -78,11 +79,15 @@ function renderOrderList(container) {
   html += '<div class="flex items-center justify-between mb-6">';
   html += '<h2 class="text-xl font-bold text-brand-900">Orders</h2>';
   html += '<div class="flex gap-2">';
-  html +=
-    '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
-  html +=
-    '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
-  html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="export-orders-csv" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md border bg-white text-brand-700 border-brand-300 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="download" class="w-4 h-4"></i><span>Export CSV</span></button>';
+  }
+  if (hasAnyRole("admin", "waiter")) {
+    html +=
+      '<button data-action="new-order" class="inline-flex items-center gap-2 h-10 px-4 text-sm font-semibold rounded-md bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer">';
+    html += '<i data-lucide="plus" class="w-4 h-4"></i><span>New Order</span></button>';
+  }
   html += "</div>";
   html += "</div>";
 

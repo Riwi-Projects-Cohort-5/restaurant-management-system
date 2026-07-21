@@ -2,6 +2,7 @@ import * as paymentsStore from "../../store/payments.js";
 import * as paymentService from "../../services/paymentService.js";
 import { allOrders, loadOrders } from "../../store/posData.js";
 import { currentUser } from "../../store/auth.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -132,10 +133,14 @@ function renderList(el) {
     (payments.length !== 1 ? "s" : "") +
     "</p></div>";
   html += '<div class="flex gap-2">';
-  html +=
-    '<button data-action="new-payment" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Payment</button>';
-  html +=
-    '<button data-action="config-methods" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Methods</button>';
+  if (hasAnyRole("admin", "cashier")) {
+    html +=
+      '<button data-action="new-payment" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Payment</button>';
+  }
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="config-methods" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="settings" class="w-4 h-4"></i> Methods</button>';
+  }
   html += "</div></div>";
 
   html += '<div class="flex flex-wrap gap-2">';
@@ -255,7 +260,7 @@ function renderList(el) {
         '<button data-action="view-detail" data-payment-id="' +
         payment.id +
         '" class="w-7 h-7 inline-flex items-center justify-center rounded-md bg-transparent text-brand-600 hover:bg-brand-100 hover:text-brand-700 border-0 cursor-pointer" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>';
-      if (canRefund) {
+      if (canRefund && hasAnyRole("admin", "cashier")) {
         html +=
           '<button data-action="refund-payment" data-payment-id="' +
           payment.id +
@@ -405,7 +410,7 @@ async function renderDetail(el, paymentId) {
   if (canRefund || canDelete) {
     html +=
       '<div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center gap-3">';
-    if (canRefund) {
+    if (canRefund && hasAnyRole("admin", "cashier")) {
       html +=
         '<button data-action="refund-payment" data-payment-id="' +
         payment.id +

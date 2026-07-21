@@ -1,6 +1,7 @@
 import * as reservationStore from "../../store/reservations.js";
 import * as reservationService from "../../services/reservationService.js";
 import { tables, loadTables } from "../../store/posData.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 const STATUS_LABELS = {
   pending: "Pending",
@@ -89,8 +90,10 @@ function renderList(el) {
     " reservation" +
     (reservations.length !== 1 ? "s" : "") +
     "</p></div>";
-  html +=
-    '<button data-action="new-reservation" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Reservation</button>';
+  if (hasAnyRole("admin", "waiter")) {
+    html +=
+      '<button data-action="new-reservation" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> New Reservation</button>';
+  }
   html += "</div>";
 
   html += '<div class="flex flex-wrap gap-2">';
@@ -191,7 +194,7 @@ function renderList(el) {
         '<td class="px-5 py-3.5"><button data-action="view-detail" data-id="' +
         r.id +
         '" class="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-brand-500 hover:bg-brand-100 border border-brand-300 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3.5 h-3.5"></i> View</button></td>';
-      if (r.status === "pending" || r.status === "confirmed") {
+      if ((r.status === "pending" || r.status === "confirmed") && hasAnyRole("admin", "waiter")) {
         html +=
           '<td class="px-5 py-3.5"><button data-action="cancel" data-id="' +
           r.id +
@@ -238,7 +241,7 @@ function renderDetail(el) {
     "</h2>";
   html += "</div>";
   html += '<div class="flex items-center gap-3">' + statusBadge(r.status, "lg");
-  if (r.status === "pending" || r.status === "confirmed") {
+  if ((r.status === "pending" || r.status === "confirmed") && hasAnyRole("admin", "waiter")) {
     html += '<div class="flex gap-2">';
     if (r.status === "pending") {
       html +=
@@ -258,10 +261,12 @@ function renderDetail(el) {
       '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent text-error-600 hover:bg-error-50 border border-error-300 cursor-pointer transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i> Cancel</button>';
     html += "</div>";
   }
-  html +=
-    '<button data-action="delete-reservation" data-id="' +
-    r.id +
-    '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="delete-reservation" data-id="' +
+      r.id +
+      '" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-error-600 hover:bg-error-700 text-white border-0 cursor-pointer transition-colors ml-auto"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar</button>';
+  }
   html += "</div></div>";
 
   html += '<div class="grid grid-cols-4 gap-4">';

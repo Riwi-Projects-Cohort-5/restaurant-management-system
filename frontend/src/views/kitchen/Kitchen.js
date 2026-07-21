@@ -4,6 +4,7 @@ import {
   loadOrders,
   updateAllKitchenOrderStatuses,
 } from "../../store/posData.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 const KITCHEN_STATUS_MAP = {
   new: "pending",
@@ -111,18 +112,20 @@ function renderCard(order, col) {
     '<button data-kitchen-action="details" data-order-id="' +
     order.id +
     '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg bg-transparent text-primary-600 hover:bg-primary-50 border border-primary-300 cursor-pointer transition-colors">Details</button>';
-  html +=
-    '<button data-kitchen-action="move" data-order-id="' +
-    order.id +
-    '" data-from-status="' +
-    col.key +
-    '" data-next-status="' +
-    col.next +
-    '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg text-white border-0 cursor-pointer transition-colors ' +
-    actionBg +
-    '">' +
-    actionLabel +
-    "</button>";
+  if (hasAnyRole("admin", "chef")) {
+    html +=
+      '<button data-kitchen-action="move" data-order-id="' +
+      order.id +
+      '" data-from-status="' +
+      col.key +
+      '" data-next-status="' +
+      col.next +
+      '" class="flex-1 h-8 px-3 text-xs font-semibold rounded-lg text-white border-0 cursor-pointer transition-colors ' +
+      actionBg +
+      '">' +
+      actionLabel +
+      "</button>";
+  }
   html += "</div></div>";
 
   return html;

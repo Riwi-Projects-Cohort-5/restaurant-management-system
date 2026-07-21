@@ -2,6 +2,7 @@ import * as menuStore from "../../store/menu.js";
 import * as menuService from "../../services/menuService.js";
 import { initMockCategories, initMockProducts } from "../../services/menuService.js";
 import { currentUser } from "../../store/auth.js";
+import { hasAnyRole } from "../../utils/roleContext.js";
 
 initMockCategories();
 initMockProducts();
@@ -76,8 +77,10 @@ async function renderList(el) {
     " product" +
     (products.length !== 1 ? "s" : "") +
     "</p></div>";
-  html +=
-    '<button data-action="create-product" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Product</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="create-product" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="plus" class="w-4 h-4"></i> Add Product</button>';
+  }
   html += "</div>";
 
   html += '<div class="flex flex-wrap gap-3 items-center">';
@@ -176,10 +179,12 @@ async function renderList(el) {
         '<button data-action="view-detail" data-product-id="' +
         product.id +
         '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-brand-50 text-brand-700 hover:bg-brand-100 border-0 cursor-pointer transition-colors"><i data-lucide="eye" class="w-3 h-3"></i> View</button>';
-      html +=
-        '<button data-action="edit-product" data-product-id="' +
-        product.id +
-        '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-3 h-3"></i> Edit</button>';
+      if (hasAnyRole("admin")) {
+        html +=
+          '<button data-action="edit-product" data-product-id="' +
+          product.id +
+          '" class="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs font-semibold rounded-md bg-primary-50 text-primary-700 hover:bg-primary-100 border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-3 h-3"></i> Edit</button>';
+      }
       html += "</div>";
       html += "</div>";
     }
@@ -265,17 +270,19 @@ async function renderDetail(el, productId) {
 
   html +=
     '<div class="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-center gap-3">';
-  html +=
-    '<button data-action="edit-product" data-product-id="' +
-    product.id +
-    '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>';
+  if (hasAnyRole("admin")) {
+    html +=
+      '<button data-action="edit-product" data-product-id="' +
+      product.id +
+      '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-primary-600 hover:bg-primary-700 text-white border-0 cursor-pointer transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Edit</button>';
+  }
 
-  if (product.available) {
+  if (product.available && hasAnyRole("admin")) {
     html +=
       '<button data-action="toggle-availability" data-product-id="' +
       product.id +
       '" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white border border-brand-300 text-brand-700 hover:bg-brand-50 cursor-pointer transition-colors"><i data-lucide="eye-off" class="w-4 h-4"></i> Disable</button>';
-  } else {
+  } else if (!product.available && hasAnyRole("admin")) {
     html +=
       '<button data-action="toggle-availability" data-product-id="' +
       product.id +
