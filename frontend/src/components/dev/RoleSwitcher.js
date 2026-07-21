@@ -1,8 +1,8 @@
 const ROLES = [
-  { id: "admin", label: "Admin", color: "bg-error-500" },
-  { id: "waiter", label: "Waiter", color: "bg-brand-500" },
-  { id: "chef", label: "Chef", color: "bg-accent-500" },
-  { id: "cashier", label: "Cashier", color: "bg-success-500" },
+  { id: "admin", label: "Admin", color: "#dc2626" },
+  { id: "waiter", label: "Waiter", color: "#7329e1" },
+  { id: "chef", label: "Chef", color: "#c77c2c" },
+  { id: "cashier", label: "Cashier", color: "#16a34a" },
 ];
 
 let expanded = false;
@@ -63,10 +63,10 @@ function renderFloatingButton() {
   } else {
     wrapper.innerHTML =
       '<button id="dev-role-toggle" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9999px;border:2px solid ' +
-      (roleMeta ? roleMeta.color.replace("bg-", "").replace("500", "") : "#666") +
+      (roleMeta ? roleMeta.color : "#666") +
       ';background:#1e1e1e;color:#fff;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.3);font-family:inherit;text-transform:uppercase;letter-spacing:0.03em;">' +
       '<span style="width:8px;height:8px;border-radius:50%;background:' +
-      (roleMeta ? roleMeta.color.replace("bg-", "") : "#666") +
+      (roleMeta ? roleMeta.color : "#666") +
       ';"></span>' +
       (roleMeta ? roleMeta.label : role) +
       "</button>";
