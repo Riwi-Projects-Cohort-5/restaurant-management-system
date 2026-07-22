@@ -20,7 +20,7 @@ class InventoryMovement(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     item_id = Column(UUID(as_uuid=True), ForeignKey("inventory_items.id"), nullable=False)
-    type = Column(SAEnum("in", "out", name="movementtype", create_type=False), nullable=False)
+    type = Column(SAEnum(MovementType, name="movementtype", create_type=False), nullable=False)
     quantity = Column(Numeric(10, 2), nullable=False)
     reason = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

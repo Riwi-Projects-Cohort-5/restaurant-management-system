@@ -48,10 +48,18 @@ class TableRepository:
         return table
 
     def update(self, table: Table) -> Table:
-        self.db.commit()
-        self.db.refresh(table)
-        return table
+        try:
+            self.db.commit()
+            self.db.refresh(table)
+            return table
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, table: Table) -> None:
         self.db.delete(table)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

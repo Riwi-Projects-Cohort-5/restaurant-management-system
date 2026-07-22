@@ -26,6 +26,10 @@ class PaymentRepository:
         return payment
 
     def update(self, payment: Payment) -> Payment:
-        self.db.commit()
-        self.db.refresh(payment)
-        return payment
+        try:
+            self.db.commit()
+            self.db.refresh(payment)
+            return payment
+        except Exception:
+            self.db.rollback()
+            raise

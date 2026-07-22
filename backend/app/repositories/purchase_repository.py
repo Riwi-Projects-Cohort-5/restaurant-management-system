@@ -26,6 +26,10 @@ class PurchaseRepository:
         return purchase
 
     def update(self, purchase: Purchase) -> Purchase:
-        self.db.commit()
-        self.db.refresh(purchase)
-        return purchase
+        try:
+            self.db.commit()
+            self.db.refresh(purchase)
+            return purchase
+        except Exception:
+            self.db.rollback()
+            raise
