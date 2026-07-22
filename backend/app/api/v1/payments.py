@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.schemas.payment import PaymentCreate, PaymentOut, PaymentUpdate
-from app.services.payment_service import PaymentService
+from app.services.payment_service import InvalidEnumValueError, PaymentService
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
@@ -94,7 +94,7 @@ def registrar_pago(
             amount=data.amount,
             method=data.method
         )
-    except ValueError as e:
+    except (ValueError, InvalidEnumValueError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
@@ -116,7 +116,13 @@ def actualizar_estado_pago(
 ):
     """Actualiza el estado de un pago. Requiere autenticación."""
     service = PaymentService(db)
-    updated = service.update_status(payment_id, data.status)
+    try:
+        updated = service.update_status(payment_id, data.status)
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

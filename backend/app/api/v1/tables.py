@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.schemas.table import TableCreate, TableOut, TableUpdate
-from app.services.table_service import TableService
+from app.services.table_service import InvalidEnumValueError, TableService
 
 router = APIRouter(prefix="/tables", tags=["Tables"])
 
@@ -89,7 +89,13 @@ def actualizar_mesa(
 ):
     """Actualiza datos o estado de una mesa. Requiere autenticación."""
     service = TableService(db)
-    updated = service.update(table_id, data.model_dump(exclude_none=True))
+    try:
+        updated = service.update(table_id, data.model_dump(exclude_none=True))
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

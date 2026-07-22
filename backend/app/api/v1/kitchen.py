@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.schemas.kitchen import KitchenOrderOut, KitchenOrderUpdate
-from app.services.kitchen_service import KitchenService
+from app.services.kitchen_service import InvalidEnumValueError, KitchenService
 
 router = APIRouter(prefix="/kitchen", tags=["Kitchen"])
 
@@ -101,11 +101,17 @@ def actualizar_estado_orden_cocina(
     El cocinero usa este endpoint para avanzar el estado del plato.
     """
     service = KitchenService(db)
-    updated = service.update_status(
-        kitchen_order_id=kitchen_order_id,
-        status=data.status,
-        notes=data.notes
-    )
+    try:
+        updated = service.update_status(
+            kitchen_order_id=kitchen_order_id,
+            status=data.status,
+            notes=data.notes
+        )
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
