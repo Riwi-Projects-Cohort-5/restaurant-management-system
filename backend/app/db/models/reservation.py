@@ -26,7 +26,7 @@ class Reservation(Base):
     guest_phone = Column(String(20), nullable=True)
     reservation_date = Column(DateTime(timezone=True), nullable=False)
     guest_count = Column(Integer, nullable=False)
-    status = Column(SAEnum(ReservationStatus, name="reservationstatus", create_type=False), nullable=False, default=ReservationStatus.PENDING)
+    status = Column(SAEnum(ReservationStatus, name="reservationstatus", create_type=False, values_callable=lambda x: [e.value for e in x]), nullable=False, default=ReservationStatus.PENDING)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

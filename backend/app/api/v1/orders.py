@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.schemas.order import OrderCreate, OrderItemCreate, OrderOut, OrderUpdate
-from app.services.order_service import OrderService
+from app.services.order_service import InvalidEnumValueError, OrderService
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
 
@@ -120,7 +120,13 @@ def actualizar_estado_orden(
     Estados válidos: PENDING, READY, PAID.
     """
     service = OrderService(db)
-    updated = service.update_status(order_id, data.status)
+    try:
+        updated = service.update_status(order_id, data.status)
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

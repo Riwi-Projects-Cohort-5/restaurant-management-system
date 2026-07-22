@@ -77,6 +77,9 @@ def _auth_header(user_id: uuid.UUID) -> dict:
 def db_session():
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
     try:
         yield session
     finally:

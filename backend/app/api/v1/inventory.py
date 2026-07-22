@@ -26,7 +26,7 @@ from app.db.schemas.inventory import (
     InventoryMovementCreate,
     InventoryMovementOut,
 )
-from app.services.inventory_service import InventoryService
+from app.services.inventory_service import InvalidEnumValueError, InventoryService
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
@@ -121,18 +121,24 @@ def registrar_movimiento(
     type: 'in' para entradas, 'out' para salidas.
     """
     service = InventoryService(db)
-    movement = service.register_movement(
-        item_id=item_id,
-        movement_type=data.type,
-        quantity=data.quantity,
-        reason=data.reason
-    )
+    try:
+        movement = service.register_movement(
+            item_id=item_id,
+            movement_type=data.type,
+            quantity=data.quantity,
+            reason=data.reason
+        )
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not movement:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Item con id {item_id} no encontrado"
         )
-        return movement
+    return movement
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
