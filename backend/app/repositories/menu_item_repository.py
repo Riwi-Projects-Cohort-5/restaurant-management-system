@@ -29,10 +29,18 @@ class MenuItemRepository:
         return item
 
     def update(self, item: MenuItem) -> MenuItem:
-        self.db.commit()
-        self.db.refresh(item)
-        return item
+        try:
+            self.db.commit()
+            self.db.refresh(item)
+            return item
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, item: MenuItem) -> None:
         self.db.delete(item)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

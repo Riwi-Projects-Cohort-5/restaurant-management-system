@@ -22,6 +22,10 @@ class SettingRepository:
         return setting
 
     def update(self, setting: Setting) -> Setting:
-        self.db.commit()
-        self.db.refresh(setting)
-        return setting
+        try:
+            self.db.commit()
+            self.db.refresh(setting)
+            return setting
+        except Exception:
+            self.db.rollback()
+            raise

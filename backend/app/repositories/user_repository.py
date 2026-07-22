@@ -29,10 +29,18 @@ class UserRepository:
         return user
 
     def update(self, user: User) -> User:
-        self.db.commit()
-        self.db.refresh(user)
-        return user
+        try:
+            self.db.commit()
+            self.db.refresh(user)
+            return user
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, user: User) -> None:
         self.db.delete(user)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

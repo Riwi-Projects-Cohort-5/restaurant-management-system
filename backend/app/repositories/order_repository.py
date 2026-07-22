@@ -38,10 +38,18 @@ class OrderRepository:
         return order
 
     def update(self, order: Order) -> Order:
-        self.db.commit()
-        self.db.refresh(order)
-        return order
+        try:
+            self.db.commit()
+            self.db.refresh(order)
+            return order
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, order: Order) -> None:
         self.db.delete(order)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

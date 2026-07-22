@@ -29,10 +29,18 @@ class LocationRepository:
         return location
 
     def update(self, location: Location) -> Location:
-        self.db.commit()
-        self.db.refresh(location)
-        return location
+        try:
+            self.db.commit()
+            self.db.refresh(location)
+            return location
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, location: Location) -> None:
         self.db.delete(location)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

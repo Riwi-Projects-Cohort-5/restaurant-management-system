@@ -26,10 +26,18 @@ class SupplierRepository:
         return supplier
 
     def update(self, supplier: Supplier) -> Supplier:
-        self.db.commit()
-        self.db.refresh(supplier)
-        return supplier
+        try:
+            self.db.commit()
+            self.db.refresh(supplier)
+            return supplier
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, supplier: Supplier) -> None:
         self.db.delete(supplier)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

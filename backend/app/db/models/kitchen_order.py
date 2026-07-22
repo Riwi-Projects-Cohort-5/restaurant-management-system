@@ -25,7 +25,7 @@ class KitchenOrder(Base):
     menu_item_name = Column(String(150), nullable=False)
     quantity = Column(Integer, nullable=False)
     notes = Column(Text, nullable=True)
-    status = Column(SAEnum("pending", "preparing", "ready", "delivered", name="kitchenorderstatus", create_type=False), nullable=False, default="pending")
+    status = Column(SAEnum(KitchenOrderStatus, name="kitchenorderstatus", create_type=False), nullable=False, default=KitchenOrderStatus.PENDING)
     priority = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

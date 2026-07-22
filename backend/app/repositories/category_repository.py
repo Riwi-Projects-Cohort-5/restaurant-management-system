@@ -26,10 +26,18 @@ class CategoryRepository:
         return category
 
     def update(self, category: Category) -> Category:
-        self.db.commit()
-        self.db.refresh(category)
-        return category
+        try:
+            self.db.commit()
+            self.db.refresh(category)
+            return category
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, category: Category) -> None:
         self.db.delete(category)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

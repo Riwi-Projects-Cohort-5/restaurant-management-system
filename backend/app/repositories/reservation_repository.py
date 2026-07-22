@@ -32,10 +32,18 @@ class ReservationRepository:
         return reservation
 
     def update(self, reservation: Reservation) -> Reservation:
-        self.db.commit()
-        self.db.refresh(reservation)
-        return reservation
+        try:
+            self.db.commit()
+            self.db.refresh(reservation)
+            return reservation
+        except Exception:
+            self.db.rollback()
+            raise
 
     def delete(self, reservation: Reservation) -> None:
         self.db.delete(reservation)
-        self.db.commit()
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise

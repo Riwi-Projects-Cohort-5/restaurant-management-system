@@ -38,6 +38,10 @@ class KitchenRepository:
         return kitchen_order
 
     def update(self, kitchen_order: KitchenOrder) -> KitchenOrder:
-        self.db.commit()
-        self.db.refresh(kitchen_order)
-        return kitchen_order
+        try:
+            self.db.commit()
+            self.db.refresh(kitchen_order)
+            return kitchen_order
+        except Exception:
+            self.db.rollback()
+            raise
