@@ -4,6 +4,7 @@ class FormModal {
   constructor() {
     this._resolve = null;
     this._container = null;
+    this._closing = false;
   }
 
   show({
@@ -15,6 +16,7 @@ class FormModal {
   } = {}) {
     return new Promise((resolve) => {
       this._resolve = resolve;
+      this._closing = false;
 
       if (this._container) {
         this._container.remove();
@@ -55,12 +57,16 @@ class FormModal {
       if (firstFocusable) firstFocusable.focus();
 
       const close = (result) => {
+        if (this._closing) return;
+        this._closing = true;
         overlay.classList.add("animate-backdrop-out");
         if (modal) modal.classList.add("animate-modal-out");
         overlay.addEventListener("animationend", () => {
-          this._container.remove();
-          this._container = null;
-        });
+          if (this._container) {
+            this._container.remove();
+            this._container = null;
+          }
+        }, { once: true });
         if (this._resolve) {
           this._resolve(result);
           this._resolve = null;
