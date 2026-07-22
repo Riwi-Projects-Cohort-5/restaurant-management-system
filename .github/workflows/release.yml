@@ -92,7 +92,7 @@ jobs:
         env:
           # Production build uses the deployed backend URL. For the PR gate
           # we use a placeholder; the production value is supplied at deploy time.
-          VITE_API_URL: https://restaurant-backend.onrender.com
+          VITE_API_URL: https://restaurant-management-system-1-2sfc.onrender.com
 
   # ---------------------------------------------------------------------------
   # Gate summary — fast-fail. The PR check status reflects both jobs above.

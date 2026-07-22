@@ -1,11 +1,9 @@
 from decimal import Decimal
-from uuid import uuid4
 
 from app.db.models.category import Category
 from app.db.models.menu_item import MenuItem
-from app.db.models.order import Order, OrderStatus
+from app.db.models.order import OrderStatus
 from app.db.models.table import Table
-from app.db.models.user import User, UserRole
 from app.services.order_service import OrderService
 from app.services.payment_service import PaymentService
 from tests.conftest import _auth_header, _create_test_user, client
