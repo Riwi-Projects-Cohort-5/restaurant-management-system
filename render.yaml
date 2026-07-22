@@ -21,7 +21,7 @@ services:
       - key: PROJECT_NAME
         value: Restaurant Management System
     # NOTE: the FastAPI app exposes `/health` at root (see backend/app/main.py),
-    # not under `/api/v1/*`. Deployed URL: https://restaurant-backend.onrender.com/health
+    # not under `/api/v1/*`. Deployed URL: https://restaurant-management-system-1-2sfc.onrender.com/health
     healthCheckPath: /health
     autoDeploy: false
 
