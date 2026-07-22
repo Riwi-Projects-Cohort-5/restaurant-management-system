@@ -28,10 +28,22 @@ app = FastAPI(title=settings.PROJECT_NAME)
 # En producción se deben restringir los orígenes permitidos
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
+    ],
+    expose_headers=["Content-Length"],
+    max_age=600,
 )
 
 # Registramos el router principal con todos los endpoints bajo /api/v1
