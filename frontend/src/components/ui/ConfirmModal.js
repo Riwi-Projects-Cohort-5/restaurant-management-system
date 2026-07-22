@@ -65,12 +65,16 @@ class ConfirmModal {
           modal.classList.remove("animate-modal-in");
           modal.classList.add("animate-modal-out");
         }
-        overlay.addEventListener("animationend", () => {
-          if (this._container) {
-            this._container.remove();
-            this._container = null;
-          }
-        }, { once: true });
+        overlay.addEventListener(
+          "animationend",
+          () => {
+            if (this._container) {
+              this._container.remove();
+              this._container = null;
+            }
+          },
+          { once: true }
+        );
         if (this._resolve) {
           this._resolve(result);
           this._resolve = null;

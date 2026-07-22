@@ -61,12 +61,16 @@ class FormModal {
         this._closing = true;
         overlay.classList.add("animate-backdrop-out");
         if (modal) modal.classList.add("animate-modal-out");
-        overlay.addEventListener("animationend", () => {
-          if (this._container) {
-            this._container.remove();
-            this._container = null;
-          }
-        }, { once: true });
+        overlay.addEventListener(
+          "animationend",
+          () => {
+            if (this._container) {
+              this._container.remove();
+              this._container = null;
+            }
+          },
+          { once: true }
+        );
         if (this._resolve) {
           this._resolve(result);
           this._resolve = null;
