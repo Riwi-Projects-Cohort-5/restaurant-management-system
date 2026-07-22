@@ -2,6 +2,7 @@ class ConfirmModal {
   constructor() {
     this._resolve = null;
     this._container = null;
+    this._closing = false;
   }
 
   show({
@@ -12,6 +13,7 @@ class ConfirmModal {
   } = {}) {
     return new Promise((resolve) => {
       this._resolve = resolve;
+      this._closing = false;
 
       if (this._container) {
         this._container.remove();
@@ -54,6 +56,8 @@ class ConfirmModal {
       const acceptBtn = this._container.querySelector("[data-confirm-accept]");
 
       const close = (result) => {
+        if (this._closing) return;
+        this._closing = true;
         const modal = this._container.querySelector("[data-confirm-modal]");
         overlay.classList.remove("animate-backdrop-in");
         overlay.classList.add("animate-backdrop-out");
@@ -61,10 +65,16 @@ class ConfirmModal {
           modal.classList.remove("animate-modal-in");
           modal.classList.add("animate-modal-out");
         }
-        overlay.addEventListener("animationend", () => {
-          this._container.remove();
-          this._container = null;
-        });
+        overlay.addEventListener(
+          "animationend",
+          () => {
+            if (this._container) {
+              this._container.remove();
+              this._container = null;
+            }
+          },
+          { once: true }
+        );
         if (this._resolve) {
           this._resolve(result);
           this._resolve = null;

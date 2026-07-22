@@ -324,7 +324,7 @@ export async function updateKitchenOrderStatus(kitchenOrderId, newStatus) {
   }
 }
 
-export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus) {
+export async function updateAllKitchenOrderStatuses(kitchenIds, newStatus, expectedCurrent) {
   let lastResult;
   for (const kid of kitchenIds) {
     lastResult = await updateKitchenOrderStatus(kid, newStatus);
