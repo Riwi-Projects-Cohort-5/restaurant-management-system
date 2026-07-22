@@ -270,22 +270,24 @@ def seed_database(db: Session) -> None:
     db.commit()
 
     # ── Orders ──
+    res_map = {r.id: r for r in db.query(Reservation).all()}
     orders_data = [
         # Order 1 - Mesa 2, pending items
-        (waiter1_id, 2, OrderStatus.IN_PROGRESS, 22.50),
+        (waiter1_id, 2, OrderStatus.IN_PROGRESS, 22.50, None),
         # Order 2 - Mesa 3, ready
-        (waiter2_id, 3, OrderStatus.READY, 47.00),
-        # Order 3 - Mesa 6, served
-        (waiter1_id, 6, OrderStatus.SERVED, 65.50),
+        (waiter2_id, 3, OrderStatus.READY, 47.00, None),
+        # Order 3 - Mesa 6, served (linked to completed reservation)
+        (waiter1_id, 6, OrderStatus.SERVED, 65.50, "RF-20260722-0005"),
         # Order 4 - Mesa 10, completed with payment
-        (waiter3_id, 10, OrderStatus.COMPLETED, 38.00),
+        (waiter3_id, 10, OrderStatus.COMPLETED, 38.00, None),
         # Order 5 - Mesa 3, second order pending
-        (waiter2_id, 3, OrderStatus.PENDING, 14.00),
+        (waiter2_id, 3, OrderStatus.PENDING, 14.00, None),
     ]
     orders = []
-    for waiter_id, tbl_num, status, total in orders_data:
+    for waiter_id, tbl_num, status, total, reservation_id in orders_data:
         o = Order(
             id=uuid.uuid4(), waiter_id=waiter_id, table_id=table_map[tbl_num],
+            reservation_id=reservation_id,
             status=status, total=total,
             created_at=now - timedelta(hours=3),
             updated_at=now - timedelta(hours=1),
