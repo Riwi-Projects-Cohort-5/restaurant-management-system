@@ -29,11 +29,11 @@ async function moveOrder(id, newStatus) {
   if (!order) return;
 
   const backendStatus = KITCHEN_STATUS_MAP[newStatus];
-  if (backendStatus && order.lineStatuses && order.lineStatuses.length > 0) {
+  if (backendStatus && order.kitchenIds && order.kitchenIds.length > 0) {
     const expectedCurrent = FROM_STATUS_MAP[newStatus]
       ? KITCHEN_STATUS_MAP[FROM_STATUS_MAP[newStatus]]
       : null;
-    await updateAllKitchenOrderStatuses(order.lineStatuses, backendStatus, expectedCurrent);
+    await updateAllKitchenOrderStatuses(order.kitchenIds, backendStatus, expectedCurrent);
   }
   const el = document.getElementById("current-view");
   if (el) {
