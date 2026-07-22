@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user
 from app.db.database import get_db
 from app.db.schemas.user import UserOut, UserUpdate
-from app.services.user_service import UserService
+from app.services.user_service import InvalidEnumValueError, UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -129,8 +129,13 @@ def actualizar_usuario(
         HTTPException 404 si el usuario no existe.
     """
     service = UserService(db)
-    updated = service.update(user_id, data.model_dump(exclude_none=True))
-
+    try:
+        updated = service.update(user_id, data.model_dump(exclude_none=True))
+    except InvalidEnumValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

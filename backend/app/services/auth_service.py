@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token, get_password_hash, verify_password
-from app.db.models.user import User
+from app.db.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
 
 
@@ -25,6 +25,6 @@ class AuthService:
             email=email,
             hashed_password=hashed,
             full_name=full_name,
-            role=role,
+            role=UserRole(role),
         )
         return self.repo.create(user)
