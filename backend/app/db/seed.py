@@ -8,17 +8,17 @@ from app.db.models.category import Category
 from app.db.models.customer import Customer
 from app.db.models.inventory_item import InventoryItem
 from app.db.models.inventory_movement import InventoryMovement, MovementType
+from app.db.models.kitchen_order import KitchenOrder, KitchenOrderStatus
 from app.db.models.location import Location
 from app.db.models.menu_item import MenuItem
 from app.db.models.order import Order, OrderStatus
 from app.db.models.order_item import OrderItem
 from app.db.models.payment import Payment, PaymentMethod, PaymentStatus
-from app.db.models.kitchen_order import KitchenOrder, KitchenOrderStatus
+from app.db.models.purchase import Purchase
+from app.db.models.purchase_detail import PurchaseDetail
 from app.db.models.recipe import Recipe
 from app.db.models.reservation import Reservation, ReservationStatus
 from app.db.models.setting import Setting
-from app.db.models.purchase import Purchase
-from app.db.models.purchase_detail import PurchaseDetail
 from app.db.models.supplier import Supplier
 from app.db.models.table import Table, TableStatus
 from app.db.models.user import User, UserRole
@@ -270,7 +270,6 @@ def seed_database(db: Session) -> None:
     db.commit()
 
     # ── Orders ──
-    res_map = {r.id: r for r in db.query(Reservation).all()}
     orders_data = [
         # Order 1 - Mesa 2, pending items
         (waiter1_id, 2, OrderStatus.IN_PROGRESS, 22.50, None),
